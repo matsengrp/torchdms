@@ -1,3 +1,4 @@
+import sys
 import pandas as pd
 import numpy as np
 
@@ -9,10 +10,11 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+print(sys.path)
 random.seed(5)
 # Load in data matrix and functional scores
-bmap = sparse.load_npz("../data/dms_simulation_150000_variants.npz")
-func_scores = np.loadtxt("../data/dms_simulation_150000_variants_funcscores.txt",
+bmap = sparse.load_npz("/Users/zorian15/Desktop/torch-dms/data/dms_simulation_150000_variants.npz")
+func_scores = np.loadtxt("/Users/zorian15/Desktop/torch-dms/data/dms_simulation_150000_variants_funcscores.txt",
                          delimiter='\t')
 
 # Convert bmap to dataframe
@@ -24,12 +26,12 @@ class Net(nn.Module):
     def __init__(self, input_size, hidden1_size):
         super(Net, self).__init__()
         self.fc1 = nn.Linear(input_size, hidden1_size)  # input -> hidden layer
-        self.relu1 = nn.ReLU()
+        self.sigmoid1 = nn.Sigmoid()
         self.fc2 = nn.Linear(hidden1_size, 1)  # hidden -> output layer
 
     def forward(self, x):
         out = self.fc1(x)
-        out = self.relu1(out)
+        out = self.sigmoid1(out)
         out = self.fc2(out)
         return out
 
@@ -69,7 +71,8 @@ print(net)
 
 # Define loss criterion and optimization method
 criterion = torch.nn.MSELoss()  # MSE loss function
-optimizer = torch.optim.SGD(net.parameters(), lr=0.01)
+# Try decaying learning rate
+optimizer = torch.optim.SGD(net.parameters(), lr=0.00001)
 
 # Create training and testing sets for epochs
 X_train, y_train, X_test, y_test = make_train_test_split(data=bmap,
@@ -84,7 +87,7 @@ for epoch in range(n_epochs):
 
     for i in range(0, bmap.shape[0], batch_size):
         optimizer.zero_grad()
-        id = permutation[i:i+batch_size]
+        id = permutation[i:i+batch_size]  # Double check to ensure X and y match.
         batch_X, batch_y = bmap[id], func_scores[id]
 
         batch_X = torch.from_numpy(batch_X).float()
@@ -119,5 +122,12 @@ y_test = torch.from_numpy(y_test).float()
 y_pred = net(X_test)
 after_train = criterion(y_pred.squeeze(), y_test)
 
+print('Training loss:', np.mean(losses))
 print('Test loss after Training:', after_train.item())
 print('Variation in test labels:', y_test_var)
+
+# Histogram of weights post-training
+
+# Predicted values vs observed values
+
+# Print weights and compare with
