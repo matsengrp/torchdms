@@ -95,8 +95,8 @@ net = Net(input_size=bmap.shape[1], hidden1_size=1)
 # print(net)
 net.train()
 criterion = torch.nn.MSELoss()  # MSE loss function
-optimizer = torch.optim.SGD(net.parameters(), lr=1e-5)
-net, train_loss = train_network(model=net, n_epoch=30, batch_size=32,
+optimizer = torch.optim.Adam(net.parameters(), lr=1e-3)
+net, train_loss = train_network(model=net, n_epoch=100, batch_size=400,
                                 train_data=X_train, train_labels=y_train,
                                 optimizer=optimizer, criterion=criterion,
                                 get_train_loss=True)
@@ -109,7 +109,7 @@ y_test_preds = net(X_test_torch)
 
 net_loss = criterion(y_pred.squeeze(), y_train_torch)
 net_test_loss = criterion(y_test_preds.squeeze(), y_test_torch)
-print('Training loss after Training:', net_loss.item())
+print('Training loss:', net_loss.item())
 print('Variation in training labels:', np.var(y_train))
 print("Testing loss: ", net_test_loss.item())
 print("Variation in testing labels:", np.var(y_test))
@@ -142,3 +142,4 @@ sns.scatterplot(x=y_train, y=y_pred.detach().numpy().squeeze())
 plt.xlabel("Observed Function Score")
 plt.ylabel("Predicted Function Score")
 plt.title("Observed vs Predicted")
+plt.savefig("/Users/zorian15/Desktop/torch-dms/figs/obs_vs_pred.png")
