@@ -32,12 +32,7 @@ variant_error_rate = 0.005  # rate at which variant sequence mis-called
 avgdepth_per_variant = 200  # average per-variant sequencing depth
 lib_uniformity = 5  # uniformity of library pre-selection
 noise = 0.02  # random noise in selections
-# bottleneck = 10  # bottleneck from pre- to post-selection, average number of each variant that gets through
-bottlenecks = {  # bottlenecks from pre- to post-selection
-    'tight_bottle': variants_per_lib,
-    'mid_bottle': variants_per_lib * 3,
-    'loose_bottle': variants_per_lib * 50,
-}
+bottleneck = 10  # bottleneck from pre- to post-selection, average number of each variant that gets through
 
 # Set seed for reproducibility
 random.seed(seed)
@@ -74,14 +69,15 @@ counts = dms_variants.simulate.simulateSampleCounts(
     variants=variants,
     phenotype_func=phenosimulator.observedEnrichment,
     variant_error_rate=variant_error_rate,
-    pre_sample={'total_count': variants_per_lib * avgdepth_per_variant,
+    pre_sample={'total_count': int(variants_per_lib * avgdepth_per_variant),
                 'uniformity': lib_uniformity},
     pre_sample_name='pre-selection',
-    post_samples={name: {'noise': noise,
-                         'total_count': variants_per_lib * avgdepth_per_variant,
-                         'bottleneck': bottle}
-                  for name, bottle in bottlenecks.items()},
-    seed=seed,
+    post_samples={'post-selection':
+                  {'noise': noise,
+                   'total_count': int(variants_per_lib * avgdepth_per_variant),
+                   'bottleneck': int(bottleneck * variants_per_lib)}
+                  },
+    seed=seed
 )
 
 # View the variants
