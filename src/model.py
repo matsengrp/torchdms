@@ -1,5 +1,3 @@
-import sys
-import os
 import numpy as np
 
 from scipy import sparse
@@ -92,6 +90,9 @@ y_train_torch = torch.from_numpy(y_train).float()
 X_test_torch = torch.from_numpy(X_test).float()
 y_test_torch = torch.from_numpy(y_test).float()
 
+# Torch versions of entire dataset.
+bmap_torch = torch.from_numpy(bmap).float()
+func_scores_torch = torch.from_numpy(func_scores).float()
 
 net = Net(input_size=bmap.shape[1], hidden1_size=1)
 # print(net)
@@ -99,7 +100,7 @@ net.train()
 criterion = torch.nn.MSELoss()  # MSE loss function
 optimizer = torch.optim.Adam(net.parameters(), lr=1e-3)
 net, train_loss = train_network(model=net, n_epoch=100, batch_size=400,
-                                train_data=X_train, train_labels=y_train,
+                                train_data=bmap, train_labels=func_scores,
                                 optimizer=optimizer, criterion=criterion,
                                 get_train_loss=True)
 
@@ -107,14 +108,16 @@ net, train_loss = train_network(model=net, n_epoch=100, batch_size=400,
 # Make predictions on training data and testing data.
 y_pred = net(X_train_torch)
 y_test_preds = net(X_test_torch)
-
+# y_pred_all = net(bmap_torch)
 
 net_loss = criterion(y_pred.squeeze(), y_train_torch)
 net_test_loss = criterion(y_test_preds.squeeze(), y_test_torch)
+# net_total_loss = criterion(y_pred_all.squeeze(), func_scores_torch)
 print('Training loss:', net_loss.item())
 print('Variation in training labels:', np.var(y_train))
 print("Testing loss: ", net_test_loss.item())
 print("Variation in testing labels:", np.var(y_test))
+# print('Total loss:', net_total_loss.item())
 
 
 index = np.array(list(range(len(train_loss))))  # X-axis

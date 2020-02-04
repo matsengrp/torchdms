@@ -1,2 +1,4 @@
 /data
 /figs
+__pycache__/
+*.py[cod]
