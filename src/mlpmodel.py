@@ -111,7 +111,7 @@ variant_error_rate = 0.005  # rate at which variant sequence mis-called
 avgdepth_per_variant = 100  # average per-variant sequencing depth
 lib_uniformity = 5  # uniformity of library pre-selection
 noise = 0.02  # random noise in selections
-bottleneck = 20  # bottleneck from pre- to post-selection as multiple of variants_per_lib
+bottleneck = 10  # bottleneck from pre- to post-selection as multiple of variants_per_lib
 
 random.seed(seed)
 warnings.simplefilter('ignore')
@@ -226,7 +226,7 @@ print(net)
 net.train()
 criterion = torch.nn.MSELoss()  # MSE loss function
 optimizer = torch.optim.Adam(net.parameters(), lr=1e-2)
-net, train_loss = train_network(model=net, n_epoch=200, batch_size=600,
+net, train_loss = train_network(model=net, n_epoch=200, batch_size=400,
                                 train_data=bmap_np, train_labels=func_scores_np,
                                 optimizer=optimizer, criterion=criterion,
                                 get_train_loss=True)

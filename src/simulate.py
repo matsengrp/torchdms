@@ -110,3 +110,5 @@ print(bmap.func_scores)
 sparse.save_npz("../data/dms_simulation_150000_variants.npz", bmap.binary_variants)
 np.savetxt("../data/dms_simulation_150000_variants_funcscores.txt", bmap.func_scores,
            delimiter='\t')
+np.savetxt("../data/dms_simulation_150000_variants_funcscores_var.txt", bmap.func_scores_var,
+           delimiter='\t')
