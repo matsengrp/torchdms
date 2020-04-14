@@ -19,11 +19,11 @@ class SingleSigmoidNet(nn.Module):
 
 def train_network(
     model,
+    bmap_factory,
+    criterion,
+    optimizer,
     n_epoch,
     batch_size,
-    bmap_factory,
-    optimizer,
-    criterion=None,
     get_train_loss=False,
 ):
     """ Function to train network over a number of epochs, w/ given batch size.
