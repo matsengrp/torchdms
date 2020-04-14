@@ -1,4 +1,6 @@
+_ignore
 /data
 /figs
 __pycache__/
 *.py[cod]
+*.egg-info/

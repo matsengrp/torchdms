@@ -1,0 +1,18 @@
+name: dms
+channels:
+  - anaconda
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - biopython
+  - jupyter
+  - python=3.7
+  - pip
+  - plotnine
+  - pytorch
+  - scikit-learn
+  - seaborn
+  - pip:
+      - black
+      - dms_variants
