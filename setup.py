@@ -4,7 +4,7 @@ setup(
     name="torchdms",
     version="0.0.0",
     description="Tools for analyzing DMS data using PyTorch",
-    url="http://github.com/storborg/funniest",
+    url="http://github.com/matsengrp/torchdms",
     author="Matsen group",
     author_email="ematsen@gmail.com",
     license="MIT",
