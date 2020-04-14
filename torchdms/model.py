@@ -53,10 +53,7 @@ def train_network(
 
             # Train the model
             outputs = model(batch_X)
-            if criterion is None:
-                loss = gaus_loglik(batch_y, outputs, batch_var)
-            else:
-                loss = torch.sqrt(criterion(outputs.squeeze(), batch_y))
+            loss = torch.sqrt(criterion(outputs.squeeze(), batch_y))
 
             # Backprop and SGD step
             losses.append(loss.item())
