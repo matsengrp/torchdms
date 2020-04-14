@@ -22,7 +22,7 @@ def train_network(
     bmap_factory,
     criterion,
     optimizer,
-    n_epoch,
+    epoch_count,
     batch_size,
     get_train_loss=False,
 ):
@@ -30,11 +30,11 @@ def train_network(
 
     Args:
         - model (Net): Network model class to be trained.
-        - n_epoch (int): The number of epochs (passes through training data)
-        - batchsize (int): The number of samples to process in a batch.
         - bmap_factory (binarymap.DataFactory): input data.
-        - optimizer (torch Optimizer): A PyTorch optimizer for training.
         - criterion (torch Criterion): A PyTorch criterion for training.
+        - optimizer (torch Optimizer): A PyTorch optimizer for training.
+        - epoch_count (int): The number of epochs (passes through training data)
+        - batchsize (int): The number of samples to process in a batch.
         - get_train_loss (boolean): True if training loss by batch is desired
                                     to be returned.
     Returns:
@@ -42,7 +42,7 @@ def train_network(
     """
     losses = []
     estimate = []
-    for epoch in range(n_epoch):
+    for epoch in range(epoch_count):
         nvariants = bmap_factory.nvariants()
         permutation = np.random.permutation(nvariants)
 
