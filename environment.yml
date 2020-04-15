@@ -16,3 +16,5 @@ dependencies:
   - pip:
       - black
       - dms_variants
+      - flake8
+      - pylint

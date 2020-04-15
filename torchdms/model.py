@@ -8,7 +8,7 @@ class SingleSigmoidNet(nn.Module):
         super(SingleSigmoidNet, self).__init__()
         self.input_to_hidden = nn.Linear(input_size, hidden1_size, bias=False)
         self.sigmoid = nn.Sigmoid()
-        self.hidden_to_output = nn.Linear(hidden1_size, 1, bias=False)
+        self.hidden_to_output = nn.Linear(hidden1_size, 1, bias=True)
 
     def forward(self, x):
         out = self.input_to_hidden(x)
@@ -41,7 +41,6 @@ def train_network(
         - model (Net): The trained Network model.
     """
     losses = []
-    estimate = []
     for epoch in range(epoch_count):
         nvariants = bmap_factory.nvariants()
         permutation = np.random.permutation(nvariants)
@@ -49,11 +48,11 @@ def train_network(
         for i in range(0, nvariants, batch_size):
             optimizer.zero_grad()
             idxs = permutation[i : i + batch_size]
-            batch_X, batch_y, batch_vars = bmap_factory.data_of_idxs(idxs)
+            batch_X, batch_Y, batch_var = bmap_factory.data_of_idxs(idxs)
 
             # Train the model
             outputs = model(batch_X)
-            loss = torch.sqrt(criterion(outputs.squeeze(), batch_y))
+            loss = torch.sqrt(criterion(outputs.squeeze(), batch_Y))
 
             # Backprop and SGD step
             losses.append(loss.item())

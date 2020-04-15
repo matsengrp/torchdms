@@ -17,6 +17,9 @@ class DataFactory:
     def __init__(self, bmap):
         self.binary_variants_array = bmap.binary_variants.toarray()
         self.bmap = bmap
+        self.X = torch.from_numpy(self.binary_variants_array).float()
+        self.Y = torch.from_numpy(self.bmap.func_scores).float()
+        self.var = torch.from_numpy(self.bmap.func_scores_var).float()
 
     def feature_count(self):
         return self.binary_variants_array.shape[1]
@@ -25,7 +28,4 @@ class DataFactory:
         return self.bmap.nvariants
 
     def data_of_idxs(self, idxs):
-        batch_X = torch.from_numpy(self.binary_variants_array[idxs]).float()
-        batch_y = torch.from_numpy(self.bmap.func_scores[idxs]).float()
-        batch_var = torch.from_numpy(self.bmap.func_scores_var[idxs]).float()
-        return batch_X, batch_y, batch_var
+        return self.X[idxs], self.Y[idxs], self.var[idxs]
