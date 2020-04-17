@@ -15,3 +15,17 @@ class SingleSigmoidNet(nn.Module):
         out = self.sigmoid(out)
         out = self.hidden_to_output(out)
         return out
+
+
+class SingleReLUNet(nn.Module):
+    def __init__(self, input_size, hidden1_size):
+        super(SingleReLUNet, self).__init__()
+        self.input_to_hidden = nn.Linear(input_size, hidden1_size, bias=False)
+        self.relu = nn.ReLU()
+        self.hidden_to_output = nn.Linear(hidden1_size, 1, bias=True)
+
+    def forward(self, x):
+        out = self.input_to_hidden(x)
+        out = self.relu(out)
+        out = self.hidden_to_output(out)
+        return out
