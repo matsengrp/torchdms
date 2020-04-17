@@ -19,7 +19,6 @@ class Analysis:
         for _ in range(epoch_count):
             nvariants = self.train_factory.nvariants()
             permutation = torch.randperm(nvariants)
-            # permutation = np.random.permutation(nvariants)
 
             for i in range(0, nvariants, self.batch_size):
                 self.optimizer.zero_grad()
