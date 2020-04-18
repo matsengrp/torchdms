@@ -23,7 +23,7 @@ class Analysis:
             for i in range(0, nvariants, self.batch_size):
                 self.optimizer.zero_grad()
                 idxs = permutation[i : i + self.batch_size]
-                batch_x, batch_y, batch_var = self.train_factory.data_of_idxs(idxs)
+                batch_x, batch_y = self.train_factory.data_of_idxs(idxs)
 
                 outputs = self.model(batch_x)
                 loss = criterion(outputs.squeeze(), batch_y).sqrt()
