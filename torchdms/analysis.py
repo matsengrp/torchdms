@@ -1,7 +1,19 @@
+import itertools
 import pandas as pd
 import torch
-from torchdms.binarymap import DataFactory
+from torch.utils.data import DataLoader
+from torchdms.binarymap import BinarymapDataset
 from torch.optim.lr_scheduler import ReduceLROnPlateau
+
+
+def make_data_loader_infinite(data_loader):
+    """
+    With this we can always just ask for more data with next(), going through
+    minibatches as guided by DataLoader.
+    """
+    for loader in itertools.repeat(data_loader):
+        for data in loader:
+            yield data
 
 
 class Analysis:
@@ -9,8 +21,13 @@ class Analysis:
         self.learning_rate = 1e-3
         self.batch_size = 5000
         self.model = model
-        self.train_data = train_data
-        self.train_factory = DataFactory(train_data)
+        self.train_dataset = BinarymapDataset(train_data)
+        self.train_dataloader = DataLoader(
+            self.train_dataset, batch_size=self.batch_size, shuffle=True
+        )
+        self.train_infinite_dataloader = make_data_loader_infinite(
+            self.train_dataloader
+        )
         self.optimizer = torch.optim.Adam(model.parameters(), lr=self.learning_rate)
         self.losses = []
 
@@ -19,17 +36,13 @@ class Analysis:
         scheduler = ReduceLROnPlateau(self.optimizer, patience=5, verbose=True)
         self.model.train()  # Sets model to training mode.
         for _ in range(epoch_count):
-            nvariants = self.train_factory.nvariants()
-            permutation = torch.randperm(nvariants)
             total_loss = 0
-
-            for i in range(0, nvariants, self.batch_size):
+            batch_count = 1 + len(self.train_dataset) // self.batch_size
+            for _ in range(batch_count):
                 self.optimizer.zero_grad()
-                idxs = permutation[i : i + self.batch_size]
-                batch_x, batch_y = self.train_factory.data_of_idxs(idxs)
-
-                outputs = self.model(batch_x)
-                loss = criterion(outputs.squeeze(), batch_y).sqrt()
+                batch = next(self.train_infinite_dataloader)
+                outputs = self.model(batch["variants"])
+                loss = criterion(outputs.squeeze(), batch["func_scores"]).sqrt()
                 self.losses.append(loss.item())
                 loss.backward()
                 self.optimizer.step()
@@ -38,10 +51,8 @@ class Analysis:
             scheduler.step(total_loss)
 
     def evaluate(self, test_data):
-        test_factory = DataFactory(test_data)
+        test_dataset = BinarymapDataset(test_data)
+        predicted = self.model(test_dataset.variants).detach().numpy().transpose()[0]
         return pd.DataFrame(
-            {
-                "Observed": test_factory.Y.numpy(),
-                "Predicted": self.model(test_factory.X).detach().numpy().transpose()[0],
-            }
+            {"Observed": test_dataset.func_scores.numpy(), "Predicted": predicted}
         )
