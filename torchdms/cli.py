@@ -6,6 +6,7 @@ import torchdms.data
 import torchdms.model
 from torchdms.analysis import Analysis
 from torchdms.model import SingleSigmoidNet
+from torchdms.model import TwoByTwoNet
 
 
 @click.group()
@@ -33,7 +34,7 @@ def create(model_name, data_path, out_path):
     """
     Create a model.
     """
-    known_models = {"SingleSigmoidNet": SingleSigmoidNet}
+    known_models = {"SingleSigmoidNet": SingleSigmoidNet, "TwoByTwoNet": TwoByTwoNet}
     if model_name not in known_models:
         raise IOError(model_name + " not known")
     [test_data, _] = torchdms.data.from_pickle_file(data_path)
