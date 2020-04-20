@@ -1,8 +1,9 @@
+import click
 import itertools
 import pandas as pd
 import torch
 from torch.utils.data import DataLoader
-from torchdms.binarymap import BinarymapDataset
+from torchdms.data import BinarymapDataset
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 
@@ -33,14 +34,14 @@ class Analysis:
             for train_loader in self.train_loaders
         ]
         self.optimizer = torch.optim.Adam(model.parameters(), lr=self.learning_rate)
-        self.losses = []
 
     def train(self, criterion, epoch_count):
-        self.losses = []
+        losses = []
         batch_count = 1 + max(map(len, self.train_datasets)) // self.batch_size
         scheduler = ReduceLROnPlateau(self.optimizer, patience=5, verbose=True)
         self.model.train()  # Sets model to training mode.
-        for _ in range(epoch_count):
+
+        def step_model():
             per_epoch_loss = 0.0
             for _ in range(batch_count):
                 self.optimizer.zero_grad()
@@ -54,11 +55,17 @@ class Analysis:
                     # backward for each loader before clearing the gradient via
                     # zero_grad. See, e.g. https://link.medium.com/wem03OhPH5
                     loss.backward()
-                self.losses.append(per_batch_loss)
+                losses.append(per_batch_loss)
                 per_epoch_loss += per_batch_loss
                 self.optimizer.step()
 
             scheduler.step(per_epoch_loss)
+
+        with click.progressbar(range(epoch_count)) as progress_bar:
+            for _ in progress_bar:
+                step_model()
+
+        return losses
 
     def evaluate(self, test_data):
         test_dataset = BinarymapDataset(test_data)
