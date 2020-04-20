@@ -41,23 +41,24 @@ class Analysis:
         scheduler = ReduceLROnPlateau(self.optimizer, patience=5, verbose=True)
         self.model.train()  # Sets model to training mode.
         for _ in range(epoch_count):
-            total_loss = 0
+            per_epoch_loss = 0.0
             for _ in range(batch_count):
                 self.optimizer.zero_grad()
-                per_loader_losses = torch.zeros(len(self.train_infinite_loaders))
-                for i, train_infinite_loader in enumerate(self.train_infinite_loaders):
+                per_batch_loss = 0.0
+                for train_infinite_loader in self.train_infinite_loaders:
                     batch = next(train_infinite_loader)
                     outputs = self.model(batch["variants"])
-                    per_loader_losses[i] = criterion(
-                        outputs.squeeze(), batch["func_scores"]
-                    ).sqrt()
-                loss = torch.sum(per_loader_losses)
-                self.losses.append(loss.item())
-                loss.backward()
+                    loss = criterion(outputs.squeeze(), batch["func_scores"]).sqrt()
+                    per_batch_loss += loss.item()
+                    # Note that here we are using gradient accumulation: calling
+                    # backward for each loader before clearing the gradient via
+                    # zero_grad. See, e.g. https://link.medium.com/wem03OhPH5
+                    loss.backward()
+                self.losses.append(per_batch_loss)
+                per_epoch_loss += per_batch_loss
                 self.optimizer.step()
-                total_loss += loss.item()
 
-            scheduler.step(total_loss)
+            scheduler.step(per_epoch_loss)
 
     def evaluate(self, test_data):
         test_dataset = BinarymapDataset(test_data)
