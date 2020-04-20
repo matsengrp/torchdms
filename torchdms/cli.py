@@ -54,7 +54,7 @@ def create(model_name, data_path, out_path):
 )
 def train(model_path, data_path, out_prefix, epochs):
     """
-    Train a model.
+    Train a model, saving trained model to original location.
     """
     model = torch.load(model_path)
     [_, train_data_list] = torchdms.data.from_pickle_file(data_path)
@@ -62,6 +62,7 @@ def train(model_path, data_path, out_prefix, epochs):
     criterion = torch.nn.MSELoss()
     click.echo(f"Starting training for {epochs} epochs:")
     losses = pd.Series(analysis.train(criterion, epochs))
+    torch.save(model, model_path)
     losses.to_csv(out_prefix + ".loss.csv")
     ax = losses.plot()
     ax.get_figure().savefig(out_prefix + ".loss.svg")
