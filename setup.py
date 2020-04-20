@@ -9,5 +9,5 @@ setup(
     author_email="ematsen@gmail.com",
     license="MIT",
     packages=["torchdms"],
-    zip_safe=False,
+    entry_points={"console_scripts": ["tdms=torchdms.cli:cli"]},
 )

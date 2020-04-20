@@ -1,8 +1,9 @@
+import click
 import itertools
 import pandas as pd
 import torch
 from torch.utils.data import DataLoader
-from torchdms.binarymap import BinarymapDataset
+from torchdms.data import BinarymapDataset
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 
@@ -33,35 +34,54 @@ class Analysis:
             for train_loader in self.train_loaders
         ]
         self.optimizer = torch.optim.Adam(model.parameters(), lr=self.learning_rate)
-        self.losses = []
 
     def train(self, criterion, epoch_count):
-        self.losses = []
+        losses = []
         batch_count = 1 + max(map(len, self.train_datasets)) // self.batch_size
         scheduler = ReduceLROnPlateau(self.optimizer, patience=5, verbose=True)
         self.model.train()  # Sets model to training mode.
-        for _ in range(epoch_count):
-            total_loss = 0
+
+        def step_model():
+            per_epoch_loss = 0.0
             for _ in range(batch_count):
                 self.optimizer.zero_grad()
-                per_loader_losses = torch.zeros(len(self.train_infinite_loaders))
-                for i, train_infinite_loader in enumerate(self.train_infinite_loaders):
+                per_batch_loss = 0.0
+                for train_infinite_loader in self.train_infinite_loaders:
                     batch = next(train_infinite_loader)
                     outputs = self.model(batch["variants"])
-                    per_loader_losses[i] = criterion(
-                        outputs.squeeze(), batch["func_scores"]
-                    ).sqrt()
-                loss = torch.sum(per_loader_losses)
-                self.losses.append(loss.item())
-                loss.backward()
+                    loss = criterion(outputs.squeeze(), batch["func_scores"]).sqrt()
+                    per_batch_loss += loss.item()
+                    # Note that here we are using gradient accumulation: calling
+                    # backward for each loader before clearing the gradient via
+                    # zero_grad. See, e.g. https://link.medium.com/wem03OhPH5
+                    loss.backward()
+                losses.append(per_batch_loss)
+                per_epoch_loss += per_batch_loss
                 self.optimizer.step()
-                total_loss += loss.item()
 
-            scheduler.step(total_loss)
+            scheduler.step(per_epoch_loss)
+
+        with click.progressbar(range(epoch_count)) as progress_bar:
+            for _ in progress_bar:
+                step_model()
+
+        return losses
 
     def evaluate(self, test_data):
         test_dataset = BinarymapDataset(test_data)
         predicted = self.model(test_dataset.variants).detach().numpy().transpose()[0]
         return pd.DataFrame(
-            {"Observed": test_dataset.func_scores.numpy(), "Predicted": predicted}
+            {
+                "Observed": test_dataset.func_scores.numpy(),
+                "Predicted": predicted,
+                "n_aa_substitutions": test_data.n_aa_substitutions,
+            }
         )
+
+    def process_evaluation(self, results):
+        corr = results.corr().iloc[0, 1]
+        ax = results.plot.scatter(
+            x="Observed", y="Predicted", c=results["n_aa_substitutions"], cmap="viridis"
+        )
+        ax.text(0, 0.95 * max(results["Predicted"]), f"corr = {corr:.3f}")
+        return corr, ax

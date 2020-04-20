@@ -6,6 +6,7 @@ channels:
   - defaults
 dependencies:
   - biopython
+  - click
   - jupyter
   - python=3.7
   - pip

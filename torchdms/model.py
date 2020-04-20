@@ -4,7 +4,7 @@ import torch.nn as nn
 
 
 class SingleSigmoidNet(nn.Module):
-    def __init__(self, input_size, hidden1_size):
+    def __init__(self, input_size, hidden1_size=1):
         super(SingleSigmoidNet, self).__init__()
         self.input_to_hidden = nn.Linear(input_size, hidden1_size, bias=False)
         self.sigmoid = nn.Sigmoid()
@@ -18,7 +18,7 @@ class SingleSigmoidNet(nn.Module):
 
 
 class SingleReLUNet(nn.Module):
-    def __init__(self, input_size, hidden1_size):
+    def __init__(self, input_size, hidden1_size=1):
         super(SingleReLUNet, self).__init__()
         self.input_to_hidden = nn.Linear(input_size, hidden1_size, bias=False)
         self.relu = nn.ReLU()
