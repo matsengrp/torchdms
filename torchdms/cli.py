@@ -18,17 +18,11 @@ def cli():
 @click.argument("out_path", type=click.Path())
 def prep(in_path, out_path):
     """
-    Prepare data for training by splitting into test and train, partitioning by
-    number of substitutions, and saving the corresponding bmappluses to a pickle.
+    Prepare data for training. See data.prepare_data for details.
     """
-    [aa_func_scores, wtseq] = torchdms.data.from_pickle_file(in_path)
-    test_partition, partitioned_train_data = torchdms.data.partition(aa_func_scores)
-    test_data = torchdms.data.bmapplus_of_aa_func_scores(test_partition, wtseq)
-    train_data_list = [
-        torchdms.data.bmapplus_of_aa_func_scores(train_data_partition, wtseq)
-        for train_data_partition in partitioned_train_data
-    ]
-    torchdms.data.to_pickle_file([test_data, train_data_list], out_path)
+    torchdms.data.to_pickle_file(
+        torchdms.data.prepare(*torchdms.data.from_pickle_file(in_path)), out_path
+    )
 
 
 @cli.command()
@@ -86,12 +80,8 @@ def eval(model_path, data_path, out_prefix):
     [test_data, _] = torchdms.data.from_pickle_file(data_path)
     analysis = Analysis(model, [])
     results = analysis.evaluate(test_data)
-    corr = results.corr().iloc[0, 1]
     results["n_aa_substitutions"] = test_data.n_aa_substitutions
-    ax = results.plot.scatter(
-        x="Observed", y="Predicted", c=results["n_aa_substitutions"], cmap="viridis"
-    )
-    ax.text(0, 0.95 * max(results["Predicted"]), f"corr = {corr:.3f}")
+    corr, ax = analysis.process_evaluation(results)
     ax.get_figure().savefig(out_prefix + ".scatter.svg")
     print(f"correlation = {corr}")
 

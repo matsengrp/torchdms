@@ -82,3 +82,17 @@ def bmapplus_of_aa_func_scores(aa_func_scores_subset, wtseq):
     bmap.aa_substitutions = aa_func_scores_standalone["aa_substitutions"]
     bmap.n_aa_substitutions = aa_func_scores_standalone["n_aa_substitutions"]
     return bmap
+
+
+def prepare(aa_func_scores, wtseq):
+    """
+    Prepare data for training by splitting into test and train, partitioning by
+    number of substitutions, and making bmappluses.
+    """
+    test_partition, partitioned_train_data = partition(aa_func_scores)
+    test_data = bmapplus_of_aa_func_scores(test_partition, wtseq)
+    train_data_list = [
+        bmapplus_of_aa_func_scores(train_data_partition, wtseq)
+        for train_data_partition in partitioned_train_data
+    ]
+    return test_data, train_data_list

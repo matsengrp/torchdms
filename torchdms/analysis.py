@@ -71,5 +71,17 @@ class Analysis:
         test_dataset = BinarymapDataset(test_data)
         predicted = self.model(test_dataset.variants).detach().numpy().transpose()[0]
         return pd.DataFrame(
-            {"Observed": test_dataset.func_scores.numpy(), "Predicted": predicted}
+            {
+                "Observed": test_dataset.func_scores.numpy(),
+                "Predicted": predicted,
+                "n_aa_substitutions": test_data.n_aa_substitutions,
+            }
         )
+
+    def process_evaluation(self, results):
+        corr = results.corr().iloc[0, 1]
+        ax = results.plot.scatter(
+            x="Observed", y="Predicted", c=results["n_aa_substitutions"], cmap="viridis"
+        )
+        ax.text(0, 0.95 * max(results["Predicted"]), f"corr = {corr:.3f}")
+        return corr, ax
