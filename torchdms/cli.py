@@ -1,11 +1,14 @@
 import click
 import pandas as pd
+import os
 import torch
 
 import torchdms.data
 import torchdms.model
 from torchdms.analysis import Analysis
 from torchdms.model import SingleSigmoidNet
+from torchdms.model import TwoByOneNet
+from torchdms.model import TwoByTwoNet
 
 
 @click.group()
@@ -33,7 +36,11 @@ def create(model_name, data_path, out_path):
     """
     Create a model.
     """
-    known_models = {"SingleSigmoidNet": SingleSigmoidNet}
+    known_models = {
+        "SingleSigmoidNet": SingleSigmoidNet,
+        "TwoByOneNet": TwoByOneNet,
+        "TwoByTwoNet": TwoByTwoNet,
+    }
     if model_name not in known_models:
         raise IOError(model_name + " not known")
     [test_data, _] = torchdms.data.from_pickle_file(data_path)
@@ -47,21 +54,37 @@ def create(model_name, data_path, out_path):
 @click.argument("data_path", type=click.Path(exists=True))
 @click.argument("out_prefix", type=click.Path())
 @click.option(
-    "--epochs",
-    default=5,
-    show_default=True,
-    help="Number of epochs to use for training.",
+    "--batch-size", default=500, show_default=True, help="Batch size for training.",
 )
-def train(model_path, data_path, out_prefix, epochs):
+@click.option(
+    "--learning-rate", default=1e-3, show_default=True, help="Initial learning rate.",
+)
+@click.option(
+    "--patience", default=10, show_default=True, help="Patience for ReduceLROnPlateau.",
+)
+@click.option(
+    "--epochs", default=5, show_default=True, help="Number of epochs for training.",
+)
+def train(
+    model_path, data_path, out_prefix, batch_size, learning_rate, patience, epochs
+):
     """
     Train a model, saving trained model to original location.
     """
     model = torch.load(model_path)
     [_, train_data_list] = torchdms.data.from_pickle_file(data_path)
-    analysis = Analysis(model, train_data_list)
+    analysis = Analysis(
+        model, train_data_list, batch_size=batch_size, learning_rate=learning_rate
+    )
     criterion = torch.nn.MSELoss()
-    click.echo(f"Starting training for {epochs} epochs:")
-    losses = pd.Series(analysis.train(criterion, epochs))
+    training_dict = {
+        "epochs": epochs,
+        "batch_size": batch_size,
+        "learning_rate": learning_rate,
+        "patience": patience,
+    }
+    click.echo(f"Starting training. {training_dict}")
+    losses = pd.Series(analysis.train(criterion, epochs, patience))
     torch.save(model, model_path)
     losses.to_csv(out_prefix + ".loss.csv")
     ax = losses.plot()
@@ -74,15 +97,15 @@ def train(model_path, data_path, out_prefix, epochs):
 @click.argument("out_prefix", type=click.Path())
 def eval(model_path, data_path, out_prefix):
     """
-    Train a model.
+    Evaluate a model.
     """
     model = torch.load(model_path)
-    model.eval()
     [test_data, _] = torchdms.data.from_pickle_file(data_path)
     analysis = Analysis(model, [])
     results = analysis.evaluate(test_data)
     results["n_aa_substitutions"] = test_data.n_aa_substitutions
-    corr, ax = analysis.process_evaluation(results)
+    paths = [os.path.basename(path) for path in [model_path, data_path]]
+    corr, ax = analysis.process_evaluation(results, plot_title=" on ".join(paths))
     ax.get_figure().savefig(out_prefix + ".scatter.svg")
     print(f"correlation = {corr}")
 

@@ -1,5 +1,6 @@
 import click
 import itertools
+import seaborn as sns
 import pandas as pd
 import torch
 from torch.utils.data import DataLoader
@@ -18,9 +19,12 @@ def make_data_loader_infinite(data_loader):
 
 
 class Analysis:
-    def __init__(self, model, train_data_list):
-        self.learning_rate = 1e-3
-        self.batch_size = 5000
+    def __init__(
+        self, model, train_data_list, device="cpu", batch_size=500, learning_rate=1e-3,
+    ):
+        self.device = torch.device(device)
+        self.batch_size = batch_size
+        self.learning_rate = learning_rate
         self.model = model
         self.train_datasets = [
             BinarymapDataset(train_data) for train_data in train_data_list
@@ -35,11 +39,12 @@ class Analysis:
         ]
         self.optimizer = torch.optim.Adam(model.parameters(), lr=self.learning_rate)
 
-    def train(self, criterion, epoch_count):
+    def train(self, criterion, epoch_count, patience=10, min_lr=1e-6):
         losses = []
         batch_count = 1 + max(map(len, self.train_datasets)) // self.batch_size
-        scheduler = ReduceLROnPlateau(self.optimizer, patience=5, verbose=True)
+        scheduler = ReduceLROnPlateau(self.optimizer, patience=patience, verbose=True)
         self.model.train()  # Sets model to training mode.
+        self.model.to(self.device)
 
         def step_model():
             per_epoch_loss = 0.0
@@ -48,8 +53,10 @@ class Analysis:
                 per_batch_loss = 0.0
                 for train_infinite_loader in self.train_infinite_loaders:
                     batch = next(train_infinite_loader)
-                    outputs = self.model(batch["variants"])
-                    loss = criterion(outputs.squeeze(), batch["func_scores"]).sqrt()
+                    variants = batch["variants"].to(self.device)
+                    func_scores = batch["func_scores"].to(self.device)
+                    outputs = self.model(variants)
+                    loss = criterion(outputs.squeeze(), func_scores).sqrt()
                     per_batch_loss += loss.item()
                     # Note that here we are using gradient accumulation: calling
                     # backward for each loader before clearing the gradient via
@@ -64,12 +71,18 @@ class Analysis:
         with click.progressbar(range(epoch_count)) as progress_bar:
             for _ in progress_bar:
                 step_model()
+                if self.optimizer.state_dict()["param_groups"][0]["lr"] < min_lr:
+                    click.echo("Learning rate dropped below stated minimum. Stopping.")
+                    break
 
         return losses
 
     def evaluate(self, test_data):
+        self.model.eval()
+        self.model.to(self.device)
         test_dataset = BinarymapDataset(test_data)
-        predicted = self.model(test_dataset.variants).detach().numpy().transpose()[0]
+        variants = test_dataset.variants.to(self.device)
+        predicted = self.model(variants).detach().cpu().numpy().transpose()[0]
         return pd.DataFrame(
             {
                 "Observed": test_dataset.func_scores.numpy(),
@@ -78,10 +91,17 @@ class Analysis:
             }
         )
 
-    def process_evaluation(self, results):
+    def process_evaluation(self, results, plot_title=""):
         corr = results.corr().iloc[0, 1]
-        ax = results.plot.scatter(
-            x="Observed", y="Predicted", c=results["n_aa_substitutions"], cmap="viridis"
+        ax = sns.scatterplot(
+            x="Observed",
+            y="Predicted",
+            hue="n_aa_substitutions",
+            data=results,
+            legend="full",
+            palette="viridis",
         )
-        ax.text(0, 0.95 * max(results["Predicted"]), f"corr = {corr:.3f}")
+        plot_title += f" (corr = {corr:.3f})"
+        ax.set_title(plot_title)
+        sns.despine()
         return corr, ax
