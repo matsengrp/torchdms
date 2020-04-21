@@ -93,7 +93,6 @@ def eval(model_path, data_path, out_prefix):
     Train a model.
     """
     model = torch.load(model_path)
-    model.eval()
     [test_data, _] = torchdms.data.from_pickle_file(data_path)
     analysis = Analysis(model, [])
     results = analysis.evaluate(test_data)

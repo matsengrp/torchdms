@@ -18,8 +18,10 @@ def make_data_loader_infinite(data_loader):
 
 
 class Analysis:
-    def __init__(self, model, train_data_list, batch_size=500, learning_rate=1e-3):
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    def __init__(
+        self, model, train_data_list, device="cpu", batch_size=500, learning_rate=1e-3
+    ):
+        self.device = torch.device(device)
         self.batch_size = batch_size
         self.learning_rate = learning_rate
         self.model = model
