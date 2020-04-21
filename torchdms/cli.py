@@ -59,9 +59,14 @@ def create(model_name, data_path, out_path):
     "--learning-rate", default=1e-3, show_default=True, help="Initial learning rate.",
 )
 @click.option(
+    "--patience", default=10, show_default=True, help="Patience for ReduceLROnPlateau.",
+)
+@click.option(
     "--epochs", default=5, show_default=True, help="Number of epochs for training.",
 )
-def train(model_path, data_path, out_prefix, batch_size, learning_rate, epochs):
+def train(
+    model_path, data_path, out_prefix, batch_size, learning_rate, patience, epochs
+):
     """
     Train a model, saving trained model to original location.
     """
@@ -75,9 +80,10 @@ def train(model_path, data_path, out_prefix, batch_size, learning_rate, epochs):
         "epochs": epochs,
         "batch_size": batch_size,
         "learning_rate": learning_rate,
+        "patience": patience,
     }
     click.echo(f"Starting training. {training_dict}")
-    losses = pd.Series(analysis.train(criterion, epochs))
+    losses = pd.Series(analysis.train(criterion, epochs, patience))
     torch.save(model, model_path)
     losses.to_csv(out_prefix + ".loss.csv")
     ax = losses.plot()

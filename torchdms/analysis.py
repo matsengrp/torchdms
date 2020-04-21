@@ -19,7 +19,7 @@ def make_data_loader_infinite(data_loader):
 
 class Analysis:
     def __init__(
-        self, model, train_data_list, device="cpu", batch_size=500, learning_rate=1e-3
+        self, model, train_data_list, device="cpu", batch_size=500, learning_rate=1e-3,
     ):
         self.device = torch.device(device)
         self.batch_size = batch_size
@@ -38,10 +38,10 @@ class Analysis:
         ]
         self.optimizer = torch.optim.Adam(model.parameters(), lr=self.learning_rate)
 
-    def train(self, criterion, epoch_count, min_lr=1e-6):
+    def train(self, criterion, epoch_count, patience=10, min_lr=1e-6):
         losses = []
         batch_count = 1 + max(map(len, self.train_datasets)) // self.batch_size
-        scheduler = ReduceLROnPlateau(self.optimizer, patience=5, verbose=True)
+        scheduler = ReduceLROnPlateau(self.optimizer, patience=patience, verbose=True)
         self.model.train()  # Sets model to training mode.
         self.model.to(self.device)
 
