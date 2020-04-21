@@ -53,18 +53,23 @@ def create(model_name, data_path, out_path):
 @click.argument("data_path", type=click.Path(exists=True))
 @click.argument("out_prefix", type=click.Path())
 @click.option(
-    "--epochs",
-    default=5,
-    show_default=True,
-    help="Number of epochs to use for training.",
+    "--batch-size", default=5000, show_default=True, help="Batch size for training.",
 )
-def train(model_path, data_path, out_prefix, epochs):
+@click.option(
+    "--learning-rate", default=1e-3, show_default=True, help="Initial learning rate.",
+)
+@click.option(
+    "--epochs", default=5, show_default=True, help="Number of epochs for training.",
+)
+def train(model_path, data_path, out_prefix, batch_size, learning_rate, epochs):
     """
     Train a model, saving trained model to original location.
     """
     model = torch.load(model_path)
     [_, train_data_list] = torchdms.data.from_pickle_file(data_path)
-    analysis = Analysis(model, train_data_list)
+    analysis = Analysis(
+        model, train_data_list, batch_size=batch_size, learning_rate=learning_rate
+    )
     criterion = torch.nn.MSELoss()
     click.echo(f"Starting training for {epochs} epochs:")
     losses = pd.Series(analysis.train(criterion, epochs))
