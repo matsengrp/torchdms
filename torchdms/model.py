@@ -1,7 +1,6 @@
 import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 
 class SingleSigmoidNet(nn.Module):
@@ -12,18 +11,6 @@ class SingleSigmoidNet(nn.Module):
 
     def forward(self, x):
         out = torch.sigmoid(self.input_to_hidden(x))
-        out = self.hidden_to_output(out)
-        return out
-
-
-class SingleReLUNet(nn.Module):
-    def __init__(self, input_size, hidden1_size=1):
-        super(SingleReLUNet, self).__init__()
-        self.input_to_hidden = nn.Linear(input_size, hidden1_size, bias=False)
-        self.hidden_to_output = nn.Linear(hidden1_size, 1)
-
-    def forward(self, x):
-        out = F.relu(self.input_to_hidden(x))
         out = self.hidden_to_output(out)
         return out
 
