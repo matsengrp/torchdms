@@ -79,7 +79,7 @@ class Analysis:
         self.model.to(self.device)
         test_dataset = BinarymapDataset(test_data)
         variants = test_dataset.variants.to(self.device)
-        predicted = self.model(variants).detach().numpy().transpose()[0]
+        predicted = self.model(variants).detach().cpu().numpy().transpose()[0]
         return pd.DataFrame(
             {
                 "Observed": test_dataset.func_scores.numpy(),
