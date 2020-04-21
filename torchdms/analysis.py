@@ -35,7 +35,7 @@ class Analysis:
         ]
         self.optimizer = torch.optim.Adam(model.parameters(), lr=self.learning_rate)
 
-    def train(self, criterion, epoch_count):
+    def train(self, criterion, epoch_count, min_lr=1e-6):
         losses = []
         batch_count = 1 + max(map(len, self.train_datasets)) // self.batch_size
         scheduler = ReduceLROnPlateau(self.optimizer, patience=5, verbose=True)
@@ -64,6 +64,9 @@ class Analysis:
         with click.progressbar(range(epoch_count)) as progress_bar:
             for _ in progress_bar:
                 step_model()
+                if self.optimizer.state_dict()["param_groups"][0]["lr"] < min_lr:
+                    click.echo("Learning rate dropped below stated minimum. Stopping.")
+                    break
 
         return losses
 
