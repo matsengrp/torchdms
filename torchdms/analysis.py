@@ -1,5 +1,6 @@
 import click
 import itertools
+import seaborn as sns
 import pandas as pd
 import torch
 from torch.utils.data import DataLoader
@@ -90,10 +91,18 @@ class Analysis:
             }
         )
 
-    def process_evaluation(self, results):
+    def process_evaluation(self, results, plot_title=""):
         corr = results.corr().iloc[0, 1]
-        ax = results.plot.scatter(
-            x="Observed", y="Predicted", c=results["n_aa_substitutions"], cmap="viridis"
+        ax = sns.scatterplot(
+            x="Observed",
+            y="Predicted",
+            hue="n_aa_substitutions",
+            data=results,
+            legend="full",
+            palette="viridis",
         )
-        ax.text(0, 0.95 * max(results["Predicted"]), f"corr = {corr:.3f}")
+        plot_title += f" (corr = {corr:.3f})"
+        ax.set_title(plot_title)
+        sns.despine()
+
         return corr, ax

@@ -1,5 +1,6 @@
 import click
 import pandas as pd
+import os
 import torch
 
 import torchdms.data
@@ -96,14 +97,15 @@ def train(
 @click.argument("out_prefix", type=click.Path())
 def eval(model_path, data_path, out_prefix):
     """
-    Train a model.
+    Evaluate a model.
     """
     model = torch.load(model_path)
     [test_data, _] = torchdms.data.from_pickle_file(data_path)
     analysis = Analysis(model, [])
     results = analysis.evaluate(test_data)
     results["n_aa_substitutions"] = test_data.n_aa_substitutions
-    corr, ax = analysis.process_evaluation(results)
+    paths = [os.path.basename(path) for path in [model_path, data_path]]
+    corr, ax = analysis.process_evaluation(results, plot_title=" on ".join(paths))
     ax.get_figure().savefig(out_prefix + ".scatter.svg")
     print(f"correlation = {corr}")
 
