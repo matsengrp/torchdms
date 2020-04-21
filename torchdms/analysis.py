@@ -75,8 +75,11 @@ class Analysis:
         return losses
 
     def evaluate(self, test_data):
+        self.model.eval()
+        self.model.to(self.device)
         test_dataset = BinarymapDataset(test_data)
-        predicted = self.model(test_dataset.variants).detach().numpy().transpose()[0]
+        variants = test_dataset.variants.to(self.device)
+        predicted = self.model(variants).detach().numpy().transpose()[0]
         return pd.DataFrame(
             {
                 "Observed": test_dataset.func_scores.numpy(),
