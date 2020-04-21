@@ -53,7 +53,7 @@ def create(model_name, data_path, out_path):
 @click.argument("data_path", type=click.Path(exists=True))
 @click.argument("out_prefix", type=click.Path())
 @click.option(
-    "--batch-size", default=5000, show_default=True, help="Batch size for training.",
+    "--batch-size", default=500, show_default=True, help="Batch size for training.",
 )
 @click.option(
     "--learning-rate", default=1e-3, show_default=True, help="Initial learning rate.",

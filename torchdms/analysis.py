@@ -18,7 +18,7 @@ def make_data_loader_infinite(data_loader):
 
 
 class Analysis:
-    def __init__(self, model, train_data_list, batch_size=5000, learning_rate=1e-3):
+    def __init__(self, model, train_data_list, batch_size=500, learning_rate=1e-3):
         self.batch_size = batch_size
         self.learning_rate = learning_rate
         self.model = model
