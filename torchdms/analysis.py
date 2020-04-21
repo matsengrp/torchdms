@@ -19,6 +19,7 @@ def make_data_loader_infinite(data_loader):
 
 class Analysis:
     def __init__(self, model, train_data_list, batch_size=500, learning_rate=1e-3):
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.batch_size = batch_size
         self.learning_rate = learning_rate
         self.model = model
@@ -40,6 +41,7 @@ class Analysis:
         batch_count = 1 + max(map(len, self.train_datasets)) // self.batch_size
         scheduler = ReduceLROnPlateau(self.optimizer, patience=5, verbose=True)
         self.model.train()  # Sets model to training mode.
+        self.model.to(self.device)
 
         def step_model():
             per_epoch_loss = 0.0
@@ -48,8 +50,10 @@ class Analysis:
                 per_batch_loss = 0.0
                 for train_infinite_loader in self.train_infinite_loaders:
                     batch = next(train_infinite_loader)
-                    outputs = self.model(batch["variants"])
-                    loss = criterion(outputs.squeeze(), batch["func_scores"]).sqrt()
+                    variants = batch["variants"].to(self.device)
+                    func_scores = batch["func_scores"].to(self.device)
+                    outputs = self.model(variants)
+                    loss = criterion(outputs.squeeze(), func_scores).sqrt()
                     per_batch_loss += loss.item()
                     # Note that here we are using gradient accumulation: calling
                     # backward for each loader before clearing the gradient via
