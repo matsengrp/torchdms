@@ -104,5 +104,4 @@ class Analysis:
         plot_title += f" (corr = {corr:.3f})"
         ax.set_title(plot_title)
         sns.despine()
-
         return corr, ax
