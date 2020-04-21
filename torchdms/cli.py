@@ -71,7 +71,12 @@ def train(model_path, data_path, out_prefix, batch_size, learning_rate, epochs):
         model, train_data_list, batch_size=batch_size, learning_rate=learning_rate
     )
     criterion = torch.nn.MSELoss()
-    click.echo(f"Starting training for {epochs} epochs:")
+    training_dict = {
+        "epochs": epochs,
+        "batch_size": batch_size,
+        "learning_rate": learning_rate,
+    }
+    click.echo(f"Starting training. {training_dict}")
     losses = pd.Series(analysis.train(criterion, epochs))
     torch.save(model, model_path)
     losses.to_csv(out_prefix + ".loss.csv")
