@@ -13,7 +13,9 @@ dependencies:
   - plotnine
   - pytorch
   - scikit-learn
+  - scipy
   - seaborn
+  - matplotlib
   - pip:
       - black
       - dms_variants
