@@ -4,7 +4,7 @@ import seaborn as sns
 import pandas as pd
 import torch
 from torch.utils.data import DataLoader
-from torchdms.data import BinarymapDataset
+from torchdms.data import BinaryMapDataset
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 
@@ -18,20 +18,25 @@ def make_data_loader_infinite(data_loader):
             yield data
 
 
+# TODO Could we rename this to something like,
+# idk, something more TdmsModelFitter
 class Analysis:
+    # I feel like these parameters are oddly seperated between __init__ and train
+    # I mean, if we're creating one of these each time we fit, shouldn't
+    # we make all these parameters attributes? this would allow
+    # us to output all fitting parameters to a dict or something
+    # more useful (including epochs, loss, patience, min_lr).
     def __init__(
-        self, model, train_data_list, device="cpu", batch_size=500, learning_rate=1e-3,
+        self, model, train_data_list, batch_size=500, learning_rate=1e-3, device="cpu"
     ):
-        self.device = torch.device(device)
         self.batch_size = batch_size
+        self.device = torch.device(device)
         self.learning_rate = learning_rate
         self.model = model
-        self.train_datasets = [
-            BinarymapDataset(train_data) for train_data in train_data_list
-        ]
+        self.train_datasets = train_data_list
         self.train_loaders = [
             DataLoader(train_dataset, batch_size=self.batch_size, shuffle=True)
-            for train_dataset in self.train_datasets
+            for train_dataset in train_data_list
         ]
         self.train_infinite_loaders = [
             make_data_loader_infinite(train_loader)
@@ -39,8 +44,12 @@ class Analysis:
         ]
         self.optimizer = torch.optim.Adam(model.parameters(), lr=self.learning_rate)
 
-    def train(self, criterion, epoch_count, patience=10, min_lr=1e-6):
-        losses = []
+    # TODO let's then name this Fit
+    def train(self, epoch_count, loss_fn, patience=10, min_lr=1e-6):
+
+        # TODO assert self.model.output_size == len(self.train_datasets[0].targets)
+
+        losses_history = []
         batch_count = 1 + max(map(len, self.train_datasets)) // self.batch_size
         scheduler = ReduceLROnPlateau(self.optimizer, patience=patience, verbose=True)
         self.model.train()  # Sets model to training mode.
@@ -52,17 +61,40 @@ class Analysis:
                 self.optimizer.zero_grad()
                 per_batch_loss = 0.0
                 for train_infinite_loader in self.train_infinite_loaders:
+
                     batch = next(train_infinite_loader)
-                    variants = batch["variants"].to(self.device)
-                    func_scores = batch["func_scores"].to(self.device)
-                    outputs = self.model(variants)
-                    loss = criterion(outputs.squeeze(), func_scores).sqrt()
+                    samples = batch["samples"].to(self.device)
+                    prediction = self.model(samples)
+
+                    # Here we compute loss seperately for each target,
+                    # before summing the results. This allows for us to
+                    # take advantage of the samples which may contain
+                    # missing information for a subset of the targets.
+                    per_target_loss = []
+                    for target in range(batch["targets"].shape[1]):
+
+                        # batch["targets"] is tensor of shape
+                        # (n samples, n targets) so we identify
+                        # all samples for a target which are not NaN.
+                        valid_targets_index = torch.isfinite(
+                            batch["targets"][:, target]
+                        )
+                        valid_targets = batch["targets"][:, target][
+                            valid_targets_index
+                        ].to(self.device)
+                        valid_predict = prediction[:, target][valid_targets_index].to(
+                            self.device
+                        )
+                        per_target_loss.append(loss_fn(valid_targets, valid_predict))
+
+                    loss = sum(per_target_loss)
                     per_batch_loss += loss.item()
+
                     # Note that here we are using gradient accumulation: calling
                     # backward for each loader before clearing the gradient via
                     # zero_grad. See, e.g. https://link.medium.com/wem03OhPH5
                     loss.backward()
-                losses.append(per_batch_loss)
+                losses_history.append(per_batch_loss)
                 per_epoch_loss += per_batch_loss
                 self.optimizer.step()
 
@@ -75,33 +107,4 @@ class Analysis:
                     click.echo("Learning rate dropped below stated minimum. Stopping.")
                     break
 
-        return losses
-
-    def evaluate(self, test_data):
-        self.model.eval()
-        self.model.to(self.device)
-        test_dataset = BinarymapDataset(test_data)
-        variants = test_dataset.variants.to(self.device)
-        predicted = self.model(variants).detach().cpu().numpy().transpose()[0]
-        return pd.DataFrame(
-            {
-                "Observed": test_dataset.func_scores.numpy(),
-                "Predicted": predicted,
-                "n_aa_substitutions": test_data.n_aa_substitutions,
-            }
-        )
-
-    def process_evaluation(self, results, plot_title=""):
-        corr = results.corr().iloc[0, 1]
-        ax = sns.scatterplot(
-            x="Observed",
-            y="Predicted",
-            hue="n_aa_substitutions",
-            data=results,
-            legend="full",
-            palette="viridis",
-        )
-        plot_title += f" (corr = {corr:.3f})"
-        ax.set_title(plot_title)
-        sns.despine()
-        return corr, ax
+        return losses_history

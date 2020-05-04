@@ -8,42 +8,50 @@ from dms_variants.binarymap import BinaryMap
 from torch.utils.data import Dataset
 
 
-def from_pickle_file(path):
-    with open(path, "rb") as file:
-        return pickle.load(file)
+class BinaryMapDataset(Dataset):
+    """
+    Binarymap dataset.
 
+    This class organizes the information from the input dataset
+    into a wrapper containing all relevent attributes for training
+    and evaluation. 
 
-def to_pickle_file(obj, path):
-    with open(path, "wb") as file:
-        pickle.dump(obj, file)
+    We also store the original dataframe as it may contain
+    important metadata (such as target variance), but 
+    drop redundant columns that are already attributes
+    """
 
+    def __init__(self, pd_dataset, wtseq, targets):
 
-class BinarymapDataset(Dataset):
-    """Binarymap dataset."""
-
-    def __init__(self, bmap):
-        self.binary_variants_array = bmap.binary_variants.toarray()
-        self.bmap = bmap
-        self.variants = torch.from_numpy(self.binary_variants_array).float()
-        self.func_scores = torch.from_numpy(self.bmap.func_scores).float()
-
-    def __len__(self):
-        return self.bmap.nvariants
+        bmap = BinaryMap(
+            pd_dataset.loc[:, ["aa_substitutions"]], expand=True, wtseq=wtseq
+        )
+        self.samples = torch.from_numpy(bmap.binary_variants.toarray()).float()
+        self.targets = torch.from_numpy(pd_dataset[targets].to_numpy()).float()
+        self.original_df = pd_dataset.drop(targets, axis=1)
+        self.wtseq = wtseq
+        self.target_names = targets
 
     def __getitem__(self, idxs):
-        return {"variants": self.variants[idxs], "func_scores": self.func_scores[idxs]}
+        return {"samples": self.samples[idxs], "targets": self.targets[idxs]}
+
+    def __len__(self):
+        return self.samples.shape[0]
 
     def feature_count(self):
-        return self.binary_variants_array.shape[1]
+        return self.samples.shape[1]
 
 
 def partition(
     aa_func_scores,
-    per_stratum_variants_for_test=250,
-    skip_stratum_if_count_is_smaller_than=500,
+    per_stratum_variants_for_test=100,
+    skip_stratum_if_count_is_smaller_than=250,
 ):
     """
     Partition the data into a test partition, and a list of training data partitions.
+    A "stratum" is a slice of the data with a given number of mutations.
+    We group training data sets into strata based on their number of mutations so that
+    the data is presented the neural network with an even propotion of each.
     """
     aa_func_scores["n_aa_substitutions"] = [
         len(s.split()) for s in aa_func_scores["aa_substitutions"]
@@ -52,47 +60,36 @@ def partition(
     partitioned_train_data = []
 
     for mutation_count, grouped in aa_func_scores.groupby("n_aa_substitutions"):
-        if len(grouped) < skip_stratum_if_count_is_smaller_than:
+        if mutation_count == 0:
             continue
-        to_put_in_test = grouped.sample(n=per_stratum_variants_for_test).index
+        labeled_examples = grouped.dropna()
+        if len(labeled_examples) < skip_stratum_if_count_is_smaller_than:
+            continue
+        to_put_in_test = labeled_examples.sample(n=per_stratum_variants_for_test).index
         aa_func_scores.loc[to_put_in_test, "in_test"] = True
         partitioned_train_data.append(
             aa_func_scores.loc[
                 (aa_func_scores["in_test"] == False)
                 & (aa_func_scores["n_aa_substitutions"] == mutation_count)
-            ]
+            ].reset_index(drop=True)
         )
 
-    test_partition = aa_func_scores.loc[
-        aa_func_scores["in_test"] == True,
-    ]
+    test_partition = aa_func_scores.loc[aa_func_scores["in_test"] == True,].reset_index(
+        drop=True
+    )
     return test_partition, partitioned_train_data
 
 
-def bmapplus_of_aa_func_scores(aa_func_scores_subset, wtseq):
-    """
-    Define a "bmapplus" to be a BinaryMap but where we also have `aa_substitutions` and
-    `n_aa_substitutions` data attributes.
-
-    This function makes a bamapplus out of an aa_func_scores dataframe, which may be
-    subset from another.
-    """
-    aa_func_scores_standalone = aa_func_scores_subset.reset_index(drop=True)
-    bmap = BinaryMap(aa_func_scores_standalone, expand=True, wtseq=wtseq)
-    bmap.aa_substitutions = aa_func_scores_standalone["aa_substitutions"]
-    bmap.n_aa_substitutions = aa_func_scores_standalone["n_aa_substitutions"]
-    return bmap
-
-
-def prepare(aa_func_scores, wtseq):
+def prepare(test_partition, train_partition_list, wtseq, targets):
     """
     Prepare data for training by splitting into test and train, partitioning by
     number of substitutions, and making bmappluses.
     """
-    test_partition, partitioned_train_data = partition(aa_func_scores)
-    test_data = bmapplus_of_aa_func_scores(test_partition, wtseq)
+
+    test_data = BinaryMapDataset(test_partition, wtseq=wtseq, targets=targets)
     train_data_list = [
-        bmapplus_of_aa_func_scores(train_data_partition, wtseq)
-        for train_data_partition in partitioned_train_data
+        BinaryMapDataset(train_data_partition, wtseq=wtseq, targets=targets)
+        for train_data_partition in train_partition_list
     ]
+
     return test_data, train_data_list
