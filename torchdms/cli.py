@@ -100,7 +100,15 @@ def prep(
 @click.argument("out_path", type=click.Path())
 @click.argument("model_name")
 @click.argument("layers", type=int, nargs=-1, required=False)
-def create(model_name, data_path, out_path, layers):
+@click.option(
+    "--monotonic",
+    is_flag=True,
+    help="If this flag is used, \
+    then the model will be initialized with weights greater than zero. \
+    During training with this model then, tdms will put a floor of \
+    0 on all non-bias weights.",
+)
+def create(model_name, data_path, out_path, layers, monotonic):
     """
     Create a model. Model name can be the name of any
     of the functions defined in torch.models. 
@@ -114,7 +122,7 @@ def create(model_name, data_path, out_path, layers):
         "AdditiveLinearModel": AdditiveLinearModel,
         "TwoByTwoOutputTwoNet": TwoByTwoOutputTwoNet,
         "TwoByTwoNetOutputOne": TwoByTwoNetOutputOne,
-        "BuildYourOwnVanillaNet": BuildYourOwnVanillaNet,
+        "DmsFeedForwardModel": DmsFeedForwardModel,
     }
     click.echo(f"LOG: searching for {model_name}")
     if model_name not in known_models:
@@ -125,21 +133,37 @@ def create(model_name, data_path, out_path, layers):
 
     click.echo(f"LOG: Test data input size: {test_BMD.feature_count()}")
     click.echo(f"LOG: Test data output size: {test_BMD.targets.shape[1]}")
-    if model_name == "BuildYourOwnVanillaNet":
+    if model_name == "DmsFeedForwardModel":
         if len(list(layers)) == 0:
-            raise ValueError("Must provide layers to define custom model")
+            click.echo(f"LOG: No layers provided means creating a linear model")
         for layer in layers:
             if type(layer) != int:
                 raise TypeError("All layer input must be integers")
-        model = BuildYourOwnVanillaNet(
+        model = DmsFeedForwardModel(
             test_BMD.feature_count(), list(layers), test_BMD.targets.shape[1]
         )
-        click.echo(f"LOG: Successfully made custom model")
-        torch.save(model, out_path)
     else:
         model = known_models[model_name](test_BMD.feature_count())
-        click.echo(f"LOG: Successfully made {model_name} model")
-        torch.save(model, out_path)
+    click.echo(f"LOG: Successfully created model")
+
+    # if monotonic, we want to initialize all parameters
+    # which will be floored at 0, to a value above zero.
+    if monotonic:
+        click.echo(f"LOG: Successfully created model")
+
+        # this flag will tell the ModelFitter to clamp (floor at 0)
+        # the appropriate parameters after updating the weights
+        model.monotonic = True
+        for param in monotonic_params_from_latent_space(model):
+
+            # https://pytorch.org/docs/stable/nn.html#linear
+            # because the original distribution is
+            # uniform between (-k, k) where k = 1/input_features,
+            # we can simply transform all weights < 0 to their positive
+            # counterpart
+            param.data[param.data < 0] *= -1
+
+    torch.save(model, out_path)
     click.echo(f"LOG: Model defined as: {model}")
     click.echo(f"LOG: Saved model to {out_path}")
 

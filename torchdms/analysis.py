@@ -6,6 +6,7 @@ import torch
 from torch.utils.data import DataLoader
 from torchdms.data import BinaryMapDataset
 from torch.optim.lr_scheduler import ReduceLROnPlateau
+from torchdms.utils import *
 
 
 def make_data_loader_infinite(data_loader):
@@ -18,14 +19,7 @@ def make_data_loader_infinite(data_loader):
             yield data
 
 
-# TODO Could we rename this to something like,
-# idk, something more TdmsModelFitter
 class Analysis:
-    # I feel like these parameters are oddly seperated between __init__ and train
-    # I mean, if we're creating one of these each time we fit, shouldn't
-    # we make all these parameters attributes? this would allow
-    # us to output all fitting parameters to a dict or something
-    # more useful (including epochs, loss, patience, min_lr).
     def __init__(
         self, model, train_data_list, batch_size=500, learning_rate=1e-3, device="cpu"
     ):
@@ -44,7 +38,6 @@ class Analysis:
         ]
         self.optimizer = torch.optim.Adam(model.parameters(), lr=self.learning_rate)
 
-    # TODO let's then name this Fit
     def train(self, epoch_count, loss_fn, patience=10, min_lr=1e-6):
 
         # TODO assert self.model.output_size == len(self.train_datasets[0].targets)
@@ -94,6 +87,12 @@ class Analysis:
                     # backward for each loader before clearing the gradient via
                     # zero_grad. See, e.g. https://link.medium.com/wem03OhPH5
                     loss.backward()
+
+                    # if the model is monotonic, we clamp all negative parameters
+                    # after the latent space ecluding all bias parameters.
+                    if self.model.monotonic:
+                        for param in monotonic_params_from_latent_space(self.model):
+                            param.data.clamp_(0)
                 losses_history.append(per_batch_loss)
                 per_epoch_loss += per_batch_loss
                 self.optimizer.step()
