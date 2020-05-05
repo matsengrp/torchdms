@@ -10,6 +10,7 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 import matplotlib.pyplot as plt
 from matplotlib import cm
 from matplotlib.colors import ListedColormap, LinearSegmentedColormap
+import torchdms.model
 
 
 def from_pickle_file(path):
@@ -20,6 +21,27 @@ def from_pickle_file(path):
 def to_pickle_file(obj, path):
     with open(path, "wb") as file:
         pickle.dump(obj, file)
+
+
+def monotonic_params_from_latent_space(model: torchdms.model.DmsFeedForwardModel):
+    """
+        following the hueristic that the input layer of a network
+        is named 'input_layer' and the weight bias are denoted:
+
+        layer_name.weight
+        layer_name.bias.
+
+        this function returns all the parameters 
+        to be floored to zero in a monotonic model.
+        this is every parameter after the latent space
+        excluding bias parameters.
+        """
+    for name, param in model.named_parameters():
+        parse_name = name.split(".")
+        is_input_layer = parse_name[0] == "input_layer"
+        is_bias = parse_name[1] == "bias"
+        if not is_input_layer and not is_bias:
+            yield param
 
 
 def evaluatation_dict(model, test_data, device="cpu"):
@@ -56,7 +78,8 @@ def plot_test_correlation(evaluation_dict, out, cmap="plasma"):
     observed for each target
     """
     num_targets = evaluation_dict["targets"].shape[1]
-    fig, ax = plt.subplots(1, num_targets, figsize=(15, 6))
+    width = 7 * num_targets
+    fig, ax = plt.subplots(1, num_targets, figsize=(width, 6))
     n_aa_substitutions = [
         len(s.split()) for s in evaluation_dict["original_df"]["aa_substitutions"]
     ]
@@ -64,14 +87,29 @@ def plot_test_correlation(evaluation_dict, out, cmap="plasma"):
         pred = evaluation_dict["predictions"][:, target]
         targ = evaluation_dict["targets"][:, target]
         corr = stats.pearsonr(pred, targ)
-        scatter = ax[target].scatter(pred, targ, cmap=cmap, c=n_aa_substitutions, s=8.0)
-        ax[target].set_xlabel(f"Predicted")
-        ax[target].set_ylabel(f"Observed")
-        target_name = evaluation_dict["target_names"][target]
-        ax[target].set_title(
-            f"Test Data for {target_name}\npearsonr = {round(corr[0],3)}"
+        if num_targets == 1:
+            scatter = ax.scatter(pred, targ, cmap=cmap, c=n_aa_substitutions, s=8.0)
+            ax.set_xlabel(f"Predicted")
+            ax.set_ylabel(f"Observed")
+            target_name = evaluation_dict["target_names"][target]
+            ax.set_title(f"Test Data for {target_name}\npearsonr = {round(corr[0],3)}")
+        else:
+            scatter = ax[target].scatter(
+                pred, targ, cmap=cmap, c=n_aa_substitutions, s=8.0
+            )
+            ax[target].set_xlabel(f"Predicted")
+            ax[target].set_ylabel(f"Observed")
+            target_name = evaluation_dict["target_names"][target]
+            ax[target].set_title(
+                f"Test Data for {target_name}\npearsonr = {round(corr[0],3)}"
+            )
+
+    if num_targets == 1:
+        ax.legend(
+            *scatter.legend_elements(), bbox_to_anchor=(-0.20, 1), title="n-mutant"
         )
-    ax[0].legend(
-        *scatter.legend_elements(), bbox_to_anchor=(-0.20, 1), title="n-mutant"
-    )
+    else:
+        ax[0].legend(
+            *scatter.legend_elements(), bbox_to_anchor=(-0.20, 1), title="n-mutant"
+        )
     fig.savefig(out)

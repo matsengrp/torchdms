@@ -6,6 +6,7 @@ import torch
 from torch.utils.data import DataLoader
 from torchdms.data import BinaryMapDataset
 from torch.optim.lr_scheduler import ReduceLROnPlateau
+from torchdms.utils import *
 
 
 def make_data_loader_infinite(data_loader):
@@ -94,6 +95,9 @@ class Analysis:
                     # backward for each loader before clearing the gradient via
                     # zero_grad. See, e.g. https://link.medium.com/wem03OhPH5
                     loss.backward()
+                    if self.model.monotonic:
+                        for param in monotonic_params_from_latent_space(self.model):
+                            param.data.clamp_(0)
                 losses_history.append(per_batch_loss)
                 per_epoch_loss += per_batch_loss
                 self.optimizer.step()
