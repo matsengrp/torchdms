@@ -135,7 +135,6 @@ def create(model_name, data_path, out_path, layers, monotonic):
     click.echo(f"LOG: Test data output size: {test_BMD.targets.shape[1]}")
     if model_name == "DmsFeedForwardModel":
         if len(list(layers)) == 0:
-            # raise ValueError("Must provide layers to define custom model")
             click.echo(f"LOG: No layers provided means creating a linear model")
         for layer in layers:
             if type(layer) != int:

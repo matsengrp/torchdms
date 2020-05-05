@@ -52,7 +52,7 @@ class DmsFeedForwardModel(nn.Module):
                 self.layers.append(layer_name)
                 setattr(self, layer_name, nn.Linear(in_size, num_nodes, bias=bias))
                 layer_name = f"internal_layer_{layer_index + 1}"
-                in_size = layers[layer_index - 1]
+                in_size = layers[layer_index]
                 bias = True
 
             # final layer
