@@ -17,8 +17,8 @@ class DmsFeedForwardModel(nn.Module):
     means we have a 'latent' space of 2 nodes, connected to
     two more dense layers, each with 10 layers, before the output.
 
-    if layers is fed an empty list [], this will
-    be equivilent to the linear model
+    If layers is fed an empty list, the model will be a 
+    neural network equivilent of the Additive linear model.
     """
 
     def __init__(
@@ -51,7 +51,7 @@ class DmsFeedForwardModel(nn.Module):
             for layer_index, num_nodes in enumerate(layers):
                 self.layers.append(layer_name)
                 setattr(self, layer_name, nn.Linear(in_size, num_nodes, bias=bias))
-                layer_name = f"internal_layer_{layer_index + 1}"
+                layer_name = f"internal_layer_{layer_index}"
                 in_size = layers[layer_index]
                 bias = True
 
@@ -63,6 +63,14 @@ class DmsFeedForwardModel(nn.Module):
     def forward(self, x):
         out = x
         for layer_index in range(len(self.layers) - 1):
+            out = self.activation_fn(getattr(self, self.layers[layer_index])(out))
+        prediction = getattr(self, self.layers[-1])(out)
+        return prediction
+
+    def from_latent(self, x):
+        assert len(self.layers) != 0
+        out = x
+        for layer_index in range(1, len(self.layers) - 1):
             out = self.activation_fn(getattr(self, self.layers[layer_index])(out))
         prediction = getattr(self, self.layers[-1])(out)
         return prediction
