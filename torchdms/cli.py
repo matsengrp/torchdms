@@ -96,7 +96,7 @@ def prep(
     return None
 
 
-@cli.command(name="create", short_help="Create a Model")
+@cli.command(name="create", short_help="Create a model")
 @argument("data_path", type=click.Path(exists=True))
 @argument("out_path", type=click.Path())
 @argument("model_name")
@@ -123,7 +123,7 @@ def create(model_name, data_path, out_path, layers, monotonic):
         "AdditiveLinearModel": AdditiveLinearModel,
         "TwoByTwoOutputTwoNet": TwoByTwoOutputTwoNet,
         "TwoByTwoNetOutputOne": TwoByTwoNetOutputOne,
-        "DmsFeedForwardModel": DmsFeedForwardModel,
+        "DMSFeedForwardModel": DMSFeedForwardModel,
     }
     click.echo(f"LOG: searching for {model_name}")
     if model_name not in known_models:
@@ -134,13 +134,13 @@ def create(model_name, data_path, out_path, layers, monotonic):
 
     click.echo(f"LOG: Test data input size: {test_BMD.feature_count()}")
     click.echo(f"LOG: Test data output size: {test_BMD.targets.shape[1]}")
-    if model_name == "DmsFeedForwardModel":
+    if model_name == "DMSFeedForwardModel":
         if len(list(layers)) == 0:
             click.echo(f"LOG: No layers provided means creating a linear model")
         for layer in layers:
             if type(layer) != int:
                 raise TypeError("All layer input must be integers")
-        model = DmsFeedForwardModel(
+        model = DMSFeedForwardModel(
             test_BMD.feature_count(), list(layers), test_BMD.targets.shape[1]
         )
     else:
@@ -319,8 +319,8 @@ def contour(model_path, start, end, nticks, out, device):
     model = torch.load(model_path)
 
     # TODO also check for 2d latent space
-    if type(model) != DmsFeedForwardModel:
-        raise TypeError("Model must be a DmsFeedForwardModel")
+    if type(model) != DMSFeedForwardModel:
+        raise TypeError("Model must be a DMSFeedForwardModel")
 
     # TODO add device
     click.echo(f"LOG: plotting contour")

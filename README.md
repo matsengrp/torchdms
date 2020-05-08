@@ -5,7 +5,7 @@
 
 ## What is this?
 
-Pytorch - Deep Mutational Scanning (torch-dms) is a small python package made to train neural networks on 
+Pytorch - Deep Mutational Scanning (torch-dms) is a small python package made to train neural networks on
 amino-acid substitution data, predicting some chosen functional score(s).
 We use the binary encoding of variants using
 [BinaryMap Object](https://jbloomlab.github.io/dms_variants/dms_variants.binarymap.html)
@@ -48,11 +48,12 @@ Commands:
   beta     This command will plot the beta coeff for each possible mutation
            at each site along the sequence as a heatmap
 
-  contour  Evaluate the the latent space of a model with a two     dimensional
+  contour  Evaluate the the latent space of a model with a two-dimensional
            latent space by predicting across grid of values
 
-  create   Create a Model
-  eval     Evaluate the performance of a model and dump     the a dictionary
+  create   Create a model
+
+  eval     Evaluate the performance of a model and dump the dictionary
            containing the results
 
   prep     Prepare a dataframe with aa subsitutions and targets in the

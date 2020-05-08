@@ -26,7 +26,7 @@ def to_pickle_file(obj, path):
         pickle.dump(obj, file)
 
 
-def monotonic_params_from_latent_space(model: torchdms.model.DmsFeedForwardModel):
+def monotonic_params_from_latent_space(model: torchdms.model.DMSFeedForwardModel):
     """
         following the hueristic that the input layer of a network
         is named 'input_layer' and the weight bias are denoted:
@@ -34,7 +34,7 @@ def monotonic_params_from_latent_space(model: torchdms.model.DmsFeedForwardModel
         layer_name.weight
         layer_name.bias.
 
-        this function returns all the parameters 
+        this function returns all the parameters
         to be floored to zero in a monotonic model.
         this is every parameter after the latent space
         excluding bias parameters.
@@ -51,9 +51,9 @@ def evaluatation_dict(model, test_data, device="cpu"):
     """
     Evaluate & Organize all testing data paried with metadata.
 
-    A function which takes a trained model, matching test 
+    A function which takes a trained model, matching test
     dataset (BinaryMapDataset w/ the same input dimentions.)
-    and return a dictionary containing the 
+    and return a dictionary containing the
 
     - samples: binary encodings numpy array shape (num samples, num possible mutations)
     - predictions and targets: both numpy arrays of shape (num samples, num targets)
@@ -77,7 +77,7 @@ def evaluatation_dict(model, test_data, device="cpu"):
 
 def plot_test_correlation(evaluation_dict, out, cmap="plasma"):
     """
-    Plot scatter plot and correlation values between predicted and 
+    Plot scatter plot and correlation values between predicted and
     observed for each target
     """
     num_targets = evaluation_dict["targets"].shape[1]
@@ -120,7 +120,7 @@ def plot_test_correlation(evaluation_dict, out, cmap="plasma"):
 
 def latent_space_contour_plot_2D(model, out, start=0, end=1000, nticks=100):
     """
-    This function takes in an Object of type torch.model.DmsFeedForwardModel.
+    This function takes in an Object of type torch.model.DMSFeedForwardModel.
     It uses the `from_latent()` Method to produce a matrix X of predictions given
     combinations or parameters (X_{i}_{j}) fed into the latent space of the model.
     """

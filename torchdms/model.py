@@ -3,21 +3,21 @@ import torch
 import torch.nn as nn
 
 
-class DmsFeedForwardModel(nn.Module):
+class DMSFeedForwardModel(nn.Module):
     """
     Make it just how you like it.
 
     input size can be inferred for the train/test datasets
-    and output can be inferred from the number of targets 
+    and output can be inferred from the number of targets
     specified. the rest should simply be fed in as a list
     like:
-    
+
     layers = [2, 10, 10]
 
     means we have a 'latent' space of 2 nodes, connected to
     two more dense layers, each with 10 layers, before the output.
 
-    If layers is fed an empty list, the model will be a 
+    If layers is fed an empty list, the model will be a
     neural network equivilent of the Additive linear model.
     """
 
@@ -29,7 +29,7 @@ class DmsFeedForwardModel(nn.Module):
         activation_fn=torch.sigmoid,
         monotonic=False,
     ):
-        super(DmsFeedForwardModel, self).__init__()
+        super(DMSFeedForwardModel, self).__init__()
         self.monotonic = monotonic
         self.input_size = input_size
         self.output_size = output_size
