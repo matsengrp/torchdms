@@ -62,7 +62,7 @@ Commands:
   scatter  Evaluate and produce scatter plot of observed vs. predicted
            targets on the test set provided.
 
-  train    Train a Model
+  train    Train a model
 ```
 
 ## Example
