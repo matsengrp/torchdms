@@ -6,6 +6,9 @@ import pickle
 import torch
 from dms_variants.binarymap import BinaryMap
 from torch.utils.data import Dataset
+from collections import defaultdict
+import itertools
+import random
 
 
 class BinaryMapDataset(Dataset):
@@ -65,7 +68,16 @@ def partition(
         labeled_examples = grouped.dropna()
         if len(labeled_examples) < skip_stratum_if_count_is_smaller_than:
             continue
-        to_put_in_test = labeled_examples.sample(n=per_stratum_variants_for_test).index
+
+        # Here, we grab a subset of unique variants so that
+        # we are not training on the same variants that we see in the testing data
+        unique_variants = defaultdict(list)
+        for index, sub in zip(labeled_examples.index, labeled_examples["aa_substitutions"]):
+            unique_variants[sub].append(index)
+        test_variants = random.sample(unique_variants.keys(), per_stratum_variants_for_test)
+        test_dict = {key: unique_variants[key] for key in test_variants}
+        to_put_in_test = list(itertools.chain(*list(test_dict.values())))
+
         aa_func_scores.loc[to_put_in_test, "in_test"] = True
         partitioned_train_data.append(
             aa_func_scores.loc[
