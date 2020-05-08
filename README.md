@@ -38,19 +38,30 @@ that torch-dms has nested help pages for each command available.
 ```
 Usage: tdms [OPTIONS] COMMAND [ARGS]...
 
-  A generalized method to train neural networks  on deep mutational scanning
+  A generalized method to train neural networks on deep mutational scanning
   data.
 
 Options:
   -h, --help  Show this message and exit.
 
 Commands:
-  create  Create a Model
-  eval    Evaluate a model given some testing data in the form of a...
-  prep    Prepare a dataframe with aa subsitutions and targets in the
-          format needed to present to a neural network.
+  beta     This command will plot the beta coeff for each possible mutation
+           at each site along the sequence as a heatmap
 
-  train   Train a model, saving trained model to original location.
+  contour  Evaluate the the latent space of a model with a two     dimensional
+           latent space by predicting across grid of values
+
+  create   Create a Model
+  eval     Evaluate the performance of a model and dump     the a dictionary
+           containing the results
+
+  prep     Prepare a dataframe with aa subsitutions and targets in the
+           format needed to present to a neural network.
+
+  scatter  Evaluate and produce scatter plot of observed vs. predicted
+           targets on the test set provided.
+
+  train    Train a Model
 ```
 
 ## Example
