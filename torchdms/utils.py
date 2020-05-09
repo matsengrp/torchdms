@@ -103,9 +103,9 @@ def plot_test_correlation(evaluation_dict, out, cmap="plasma"):
             ax[target].set_xlabel(f"Predicted")
             ax[target].set_ylabel(f"Observed")
             target_name = evaluation_dict["target_names"][target]
-            ax[target].set_title(
-                f"Test Data for {target_name}\npearsonr = {round(corr[0],3)}"
-            )
+            plot_title = f"Test Data for {target_name}\npearsonr = {round(corr[0],3)}"
+            ax[target].set_title(plot_title)
+            print(plot_title)
 
     if num_targets == 1:
         ax.legend(
