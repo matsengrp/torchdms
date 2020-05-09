@@ -125,7 +125,8 @@ def latent_space_contour_plot_2D(model, out, start=0, end=1000, nticks=100):
     combinations or parameters (X_{i}_{j}) fed into the latent space of the model.
     """
 
-    predictions_matrices = [np.empty([nticks, nticks]) for _ in range(2)]
+    num_targets = model.output_size
+    prediction_matrices = [np.empty([nticks, nticks]) for _ in range(num_targets)]
     for i, latent1_value in enumerate(np.linspace(start, end, nticks)):
         for j, latent2_value in enumerate(np.linspace(start, end, nticks)):
             lat_sample = torch.from_numpy(
@@ -133,16 +134,14 @@ def latent_space_contour_plot_2D(model, out, start=0, end=1000, nticks=100):
             ).float()
             predictions = model.from_latent(lat_sample)
             for pred_idx in range(len(predictions)):
-                predictions_matrices[pred_idx][i][j] = predictions[pred_idx]
+                prediction_matrices[pred_idx][i][j] = predictions[pred_idx]
 
-    ticks = np.linspace(start, end, nticks)
-    num_targets = model.output_size
     width = 7 * num_targets
     fig, ax = plt.subplots(1, num_targets, figsize=(width, 6))
     # Make ax a list even if there's only one target.
     if num_targets == 1:
         ax = [ax]
-    for idx, matrix in enumerate(predictions_matrices):
+    for idx, matrix in enumerate(prediction_matrices):
         mapp = ax[idx].imshow(matrix)
 
         # TODO We should have the ticks which show the range of inputs
