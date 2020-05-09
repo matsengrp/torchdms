@@ -139,6 +139,9 @@ def latent_space_contour_plot_2D(model, out, start=0, end=1000, nticks=100):
     num_targets = model.output_size
     width = 7 * num_targets
     fig, ax = plt.subplots(1, num_targets, figsize=(width, 6))
+    # Make ax a list even if there's only one target.
+    if num_targets == 1:
+        ax = [ax]
     for idx, matrix in enumerate(predictions_matrices):
         mapp = ax[idx].imshow(matrix)
 
