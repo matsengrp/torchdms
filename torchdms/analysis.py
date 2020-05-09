@@ -4,8 +4,8 @@ import seaborn as sns
 import pandas as pd
 import torch
 from torch.utils.data import DataLoader
-from torchdms.data import BinaryMapDataset
 from torch.optim.lr_scheduler import ReduceLROnPlateau
+from torchdms.data import BinaryMapDataset
 from torchdms.utils import *
 
 

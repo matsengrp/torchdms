@@ -114,7 +114,7 @@ def create(model_name, data_path, out_path, layers, monotonic):
     Create a model. Model name can be the name of any
     of the functions defined in torch.models.
 
-    If using the BuildYourOwnVanillaNet model, you must provide some number of
+    If using the DMSFeedForwardModel model, you must provide some number of
     integer arguments following the model name to specify the number of nodes
     and layers for each (LAYERS argument).
     """

@@ -71,7 +71,7 @@ Commands:
 Synopsis:
 
     tdms prep tstarr_dms_full.pkl NIH_PREP.pkl affinity_score expr_score
-    tdms create NIH_PREP.pkl byov_10_10_10.model BuildYourOwnVanillaNet 10 10 10
+    tdms create NIH_PREP.pkl byov_10_10_10.model DMSFeedForwardModel 10 10 10
     tdms train byov_10_10_10.model NIH_PREP.pkl --epochs 100
     tdms eval byov.model NIH_prep.pkl --scatter-plot-out NIH_Scatter_out.pdf
 
