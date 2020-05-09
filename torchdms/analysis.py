@@ -80,7 +80,11 @@ class Analysis:
                         )
                         per_target_loss.append(loss_fn(valid_targets, valid_predict))
 
-                    loss = sum(per_target_loss)
+                    regularization_loss = 0.0001 * torch.sum(
+                        torch.abs(next(self.model.parameters()).narrow(0, 1, 1))
+                    )
+
+                    loss = sum(per_target_loss) + regularization_loss
                     per_batch_loss += loss.item()
 
                     # Note that here we are using gradient accumulation: calling
