@@ -109,7 +109,7 @@ def plot_test_correlation(evaluation_dict, out, cmap="plasma"):
                 n_aa_substitutions=evaluation_dict["original_df"]["n_aa_substitutions"],
             )
         )
-        correlation_series["correlation " + target] = (
+        correlation_series["correlation " + str(target)] = (
             plot_df.groupby("n_aa_substitutions").corr().iloc[0::2, -1]
         )
     correlation_df = pd.DataFrame(correlation_series)
