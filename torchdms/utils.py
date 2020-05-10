@@ -47,7 +47,7 @@ def monotonic_params_from_latent_space(model: torchdms.model.DMSFeedForwardModel
             yield param
 
 
-def evaluatation_dict(model, test_data, device="cpu"):
+def evaluation_dict(model, test_data, device="cpu"):
     """
     Evaluate & Organize all testing data paried with metadata.
 
@@ -86,35 +86,23 @@ def plot_test_correlation(evaluation_dict, out, cmap="plasma"):
     n_aa_substitutions = [
         len(s.split()) for s in evaluation_dict["original_df"]["aa_substitutions"]
     ]
+    if num_targets == 1:
+        ax = [ax]
     for target in range(num_targets):
         pred = evaluation_dict["predictions"][:, target]
         targ = evaluation_dict["targets"][:, target]
         corr = stats.pearsonr(pred, targ)
-        if num_targets == 1:
-            scatter = ax.scatter(pred, targ, cmap=cmap, c=n_aa_substitutions, s=8.0)
-            ax.set_xlabel(f"Predicted")
-            ax.set_ylabel(f"Observed")
-            target_name = evaluation_dict["target_names"][target]
-            ax.set_title(f"Test Data for {target_name}\npearsonr = {round(corr[0],3)}")
-        else:
-            scatter = ax[target].scatter(
-                pred, targ, cmap=cmap, c=n_aa_substitutions, s=8.0
-            )
-            ax[target].set_xlabel(f"Predicted")
-            ax[target].set_ylabel(f"Observed")
-            target_name = evaluation_dict["target_names"][target]
-            plot_title = f"Test Data for {target_name}\npearsonr = {round(corr[0],3)}"
-            ax[target].set_title(plot_title)
-            print(plot_title)
+        scatter = ax[target].scatter(pred, targ, cmap=cmap, c=n_aa_substitutions, s=8.0)
+        ax[target].set_xlabel(f"Predicted")
+        ax[target].set_ylabel(f"Observed")
+        target_name = evaluation_dict["target_names"][target]
+        plot_title = f"Test Data for {target_name}\npearsonr = {round(corr[0],3)}"
+        ax[target].set_title(plot_title)
+        print(plot_title)
 
-    if num_targets == 1:
-        ax.legend(
-            *scatter.legend_elements(), bbox_to_anchor=(-0.20, 1), title="n-mutant"
-        )
-    else:
-        ax[0].legend(
-            *scatter.legend_elements(), bbox_to_anchor=(-0.20, 1), title="n-mutant"
-        )
+    ax[0].legend(
+        *scatter.legend_elements(), bbox_to_anchor=(-0.20, 1), title="n-mutant"
+    )
     fig.savefig(out)
 
 
