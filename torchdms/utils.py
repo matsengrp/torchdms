@@ -52,7 +52,7 @@ def evaluatation_dict(model, test_data, device="cpu"):
     Evaluate & Organize all testing data paried with metadata.
 
     A function which takes a trained model, matching test
-    dataset (BinaryMapDataset w/ the same input dimentions.)
+    dataset (BinaryMapDataset w/ the same input dimensions.)
     and return a dictionary containing the
 
     - samples: binary encodings numpy array shape (num samples, num possible mutations)
@@ -188,7 +188,7 @@ def beta_coefficients(model, test_data, out):
         beta_map[wtmask] = np.nan
         mapp = ax[latent_dim].imshow(beta_map, aspect="auto")
         fig.colorbar(mapp, ax=ax[latent_dim], orientation="horizontal")
-        ax[latent_dim].set_title(f"Beta Coeff to latent dimention {latent_dim}")
+        ax[latent_dim].set_title(f"Beta coeff for latent dimension {latent_dim}")
         ax[latent_dim].set_yticks(ticks=range(0, 21))
         ax[latent_dim].set_yticklabels(alphabet)
     plt.tight_layout()
