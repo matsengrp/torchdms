@@ -101,16 +101,11 @@ def plot_test_correlation(evaluation_dict, out, cmap="plasma"):
         ax[target].set_title(plot_title)
         print(plot_title)
 
-        # TODO merge with above
-        plot_df = pd.DataFrame(
-            dict(
-                pred=evaluation_dict["predictions"][:, target],
-                targ=evaluation_dict["targets"][:, target],
-                n_aa_substitutions=evaluation_dict["original_df"]["n_aa_substitutions"],
-            )
+        per_target_df = pd.DataFrame(
+            dict(pred=pred, targ=targ, n_aa_substitutions=n_aa_substitutions,)
         )
         correlation_series["correlation " + str(target)] = (
-            plot_df.groupby("n_aa_substitutions").corr().iloc[0::2, -1]
+            per_target_df.groupby("n_aa_substitutions").corr().iloc[0::2, -1]
         )
     correlation_df = pd.DataFrame(correlation_series)
     correlation_df.index = correlation_df.index.droplevel(1)
