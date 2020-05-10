@@ -261,7 +261,7 @@ def eval(model_path, data_path, out, device):
     [test_data, _] = from_pickle_file(data_path)
 
     click.echo(f"LOG: evaluating test data with given model")
-    evaluation = evaluatation_dict(model, test_data, device)
+    evaluation = evaluation_dict(model, test_data, device)
 
     click.echo(f"LOG: pickle dump evalution data dictionary to {out}")
     to_pickle_file(evaluation, out)
@@ -290,7 +290,7 @@ def scatter(model_path, data_path, out, device):
     [test_data, _] = from_pickle_file(data_path)
 
     click.echo(f"LOG: evaluating test data with given model")
-    evaluation = evaluatation_dict(model, test_data, device)
+    evaluation = evaluation_dict(model, test_data, device)
 
     at_least_one = True
     click.echo(f"LOG: plotting scatter correlation")
@@ -348,7 +348,9 @@ def beta(model_path, data_path, out):
     # the test data holds some metadata
     click.echo(f"LOG: loading testing data from {data_path}")
     [test_data, _] = from_pickle_file(data_path)
-    click.echo(f"LOG: loaded data, evaluating beta coeff for wildtype seq: {test_data.wtseq}")
+    click.echo(
+        f"LOG: loaded data, evaluating beta coeff for wildtype seq: {test_data.wtseq}"
+    )
 
     click.echo(f"LOG: plotting beta coefficients")
     beta_coefficients(model, test_data, out)
