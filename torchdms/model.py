@@ -68,7 +68,7 @@ class DMSFeedForwardModel(nn.Module):
         return prediction
 
     def regularization_loss(self):
-        beta_parameters = next(self.model.parameters())
+        beta_parameters = next(self.parameters())
         latent_space_dim = beta_parameters.shape[0]
         if latent_space_dim == 1:
             return 0.0
