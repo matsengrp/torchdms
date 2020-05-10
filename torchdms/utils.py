@@ -1,6 +1,7 @@
 import click
 import scipy.stats as stats
 import itertools
+import os.path
 import pandas as pd
 import torch
 import pickle
@@ -84,8 +85,6 @@ def plot_test_correlation(evaluation_dict, out, cmap="plasma"):
     n_aa_substitutions = evaluation_dict["original_df"]["n_aa_substitutions"]
     width = 7 * num_targets
     fig, ax = plt.subplots(1, num_targets, figsize=(width, 6))
-    # This allows us to have one plotting loop (just below) rather than two special
-    # cases.
     if num_targets == 1:
         ax = [ax]
     correlation_series = {}
@@ -109,7 +108,8 @@ def plot_test_correlation(evaluation_dict, out, cmap="plasma"):
         )
     correlation_df = pd.DataFrame(correlation_series)
     correlation_df.index = correlation_df.index.droplevel(1)
-    print(correlation_df)
+    correlation_path = os.path.splitext(out)[0]
+    correlation_df.to_csv(correlation_path + "corr.csv")
 
     ax[0].legend(
         *scatter.legend_elements(), bbox_to_anchor=(-0.20, 1), title="n-mutant"
