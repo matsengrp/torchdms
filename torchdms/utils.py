@@ -109,7 +109,7 @@ def plot_test_correlation(evaluation_dict, out, cmap="plasma"):
     correlation_df = pd.DataFrame(correlation_series)
     correlation_df.index = correlation_df.index.droplevel(1)
     correlation_path = os.path.splitext(out)[0]
-    correlation_df.to_csv(correlation_path + "corr.csv")
+    correlation_df.to_csv(correlation_path + ".corr.csv")
 
     ax[0].legend(
         *scatter.legend_elements(), bbox_to_anchor=(-0.20, 1), title="n-mutant"
