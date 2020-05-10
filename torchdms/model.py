@@ -67,6 +67,22 @@ class DMSFeedForwardModel(nn.Module):
         prediction = getattr(self, self.layers[-1])(out)
         return prediction
 
+    def regularization_loss(self):
+        beta_parameters = next(self.model.parameters())
+        latent_space_dim = beta_parameters.shape[0]
+        if latent_space_dim == 1:
+            return 0.0
+        # else:
+        return 0.0001 * torch.sum(
+            torch.abs(
+                beta_parameters.narrow(
+                    0,  # slice along the 0th dimension
+                    1,  # don't include the betas for latent dimension 0
+                    latent_space_dim - 1,  # the total number of components to penalize
+                )
+            )
+        )
+
     def from_latent(self, x):
         assert len(self.layers) != 0
         out = x
@@ -74,71 +90,3 @@ class DMSFeedForwardModel(nn.Module):
             out = self.activation_fn(getattr(self, self.layers[layer_index])(out))
         prediction = getattr(self, self.layers[-1])(out)
         return prediction
-
-
-class SingleSigmoidNet(nn.Module):
-    def __init__(self, input_size, hidden1_size=1, monotonic=False):
-        super(SingleSigmoidNet, self).__init__()
-        self.monotonic = monotonic
-        self.input_size = input_size
-        self.output_size = 1
-        self.input_to_hidden = nn.Linear(input_size, hidden1_size, bias=False)
-        self.hidden_to_output = nn.Linear(hidden1_size, 1)
-
-    def forward(self, x):
-        out = torch.sigmoid(self.input_to_hidden(x))
-        out = self.hidden_to_output(out)
-        return out
-
-
-class AdditiveLinearModel(nn.Module):
-    def __init__(self, input_size, monotonic=False):
-        super(AdditiveLinearModel, self).__init__()
-        self.monotonic = monotonic
-        self.input_size = input_size
-        self.output_size = 1
-        self.input_to_output = nn.Linear(input_size, 1)
-
-    def forward(self, x):
-        out = self.input_to_output(x)
-        return out
-
-
-class TwoByTwoOutputTwoNet(nn.Module):
-    def __init__(self, input_size, monotonic=False):
-        super(TwoByTwoOutputTwoNet, self).__init__()
-        self.monotonic = monotonic
-        self.input_size = input_size
-        self.output_size = 2
-        self.input_to_hidden = nn.Linear(input_size, 2, bias=False)
-        self.hidden_dense = nn.Linear(2, 2)
-        self.hidden_to_output = nn.Linear(2, 2)
-
-    def forward(self, x):
-        out = torch.sigmoid(self.input_to_hidden(x))
-        out = torch.sigmoid(self.hidden_dense(out))
-        out = self.hidden_to_output(out)
-        return out
-
-    # TODO
-    # def from_latent(self, alpha_beta):
-    #    out = torch.sigmoid(self.hidden_dense(alpha_beta))
-    #    out = self.hidden_to_output(out)
-    #    return out
-
-
-class TwoByTwoNetOutputOne(nn.Module):
-    def __init__(self, input_size, monotonic=False):
-        super(TwoByTwoNet, self).__init__()
-        self.monotonic = monotonic
-        self.input_size = input_size
-        self.output_size = 1
-        self.input_to_hidden = nn.Linear(input_size, 2, bias=False)
-        self.hidden_dense = nn.Linear(2, 2)
-        self.hidden_to_output = nn.Linear(2, 1)
-
-    def forward(self, x):
-        out = torch.sigmoid(self.input_to_hidden(x))
-        out = torch.sigmoid(self.hidden_dense(out))
-        out = self.hidden_to_output(out)
-        return out

@@ -119,10 +119,6 @@ def create(model_name, data_path, out_path, layers, monotonic):
     and layers for each (LAYERS argument).
     """
     known_models = {
-        "SingleSigmoidNet": SingleSigmoidNet,
-        "AdditiveLinearModel": AdditiveLinearModel,
-        "TwoByTwoOutputTwoNet": TwoByTwoOutputTwoNet,
-        "TwoByTwoNetOutputOne": TwoByTwoNetOutputOne,
         "DMSFeedForwardModel": DMSFeedForwardModel,
     }
     click.echo(f"LOG: searching for {model_name}")
