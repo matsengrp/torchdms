@@ -81,11 +81,11 @@ def plot_test_correlation(evaluation_dict, out, cmap="plasma"):
     observed for each target
     """
     num_targets = evaluation_dict["targets"].shape[1]
+    n_aa_substitutions = evaluation_dict["original_df"]["n_aa_substitutions"]
     width = 7 * num_targets
     fig, ax = plt.subplots(1, num_targets, figsize=(width, 6))
-    n_aa_substitutions = [
-        len(s.split()) for s in evaluation_dict["original_df"]["aa_substitutions"]
-    ]
+    # This allows us to have one plotting loop (just below) rather than two special
+    # cases.
     if num_targets == 1:
         ax = [ax]
     for target in range(num_targets):
