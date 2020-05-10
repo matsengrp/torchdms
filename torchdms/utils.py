@@ -88,6 +88,7 @@ def plot_test_correlation(evaluation_dict, out, cmap="plasma"):
     # cases.
     if num_targets == 1:
         ax = [ax]
+    correlation_series = {}
     for target in range(num_targets):
         pred = evaluation_dict["predictions"][:, target]
         targ = evaluation_dict["targets"][:, target]
@@ -99,6 +100,21 @@ def plot_test_correlation(evaluation_dict, out, cmap="plasma"):
         plot_title = f"Test Data for {target_name}\npearsonr = {round(corr[0],3)}"
         ax[target].set_title(plot_title)
         print(plot_title)
+
+        # TODO merge with above
+        plot_df = pd.DataFrame(
+            dict(
+                pred=evaluation_dict["predictions"][:, target],
+                targ=evaluation_dict["targets"][:, target],
+                n_aa_substitutions=evaluation_dict["original_df"]["n_aa_substitutions"],
+            )
+        )
+        correlation_series["correlation " + target] = (
+            plot_df.groupby("n_aa_substitutions").corr().iloc[0::2, -1]
+        )
+    correlation_df = pd.DataFrame(correlation_series)
+    correlation_df.index = correlation_df.index.droplevel(1)
+    print(correlation_df)
 
     ax[0].legend(
         *scatter.legend_elements(), bbox_to_anchor=(-0.20, 1), title="n-mutant"
