@@ -207,7 +207,9 @@ def create(model_string, data_path, out_path, monotonic, beta_l1_coefficient):
 @argument("model_path", type=click.Path(exists=True))
 @argument("data_path", type=click.Path(exists=True))
 @option("--loss-out", type=click.Path(), required=False)
-@option("--loss-fn", default="rmse", required=True, help="Loss function for training.")
+@option(
+    "--loss-fn", default="rmse", show_default=True, help="Loss function for training."
+)
 @option(
     "--batch-size", default=500, show_default=True, help="Batch size for training.",
 )
@@ -405,17 +407,30 @@ def go(ctx, data_path, model_string, prefix):
         out_path=model_path,
         **restrict_dict_to_params(ctx.default_map, create),
     )
-
-
-#     train_kwargs = {key: ctx.default_map[key] for key in ["epochs"]}
-#     ctx.invoke(
-#         train,
-#         model_path=model_path,
-#         data_path=data_path,
-#         out_path=model_path,
-#         **train_kwargs,
-#     )
-# scatter_path = prefix + ".scatter.pdf"
+    loss_path = prefix + ".loss.csv"
+    ctx.invoke(
+        train,
+        model_path=model_path,
+        data_path=data_path,
+        loss_out=loss_path,
+        **restrict_dict_to_params(ctx.default_map, train),
+    )
+    scatter_path = prefix + ".scatter.pdf"
+    ctx.invoke(
+        scatter,
+        model_path=model_path,
+        data_path=data_path,
+        out=scatter_path,
+        **restrict_dict_to_params(ctx.default_map, scatter),
+    )
+    beta_path = prefix + ".beta.pdf"
+    ctx.invoke(
+        beta,
+        model_path=model_path,
+        data_path=data_path,
+        out=beta_path,
+        **restrict_dict_to_params(ctx.default_map, beta),
+    )
 
 
 if __name__ == "__main__":
