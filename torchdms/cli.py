@@ -121,7 +121,7 @@ def prep(
 @cli.command(name="create")
 @argument("data_path", type=click.Path(exists=True))
 @argument("out_path", type=click.Path())
-@argument("model_string", help="Model description, such as 'DMSFeedForwardModel(1,10)'")
+@argument("model_string")
 @option(
     "--monotonic",
     is_flag=True,
@@ -143,11 +143,7 @@ def create(model_string, data_path, out_path, monotonic, beta_l1_coefficient):
     """
     Create a model.
 
-    Model name can be the name of any of the functions defined in torch.models.
-
-    If using the DMSFeedForwardModel model, you must provide some number of
-    integer arguments following the model name to specify the number of nodes
-    and layers for each (LAYERS argument).
+    Model string describes the model, such as 'DMSFeedForwardModel(1,10)'.
     """
     known_models = {
         "DMSFeedForwardModel": DMSFeedForwardModel,
