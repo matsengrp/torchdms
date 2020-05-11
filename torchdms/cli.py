@@ -388,30 +388,21 @@ def restrict_dict_to_params(d, cmd):
 
 
 @cli.command()
-@argument("data_path", type=click.Path(exists=True))
-@argument("model_string")
-@option(
-    "--prefix", required=True, type=click.Path(), help="Path prefix to put results."
-)
 @click.pass_context
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
-def go(ctx, data_path, model_string, prefix):
+def go(ctx):
     """
     Run a common sequence of commands.
     """
+    prefix = ctx.default_map["prefix"]
     model_path = prefix + ".model"
     ctx.invoke(
-        create,
-        model_string=model_string,
-        data_path=data_path,
-        out_path=model_path,
-        **restrict_dict_to_params(ctx.default_map, create),
+        create, out_path=model_path, **restrict_dict_to_params(ctx.default_map, create),
     )
     loss_path = prefix + ".loss.csv"
     ctx.invoke(
         train,
         model_path=model_path,
-        data_path=data_path,
         loss_out=loss_path,
         **restrict_dict_to_params(ctx.default_map, train),
     )
@@ -419,7 +410,6 @@ def go(ctx, data_path, model_string, prefix):
     ctx.invoke(
         scatter,
         model_path=model_path,
-        data_path=data_path,
         out=scatter_path,
         **restrict_dict_to_params(ctx.default_map, scatter),
     )
@@ -427,7 +417,6 @@ def go(ctx, data_path, model_string, prefix):
     ctx.invoke(
         beta,
         model_path=model_path,
-        data_path=data_path,
         out=beta_path,
         **restrict_dict_to_params(ctx.default_map, beta),
     )
