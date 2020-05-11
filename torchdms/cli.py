@@ -1,4 +1,5 @@
 import os
+import re
 import click
 import json
 import pandas as pd
@@ -120,8 +121,7 @@ def prep(
 @cli.command(name="create")
 @argument("data_path", type=click.Path(exists=True))
 @argument("out_path", type=click.Path())
-@argument("model_name")
-@argument("layers", type=int, nargs=-1, required=False)
+@argument("model_string")
 @option(
     "--monotonic",
     is_flag=True,
@@ -139,7 +139,7 @@ def prep(
     "those to the first latent dimension.",
 )
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
-def create(model_name, data_path, out_path, layers, monotonic, beta_l1_coefficient):
+def create(model_string, data_path, out_path, monotonic, beta_l1_coefficient):
     """
     Create a model.
 
@@ -152,6 +152,14 @@ def create(model_name, data_path, out_path, layers, monotonic, beta_l1_coefficie
     known_models = {
         "DMSFeedForwardModel": DMSFeedForwardModel,
     }
+    try:
+        model_regex = re.compile(r"(.*)\((.*)\)")
+        match = model_regex.match(model_string)
+        model_name = match.group(1)
+        layers = map(int, match.group(2).split(","))
+    except Exception:
+        click.echo(f"ERROR: Couldn't parse model description: '{model_string}'")
+        raise
     click.echo(f"LOG: searching for {model_name}")
     if model_name not in known_models:
         raise IOError(model_name + " not known")
