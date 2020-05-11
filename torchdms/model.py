@@ -69,9 +69,14 @@ class DMSFeedForwardModel(nn.Module):
         return prediction
 
     def regularization_loss(self):
+        """
+        L1-penalize betas for all latent space dimensions except for the first one.
+        """
         if self.beta_l1_coefficient == 0.0:
             return 0.0
         beta_parameters = next(self.parameters())
+        # The dimensions of the latent space are laid out as rows of the parameter
+        # matrix.
         latent_space_dim = beta_parameters.shape[0]
         if latent_space_dim == 1:
             return 0.0
@@ -79,9 +84,9 @@ class DMSFeedForwardModel(nn.Module):
         return self.beta_l1_coefficient * torch.sum(
             torch.abs(
                 beta_parameters.narrow(
-                    0,  # slice along the 0th dimension
-                    1,  # don't include the betas for latent dimension 0
-                    latent_space_dim - 1,  # the total number of components to penalize
+                    0,  # Slice along the 0th dimension.
+                    1,  # Start penalizing after the first dimension.
+                    latent_space_dim - 1,  # Penalize all subsequent dimensions.
                 )
             )
         )
