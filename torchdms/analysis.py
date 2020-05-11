@@ -1,12 +1,9 @@
-import click
 import itertools
-import seaborn as sns
-import pandas as pd
+import click
 import torch
 from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import ReduceLROnPlateau
-from torchdms.data import BinaryMapDataset
-from torchdms.utils import *
+from torchdms.utils import monotonic_params_from_latent_space
 
 
 def make_data_loader_infinite(data_loader):
