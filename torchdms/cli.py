@@ -43,11 +43,7 @@ def cli():
     pass
 
 
-@cli.command(
-    name="prep",
-    short_help="Prepare a dataframe with aa subsitutions and targets in the \
-    format needed to present to a neural network.",
-)
+@cli.command()
 @argument("in_path", required=True, type=click.Path(exists=True))
 @argument("out_path", required=True, type=click.Path())
 @argument("targets", type=str, nargs=-1, required=True)
@@ -79,10 +75,11 @@ def prep(
     skip_stratum_if_count_is_smaller_than,
 ):
     """
-    Prepare data for training. IN_PATH should point to a pickle dump'd
-    Pandas DataFrame containing the string encoded `aa_substitutions`
-    column along with any TARGETS you specify. OUT_PATH is the
-    location to dump the prepped data to another pickle file.
+    Prepare data for training.
+
+    IN_PATH should point to a pickle dump'd Pandas DataFrame containing the string
+    encoded `aa_substitutions` column along with any TARGETS you specify. OUT_PATH is
+    the location to dump the prepped data to another pickle file.
     """
 
     click.echo(f"LOG: Targets: {targets}")
@@ -118,7 +115,7 @@ def prep(
     return None
 
 
-@cli.command(name="create")
+@cli.command()
 @argument("data_path", type=click.Path(exists=True))
 @argument("out_path", type=click.Path())
 @argument("model_string")
@@ -152,7 +149,7 @@ def create(model_string, data_path, out_path, monotonic, beta_l1_coefficient):
         model_regex = re.compile(r"(.*)\((.*)\)")
         match = model_regex.match(model_string)
         model_name = match.group(1)
-        layers = map(int, match.group(2).split(","))
+        layers = list(map(int, match.group(2).split(",")))
     except Exception:
         click.echo(f"ERROR: Couldn't parse model description: '{model_string}'")
         raise
@@ -204,8 +201,7 @@ def create(model_string, data_path, out_path, monotonic, beta_l1_coefficient):
     click.echo(f"LOG: Saved model to {out_path}")
 
 
-# TODO train should just take the config file as a dict
-@cli.command(name="train")
+@cli.command()
 @argument("model_path", type=click.Path(exists=True))
 @argument("data_path", type=click.Path(exists=True))
 @option("--loss-out", type=click.Path(), required=False)
@@ -277,18 +273,16 @@ def train(
         losses.to_csv(loss_out)
 
 
-@cli.command(
-    name="eval",
-    short_help="Evaluate the performance of a model and dump \
-    the a dictionary containing the results",
-)
+@cli.command()
 @argument("model_path", type=click.Path(exists=True))
 @argument("data_path", type=click.Path(exists=True))
 @option("--out", required=True, type=click.Path())
 @option("--device", type=str, required=False, default="cpu")
 def eval(model_path, data_path, out, device):
     """
-    TODO
+    Evaluate the performance of a model.
+
+    Dump to a dictionary containing the results.
     """
     click.echo(f"LOG: Loading model from {model_path}")
     model = torch.load(model_path)
@@ -305,19 +299,15 @@ def eval(model_path, data_path, out, device):
     click.echo("eval finished")
 
 
-@cli.command(
-    name="scatter",
-    short_help="Evaluate and produce scatter plot of observed vs. predicted \
-    targets on the test set provided.",
-)
+@cli.command()
 @argument("model_path", type=click.Path(exists=True))
 @argument("data_path", type=click.Path(exists=True))
 @option("--out", required=True, type=click.Path())
 @option("--device", type=str, required=False, default="cpu")
 def scatter(model_path, data_path, out, device):
     """
-    Evaluate and produce scatter plot of observed vs. predicted
-    targets on the test set provided
+    Evaluate and produce scatter plot of observed vs. predicted targets on the test set
+    provided.
     """
     click.echo(f"LOG: Loading model from {model_path}")
     model = torch.load(model_path)
@@ -334,11 +324,7 @@ def scatter(model_path, data_path, out, device):
     click.echo(f"LOG: scatter plot finished and dumped to {out}")
 
 
-@cli.command(
-    name="contour",
-    short_help="Evaluate the the latent space of a model with a two \
-    dimensional latent space by predicting across grid of values",
-)
+@cli.command()
 @argument("model_path", type=click.Path(exists=True))
 @option("--start", required=False, type=int, default=0, show_default=True)
 @option("--end", required=False, type=int, default=1000, show_default=True)
@@ -347,8 +333,10 @@ def scatter(model_path, data_path, out, device):
 @option("--device", type=str, required=False, default="cpu")
 def contour(model_path, start, end, nticks, out, device):
     """
-    Evaluate the the latent space of a model with a two
-    dimensional latent space by predicting across grid of values
+    Visualize the the latent space of a model.
+
+    Make a contour plot with a two dimensional latent space by predicting across grid of
+    values.
     """
     click.echo(f"LOG: Loading model from {model_path}")
     model = torch.load(model_path)
@@ -364,18 +352,13 @@ def contour(model_path, start, end, nticks, out, device):
     click.echo(f"LOG: Contour finished and dumped to {out}")
 
 
-@cli.command(
-    name="beta",
-    short_help="This command will plot the beta coeff for each possible mutation \
-    at each site along the sequence as a heatmap",
-)
+@cli.command(name="beta",)
 @argument("model_path", type=click.Path(exists=True))
 @argument("data_path", type=click.Path(exists=True))
 @option("--out", required=True, type=click.Path())
 def beta(model_path, data_path, out):
     """
-    This command will plot the beta coeff for each possible mutation \
-    at each site along the sequence as a heatmap
+    Plot beta coefficients as a heatmap.
     """
     click.echo(f"LOG: Loading model from {model_path}")
     model = torch.load(model_path)
