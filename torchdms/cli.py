@@ -35,9 +35,7 @@ def json_provider(file_path, cmd_name):
 
 # Entry point
 @group(context_settings={"help_option_names": ["-h", "--help"]})
-@click_config_file.configuration_option(implicit=False, provider=json_provider)
-@click.pass_context
-def cli(ctx):
+def cli():
     """
     Train and evaluate neural networks on deep mutational scanning data.
     """
@@ -140,6 +138,7 @@ def prep(
     help="Coefficient with which to l1-regularize all beta coefficients except for "
     "those to the first latent dimension.",
 )
+@click_config_file.configuration_option(implicit=False, provider=json_provider)
 def create(model_name, data_path, out_path, layers, monotonic, beta_l1_coefficient):
     """
     Create a model.
@@ -197,6 +196,7 @@ def create(model_name, data_path, out_path, layers, monotonic, beta_l1_coefficie
 
     torch.save(model, out_path)
     click.echo(f"LOG: Model defined as: {model}")
+    click.echo(f"LOG: Model characteristics: {model.characteristics}")
     click.echo(f"LOG: Saved model to {out_path}")
 
 
@@ -227,9 +227,8 @@ def create(model_name, data_path, out_path, layers, monotonic, beta_l1_coefficie
 @option(
     "--epochs", default=5, show_default=True, help="Number of epochs for training.",
 )
-@click.pass_context
+@click_config_file.configuration_option(implicit=False, provider=json_provider)
 def train(
-    ctx,
     model_path,
     data_path,
     loss_out,

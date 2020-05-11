@@ -61,6 +61,17 @@ class DMSFeedForwardModel(nn.Module):
             self.layers.append(layer_name)
             setattr(self, layer_name, nn.Linear(num_nodes, output_size))
 
+    @property
+    def characteristics(self):
+        """
+        Return salient characteristics of the model that aren't represented in the PyTorch description.
+        """
+        return {
+            "monotonic": self.monotonic,
+            "activation_fn": self.activation_fn,
+            "beta_l1_coefficient": self.beta_l1_coefficient,
+        }
+
     def forward(self, x):
         out = x
         for layer_index in range(len(self.layers) - 1):
