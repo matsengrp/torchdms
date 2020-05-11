@@ -41,7 +41,6 @@ def cli(ctx):
     """
     Train and evaluate neural networks on deep mutational scanning data.
     """
-    breakpoint()
     pass
 
 
@@ -228,7 +227,9 @@ def create(model_name, data_path, out_path, layers, monotonic, beta_l1_coefficie
 @option(
     "--epochs", default=5, show_default=True, help="Number of epochs for training.",
 )
+@click.pass_context
 def train(
+    ctx,
     model_path,
     data_path,
     loss_out,
