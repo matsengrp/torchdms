@@ -1,14 +1,22 @@
+import os
 import click
 import pandas as pd
-import os
 import torch
 
-from torchdms.data import *
+from click import Choice, Path, group, option, argument
 from torchdms.analysis import Analysis
-from torchdms.model import *
-from torchdms.loss import *
-from torchdms.utils import *
-from click import Choice, Path, command, group, option, argument
+from torchdms.data import prepare, partition
+from torchdms.model import DMSFeedForwardModel
+from torchdms.loss import rmse, mse
+from torchdms.utils import (
+    beta_coefficients,
+    evaluation_dict,
+    from_pickle_file,
+    to_pickle_file,
+    monotonic_params_from_latent_space,
+    latent_space_contour_plot_2D,
+    plot_test_correlation,
+)
 
 
 # Entry point
@@ -109,7 +117,15 @@ def prep(
     During training with this model then, tdms will put a floor of \
     0 on all non-bias weights.",
 )
-def create(model_name, data_path, out_path, layers, monotonic):
+@option(
+    "--beta-l1-coefficient",
+    type=float,
+    default=0.0,
+    show_default=True,
+    help="Coefficient with which to l1-regularize all beta coefficients except for "
+    "those to the first latent dimension.",
+)
+def create(model_name, data_path, out_path, layers, monotonic, beta_l1_coefficient):
     """
     Create a model. Model name can be the name of any
     of the functions defined in torch.models.
@@ -134,10 +150,13 @@ def create(model_name, data_path, out_path, layers, monotonic):
         if len(list(layers)) == 0:
             click.echo(f"LOG: No layers provided means creating a linear model")
         for layer in layers:
-            if type(layer) != int:
+            if not isinstance(layer, int):
                 raise TypeError("All layer input must be integers")
         model = DMSFeedForwardModel(
-            test_BMD.feature_count(), list(layers), test_BMD.targets.shape[1]
+            test_BMD.feature_count(),
+            list(layers),
+            test_BMD.targets.shape[1],
+            beta_l1_coefficient=beta_l1_coefficient,
         )
     else:
         model = known_models[model_name](test_BMD.feature_count())
@@ -288,7 +307,6 @@ def scatter(model_path, data_path, out, device):
     click.echo(f"LOG: evaluating test data with given model")
     evaluation = evaluation_dict(model, test_data, device)
 
-    at_least_one = True
     click.echo(f"LOG: plotting scatter correlation")
     plot_test_correlation(evaluation, out)
 
