@@ -1,4 +1,3 @@
-import numpy as np
 import torch
 import torch.nn as nn
 
@@ -28,6 +27,7 @@ class DMSFeedForwardModel(nn.Module):
         output_size,
         activation_fn=torch.sigmoid,
         monotonic=False,
+        beta_regularization_coefficient=0.0,
     ):
         super(DMSFeedForwardModel, self).__init__()
         self.monotonic = monotonic
@@ -35,6 +35,7 @@ class DMSFeedForwardModel(nn.Module):
         self.output_size = output_size
         self.layers = []
         self.activation_fn = activation_fn
+        self.beta_regularization_coefficient = beta_regularization_coefficient
 
         layer_name = f"input_layer"
 
@@ -68,12 +69,14 @@ class DMSFeedForwardModel(nn.Module):
         return prediction
 
     def regularization_loss(self):
+        if self.beta_regularization_coefficient == 0.0:
+            return 0.0
         beta_parameters = next(self.parameters())
         latent_space_dim = beta_parameters.shape[0]
         if latent_space_dim == 1:
             return 0.0
         # else:
-        return 0.0001 * torch.sum(
+        return self.beta_regularization_coefficient * torch.sum(
             torch.abs(
                 beta_parameters.narrow(
                     0,  # slice along the 0th dimension
