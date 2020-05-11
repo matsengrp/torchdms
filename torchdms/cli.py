@@ -1,3 +1,4 @@
+import inspect
 import os
 import re
 import click
@@ -379,6 +380,11 @@ def beta(model_path, data_path, out):
     click.echo(f"LOG: Beta coefficients plotted and dumped to {out}")
 
 
+def restrict_dict_to_params(d, cmd):
+    param_names = {param.name for param in cmd.params}
+    return {key: d[key] for key in d if key in param_names}
+
+
 @cli.command()
 @argument("data_path", type=click.Path(exists=True))
 @argument("model_string")
@@ -391,13 +397,25 @@ def go(ctx, data_path, model_string, prefix):
     """
     Run a common sequence of commands.
     """
+    model_path = prefix + ".model"
     ctx.invoke(
         create,
         model_string=model_string,
         data_path=data_path,
-        out_path=prefix + ".model",
+        out_path=model_path,
+        **restrict_dict_to_params(ctx.default_map, create),
     )
-    # scatter_path = prefix + ".scatter.pdf"
+
+
+#     train_kwargs = {key: ctx.default_map[key] for key in ["epochs"]}
+#     ctx.invoke(
+#         train,
+#         model_path=model_path,
+#         data_path=data_path,
+#         out_path=model_path,
+#         **train_kwargs,
+#     )
+# scatter_path = prefix + ".scatter.pdf"
 
 
 if __name__ == "__main__":
