@@ -359,7 +359,7 @@ def contour(model_path, start, end, nticks, out, device):
     click.echo(f"LOG: Contour finished and dumped to {out}")
 
 
-@cli.command(name="beta",)
+@cli.command()
 @argument("model_path", type=click.Path(exists=True))
 @argument("data_path", type=click.Path(exists=True))
 @option("--out", required=True, type=click.Path())
