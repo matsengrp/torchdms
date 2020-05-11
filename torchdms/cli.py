@@ -112,10 +112,10 @@ def prep(
 @option(
     "--monotonic",
     is_flag=True,
-    help="If this flag is used, \
-    then the model will be initialized with weights greater than zero. \
-    During training with this model then, tdms will put a floor of \
-    0 on all non-bias weights.",
+    help="If this flag is used, "
+    "then the model will be initialized with weights greater than zero. "
+    "During training with this model then, tdms will put a floor of "
+    "0 on all non-bias weights.",
 )
 @option(
     "--beta-l1-coefficient",
