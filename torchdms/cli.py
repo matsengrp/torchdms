@@ -67,6 +67,7 @@ def cli():
     particular stratum is lower than this number, \
     we throw out the stratum completely.",
 )
+@click_config_file.configuration_option(implicit=False, provider=json_provider)
 def prep(
     in_path,
     out_path,
@@ -331,6 +332,7 @@ def scatter(model_path, data_path, out, device):
 @option("--nticks", required=False, type=int, default=100, show_default=True)
 @option("--out", required=True, type=click.Path())
 @option("--device", type=str, required=False, default="cpu")
+@click_config_file.configuration_option(implicit=False, provider=json_provider)
 def contour(model_path, start, end, nticks, out, device):
     """
     Visualize the the latent space of a model.
@@ -342,7 +344,7 @@ def contour(model_path, start, end, nticks, out, device):
     model = torch.load(model_path)
 
     # TODO also check for 2d latent space
-    if type(model) != DMSFeedForwardModel:
+    if not isinstance(model, DMSFeedForwardModel):
         raise TypeError("Model must be a DMSFeedForwardModel")
 
     # TODO add device
@@ -356,6 +358,7 @@ def contour(model_path, start, end, nticks, out, device):
 @argument("model_path", type=click.Path(exists=True))
 @argument("data_path", type=click.Path(exists=True))
 @option("--out", required=True, type=click.Path())
+@click_config_file.configuration_option(implicit=False, provider=json_provider)
 def beta(model_path, data_path, out):
     """
     Plot beta coefficients as a heatmap.
@@ -374,6 +377,27 @@ def beta(model_path, data_path, out):
     beta_coefficients(model, test_data, out)
 
     click.echo(f"LOG: Beta coefficients plotted and dumped to {out}")
+
+
+@cli.command()
+@argument("data_path", type=click.Path(exists=True))
+@argument("model_string")
+@option(
+    "--prefix", required=True, type=click.Path(), help="Path prefix to put results."
+)
+@click.pass_context
+@click_config_file.configuration_option(implicit=False, provider=json_provider)
+def go(ctx, data_path, model_string, prefix):
+    """
+    Run a common sequence of commands.
+    """
+    ctx.invoke(
+        create,
+        model_string=model_string,
+        data_path=data_path,
+        out_path=prefix + ".model",
+    )
+    # scatter_path = prefix + ".scatter.pdf"
 
 
 if __name__ == "__main__":
