@@ -1,9 +1,12 @@
 import os
 import click
+import json
 import pandas as pd
 import torch
 
+
 from click import Choice, Path, group, option, argument
+import click_config_file
 from torchdms.analysis import Analysis
 from torchdms.data import prepare, partition
 from torchdms.model import DMSFeedForwardModel
@@ -19,13 +22,26 @@ from torchdms.utils import (
 )
 
 
+def json_provider(file_path, cmd_name):
+    """
+    Enable loading of flags from a JSON file via click_config_file.
+    """
+    if cmd_name:
+        with open(file_path) as config_data:
+            return json.load(config_data)[cmd_name]
+    # else:
+    return None
+
+
 # Entry point
 @group(context_settings={"help_option_names": ["-h", "--help"]})
-def cli():
+@click_config_file.configuration_option(implicit=False, provider=json_provider)
+@click.pass_context
+def cli(ctx):
     """
-    A generalized method to train neural networks
-    on deep mutational scanning data.
+    Train and evaluate neural networks on deep mutational scanning data.
     """
+    breakpoint()
     pass
 
 
@@ -104,7 +120,7 @@ def prep(
     return None
 
 
-@cli.command(name="create", short_help="Create a model")
+@cli.command(name="create")
 @argument("data_path", type=click.Path(exists=True))
 @argument("out_path", type=click.Path())
 @argument("model_name")
@@ -127,8 +143,9 @@ def prep(
 )
 def create(model_name, data_path, out_path, layers, monotonic, beta_l1_coefficient):
     """
-    Create a model. Model name can be the name of any
-    of the functions defined in torch.models.
+    Create a model.
+
+    Model name can be the name of any of the functions defined in torch.models.
 
     If using the DMSFeedForwardModel model, you must provide some number of
     integer arguments following the model name to specify the number of nodes
@@ -185,7 +202,7 @@ def create(model_name, data_path, out_path, layers, monotonic, beta_l1_coefficie
 
 
 # TODO train should just take the config file as a dict
-@cli.command(name="train", short_help="Train a Model")
+@cli.command(name="train")
 @argument("model_path", type=click.Path(exists=True))
 @argument("data_path", type=click.Path(exists=True))
 @option("--loss-out", type=click.Path(), required=False)
