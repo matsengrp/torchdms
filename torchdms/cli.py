@@ -121,7 +121,7 @@ def prep(
 @cli.command(name="create")
 @argument("data_path", type=click.Path(exists=True))
 @argument("out_path", type=click.Path())
-@argument("model_string")
+@argument("model_string", help="Model description, such as 'DMSFeedForwardModel(1,10)'")
 @option(
     "--monotonic",
     is_flag=True,
