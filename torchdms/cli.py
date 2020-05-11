@@ -394,7 +394,7 @@ def restrict_dict_to_params(d, cmd):
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
 def go(ctx):
     """
-    Run a common sequence of commands.
+    Run a common sequence of commands: create, train, scatter, and beta.
     """
     prefix = ctx.default_map["prefix"]
     model_path = prefix + ".model"

@@ -79,7 +79,7 @@ def evaluation_dict(model, test_data, device="cpu"):
 def plot_test_correlation(evaluation_dict, out, cmap="plasma"):
     """
     Plot scatter plot and correlation values between predicted and
-    observed for each target
+    observed for each target.
     """
     num_targets = evaluation_dict["targets"].shape[1]
     n_aa_substitutions = [
