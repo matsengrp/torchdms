@@ -49,12 +49,31 @@ def cli():
     particular stratum is lower than this number, \
     we throw out the stratum completely.",
 )
+@option(
+    "--export",
+    type=bool,
+    required=False,
+    default=False,
+    show_default=True,
+    help="If True, exports the test and train partitions \
+    as dataframes in a .pkl file."
+)
+@option(
+    "--filename",
+    type=str,
+    required=False,
+    default='partitioned_data',
+    show_default=True,
+    help="This is the filename for your exported data."
+)
 def prep(
     in_path,
     out_path,
     targets,
     per_stratum_variants_for_test,
     skip_stratum_if_count_is_smaller_than,
+    export,
+    filename
 ):
     """
     Prepare data for training. IN_PATH should point to a pickle dump'd
@@ -75,6 +94,8 @@ def prep(
         aa_func_scores,
         per_stratum_variants_for_test,
         skip_stratum_if_count_is_smaller_than,
+        export,
+        filename
     )
     for train_part in partitioned_train_data:
         num_subs = len(train_part["aa_substitutions"][0].split())

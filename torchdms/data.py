@@ -49,6 +49,8 @@ def partition(
     aa_func_scores,
     per_stratum_variants_for_test=100,
     skip_stratum_if_count_is_smaller_than=250,
+    export=False,
+    filename='partitioned_data'
 ):
     """
     Partition the data into a test partition, and a list of training data partitions.
@@ -85,10 +87,15 @@ def partition(
                 & (aa_func_scores["n_aa_substitutions"] == mutation_count)
             ].reset_index(drop=True)
         )
-
+    
     test_partition = aa_func_scores.loc[aa_func_scores["in_test"] == True,].reset_index(
         drop=True
     )
+    
+    if export==True:
+    with open(f"{filename}.pkl", "wb") as f:
+        pickle.dump([test_partition, partitioned_train_data], f)
+
     return test_partition, partitioned_train_data
 
 
@@ -103,5 +110,5 @@ def prepare(test_partition, train_partition_list, wtseq, targets):
         BinaryMapDataset(train_data_partition, wtseq=wtseq, targets=targets)
         for train_data_partition in train_partition_list
     ]
-
+    
     return test_data, train_data_list
