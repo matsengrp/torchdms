@@ -168,14 +168,14 @@ def create(model_string, data_path, out_path, monotonic, beta_l1_coefficient):
     click.echo(f"LOG: Test data input size: {test_BMD.feature_count()}")
     click.echo(f"LOG: Test data output size: {test_BMD.targets.shape[1]}")
     if model_name == "DMSFeedForwardModel":
-        if len(list(layers)) == 0:
+        if len(layers) == 0:
             click.echo(f"LOG: No layers provided means creating a linear model")
         for layer in layers:
             if not isinstance(layer, int):
                 raise TypeError("All layer input must be integers")
         model = DMSFeedForwardModel(
             test_BMD.feature_count(),
-            list(layers),
+            layers,
             test_BMD.targets.shape[1],
             beta_l1_coefficient=beta_l1_coefficient,
         )
