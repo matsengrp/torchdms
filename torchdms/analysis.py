@@ -1,12 +1,9 @@
-import click
 import itertools
-import seaborn as sns
-import pandas as pd
+import click
 import torch
 from torch.utils.data import DataLoader
-from torchdms.data import BinaryMapDataset
 from torch.optim.lr_scheduler import ReduceLROnPlateau
-from torchdms.utils import *
+from torchdms.utils import monotonic_params_from_latent_space
 
 
 def make_data_loader_infinite(data_loader):
@@ -80,7 +77,7 @@ class Analysis:
                         )
                         per_target_loss.append(loss_fn(valid_targets, valid_predict))
 
-                    loss = sum(per_target_loss)
+                    loss = sum(per_target_loss) + self.model.regularization_loss()
                     per_batch_loss += loss.item()
 
                     # Note that here we are using gradient accumulation: calling

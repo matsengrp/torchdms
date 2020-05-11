@@ -1,6 +1,7 @@
 import click
 import scipy.stats as stats
 import itertools
+import os.path
 import pandas as pd
 import torch
 import pickle
@@ -47,12 +48,12 @@ def monotonic_params_from_latent_space(model: torchdms.model.DMSFeedForwardModel
             yield param
 
 
-def evaluatation_dict(model, test_data, device="cpu"):
+def evaluation_dict(model, test_data, device="cpu"):
     """
     Evaluate & Organize all testing data paried with metadata.
 
     A function which takes a trained model, matching test
-    dataset (BinaryMapDataset w/ the same input dimentions.)
+    dataset (BinaryMapDataset w/ the same input dimensions.)
     and return a dictionary containing the
 
     - samples: binary encodings numpy array shape (num samples, num possible mutations)
@@ -78,43 +79,43 @@ def evaluatation_dict(model, test_data, device="cpu"):
 def plot_test_correlation(evaluation_dict, out, cmap="plasma"):
     """
     Plot scatter plot and correlation values between predicted and
-    observed for each target
+    observed for each target.
     """
     num_targets = evaluation_dict["targets"].shape[1]
-    width = 7 * num_targets
-    fig, ax = plt.subplots(1, num_targets, figsize=(width, 6))
     n_aa_substitutions = [
         len(s.split()) for s in evaluation_dict["original_df"]["aa_substitutions"]
     ]
+    width = 7 * num_targets
+    fig, ax = plt.subplots(1, num_targets, figsize=(width, 6))
+    if num_targets == 1:
+        ax = [ax]
+    correlation_series = {}
     for target in range(num_targets):
         pred = evaluation_dict["predictions"][:, target]
         targ = evaluation_dict["targets"][:, target]
         corr = stats.pearsonr(pred, targ)
-        if num_targets == 1:
-            scatter = ax.scatter(pred, targ, cmap=cmap, c=n_aa_substitutions, s=8.0)
-            ax.set_xlabel(f"Predicted")
-            ax.set_ylabel(f"Observed")
-            target_name = evaluation_dict["target_names"][target]
-            ax.set_title(f"Test Data for {target_name}\npearsonr = {round(corr[0],3)}")
-        else:
-            scatter = ax[target].scatter(
-                pred, targ, cmap=cmap, c=n_aa_substitutions, s=8.0
-            )
-            ax[target].set_xlabel(f"Predicted")
-            ax[target].set_ylabel(f"Observed")
-            target_name = evaluation_dict["target_names"][target]
-            ax[target].set_title(
-                f"Test Data for {target_name}\npearsonr = {round(corr[0],3)}"
-            )
+        scatter = ax[target].scatter(pred, targ, cmap=cmap, c=n_aa_substitutions, s=8.0)
+        ax[target].set_xlabel(f"Predicted")
+        ax[target].set_ylabel(f"Observed")
+        target_name = evaluation_dict["target_names"][target]
+        plot_title = f"Test Data for {target_name}\npearsonr = {round(corr[0],3)}"
+        ax[target].set_title(plot_title)
+        print(plot_title)
 
-    if num_targets == 1:
-        ax.legend(
-            *scatter.legend_elements(), bbox_to_anchor=(-0.20, 1), title="n-mutant"
+        per_target_df = pd.DataFrame(
+            dict(pred=pred, targ=targ, n_aa_substitutions=n_aa_substitutions,)
         )
-    else:
-        ax[0].legend(
-            *scatter.legend_elements(), bbox_to_anchor=(-0.20, 1), title="n-mutant"
+        correlation_series["correlation " + str(target)] = (
+            per_target_df.groupby("n_aa_substitutions").corr().iloc[0::2, -1]
         )
+    correlation_df = pd.DataFrame(correlation_series)
+    correlation_df.index = correlation_df.index.droplevel(1)
+    correlation_path = os.path.splitext(out)[0]
+    correlation_df.to_csv(correlation_path + ".corr.csv")
+
+    ax[0].legend(
+        *scatter.legend_elements(), bbox_to_anchor=(-0.20, 1), title="n-mutant"
+    )
     fig.savefig(out)
 
 
@@ -125,7 +126,8 @@ def latent_space_contour_plot_2D(model, out, start=0, end=1000, nticks=100):
     combinations or parameters (X_{i}_{j}) fed into the latent space of the model.
     """
 
-    predictions_matrices = [np.empty([nticks, nticks]) for _ in range(2)]
+    num_targets = model.output_size
+    prediction_matrices = [np.empty([nticks, nticks]) for _ in range(num_targets)]
     for i, latent1_value in enumerate(np.linspace(start, end, nticks)):
         for j, latent2_value in enumerate(np.linspace(start, end, nticks)):
             lat_sample = torch.from_numpy(
@@ -133,13 +135,14 @@ def latent_space_contour_plot_2D(model, out, start=0, end=1000, nticks=100):
             ).float()
             predictions = model.from_latent(lat_sample)
             for pred_idx in range(len(predictions)):
-                predictions_matrices[pred_idx][i][j] = predictions[pred_idx]
+                prediction_matrices[pred_idx][i][j] = predictions[pred_idx]
 
-    ticks = np.linspace(start, end, nticks)
-    num_targets = model.output_size
     width = 7 * num_targets
     fig, ax = plt.subplots(1, num_targets, figsize=(width, 6))
-    for idx, matrix in enumerate(predictions_matrices):
+    # Make ax a list even if there's only one target.
+    if num_targets == 1:
+        ax = [ax]
+    for idx, matrix in enumerate(prediction_matrices):
         mapp = ax[idx].imshow(matrix)
 
         # TODO We should have the ticks which show the range of inputs
@@ -186,7 +189,7 @@ def beta_coefficients(model, test_data, out):
         beta_map[wtmask] = np.nan
         mapp = ax[latent_dim].imshow(beta_map, aspect="auto")
         fig.colorbar(mapp, ax=ax[latent_dim], orientation="horizontal")
-        ax[latent_dim].set_title(f"Beta Coeff to latent dimention {latent_dim}")
+        ax[latent_dim].set_title(f"Beta coeff for latent dimension {latent_dim}")
         ax[latent_dim].set_yticks(ticks=range(0, 21))
         ax[latent_dim].set_yticklabels(alphabet)
     plt.tight_layout()
