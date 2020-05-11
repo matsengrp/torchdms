@@ -6,18 +6,12 @@
 
 ## What is this?
 
-Pytorch - Deep Mutational Scanning (torch-dms) is a small python package made to train neural networks on
-amino-acid substitution data, predicting some chosen functional score(s).
-We use the binary encoding of variants using
-[BinaryMap Object](https://jbloomlab.github.io/dms_variants/dms_variants.binarymap.html)
-as input to vanilla feed-forward networks.
+Pytorch - Deep Mutational Scanning (`torchdms`) is a small Python package made to train neural networks on amino-acid substitution data, predicting some chosen functional score(s).
+We use the binary encoding of variants using [BinaryMap Object](https://jbloomlab.github.io/dms_variants/dms_variants.binarymap.html) as input to feed-forward networks.
 
 ## How do I install it?
 
-To install the API and command-line scripts at the moment,
-it suggested you clone the repository, create a conda
-environment from `environment.yaml`, and run the tests to make
-sure everything is working properly.
+To install the API and command-line scripts at the moment, it suggested you clone the repository, create a conda environment from `environment.yaml`, and run the tests to make sure everything is working properly.
 
 ```
 git clone git@github.com:matsengrp/torchdms.git
