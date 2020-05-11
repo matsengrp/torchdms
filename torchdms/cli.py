@@ -199,7 +199,6 @@ def create(model_string, data_path, out_path, monotonic, beta_l1_coefficient):
 
     torch.save(model, out_path)
     click.echo(f"LOG: Model defined as: {model}")
-    click.echo(f"LOG: Model characteristics: {model.characteristics}")
     click.echo(f"LOG: Saved model to {out_path}")
 
 

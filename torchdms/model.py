@@ -64,13 +64,21 @@ class DMSFeedForwardModel(nn.Module):
     @property
     def characteristics(self):
         """
-        Return salient characteristics of the model that aren't represented in the PyTorch description.
+        Return salient characteristics of the model that aren't represented in the
+        PyTorch description.
         """
         return {
             "monotonic": self.monotonic,
             "activation_fn": self.activation_fn,
             "beta_l1_coefficient": self.beta_l1_coefficient,
         }
+
+    def __str__(self):
+        return (
+            super(DMSFeedForwardModel, self).__str__()
+            + "\n"
+            + self.characteristics.__str__()
+        )
 
     def forward(self, x):
         out = x
