@@ -1,31 +1,53 @@
-import click
-import pandas as pd
+import inspect
 import os
+import re
+import click
+import json
+import pandas as pd
 import torch
 
-from torchdms.data import *
+
+from click import Choice, Path, group, option, argument
+import click_config_file
 from torchdms.analysis import Analysis
-from torchdms.model import *
-from torchdms.loss import *
-from torchdms.utils import *
-from click import Choice, Path, command, group, option, argument
+from torchdms.data import prepare, partition
+from torchdms.model import DMSFeedForwardModel
+from torchdms.loss import rmse, mse
+from torchdms.utils import (
+    beta_coefficients,
+    evaluation_dict,
+    from_pickle_file,
+    to_pickle_file,
+    monotonic_params_from_latent_space,
+    latent_space_contour_plot_2D,
+    plot_test_correlation,
+)
+
+
+def json_provider(file_path, cmd_name):
+    """
+    Enable loading of flags from a JSON file via click_config_file.
+    """
+    if cmd_name:
+        with open(file_path) as config_data:
+            config_dict = json.load(config_data)
+            if cmd_name not in config_dict:
+                raise IOError(f"Could not find a '{cmd_name}' section in '{file_path}'")
+            return config_dict[cmd_name]
+    # else:
+    return None
 
 
 # Entry point
 @group(context_settings={"help_option_names": ["-h", "--help"]})
 def cli():
     """
-    A generalized method to train neural networks
-    on deep mutational scanning data.
+    Train and evaluate neural networks on deep mutational scanning data.
     """
     pass
 
 
-@cli.command(
-    name="prep",
-    short_help="Prepare a dataframe with aa subsitutions and targets in the \
-    format needed to present to a neural network.",
-)
+@cli.command()
 @argument("in_path", required=True, type=click.Path(exists=True))
 @argument("out_path", required=True, type=click.Path())
 @argument("targets", type=str, nargs=-1, required=True)
@@ -49,23 +71,7 @@ def cli():
     particular stratum is lower than this number, \
     we throw out the stratum completely.",
 )
-@option(
-    "--export",
-    type=bool,
-    required=False,
-    default=False,
-    show_default=True,
-    help="If True, exports the test and train partitions \
-    as dataframes in a .pkl file."
-)
-@option(
-    "--filename",
-    type=str,
-    required=False,
-    default='partitioned_data',
-    show_default=True,
-    help="This is the filename for your exported data."
-)
+@click_config_file.configuration_option(implicit=False, provider=json_provider)
 def prep(
     in_path,
     out_path,
@@ -76,10 +82,11 @@ def prep(
     filename
 ):
     """
-    Prepare data for training. IN_PATH should point to a pickle dump'd
-    Pandas DataFrame containing the string encoded `aa_substitutions`
-    column along with any TARGETS you specify. OUT_PATH is the
-    location to dump the prepped data to another pickle file.
+    Prepare data for training.
+
+    IN_PATH should point to a pickle dump'd Pandas DataFrame containing the string
+    encoded `aa_substitutions` column along with any TARGETS you specify. OUT_PATH is
+    the location to dump the prepped data to another pickle file.
     """
 
     click.echo(f"LOG: Targets: {targets}")
@@ -117,35 +124,44 @@ def prep(
     return None
 
 
-@cli.command(name="create", short_help="Create a model")
+@cli.command()
 @argument("data_path", type=click.Path(exists=True))
 @argument("out_path", type=click.Path())
-@argument("model_name")
-@argument("layers", type=int, nargs=-1, required=False)
+@argument("model_string")
 @option(
     "--monotonic",
     is_flag=True,
-    help="If this flag is used, \
-    then the model will be initialized with weights greater than zero. \
-    During training with this model then, tdms will put a floor of \
-    0 on all non-bias weights.",
+    help="If this flag is used, "
+    "then the model will be initialized with weights greater than zero. "
+    "During training with this model then, tdms will put a floor of "
+    "0 on all non-bias weights.",
 )
-def create(model_name, data_path, out_path, layers, monotonic):
+@option(
+    "--beta-l1-coefficient",
+    type=float,
+    default=0.0,
+    show_default=True,
+    help="Coefficient with which to l1-regularize all beta coefficients except for "
+    "those to the first latent dimension.",
+)
+@click_config_file.configuration_option(implicit=False, provider=json_provider)
+def create(model_string, data_path, out_path, monotonic, beta_l1_coefficient):
     """
-    Create a model. Model name can be the name of any
-    of the functions defined in torch.models.
+    Create a model.
 
-    If using the BuildYourOwnVanillaNet model, you must provide some number of
-    integer arguments following the model name to specify the number of nodes
-    and layers for each (LAYERS argument).
+    Model string describes the model, such as 'DMSFeedForwardModel(1,10)'.
     """
     known_models = {
-        "SingleSigmoidNet": SingleSigmoidNet,
-        "AdditiveLinearModel": AdditiveLinearModel,
-        "TwoByTwoOutputTwoNet": TwoByTwoOutputTwoNet,
-        "TwoByTwoNetOutputOne": TwoByTwoNetOutputOne,
         "DMSFeedForwardModel": DMSFeedForwardModel,
     }
+    try:
+        model_regex = re.compile(r"(.*)\((.*)\)")
+        match = model_regex.match(model_string)
+        model_name = match.group(1)
+        layers = list(map(int, match.group(2).split(",")))
+    except Exception:
+        click.echo(f"ERROR: Couldn't parse model description: '{model_string}'")
+        raise
     click.echo(f"LOG: searching for {model_name}")
     if model_name not in known_models:
         raise IOError(model_name + " not known")
@@ -156,13 +172,16 @@ def create(model_name, data_path, out_path, layers, monotonic):
     click.echo(f"LOG: Test data input size: {test_BMD.feature_count()}")
     click.echo(f"LOG: Test data output size: {test_BMD.targets.shape[1]}")
     if model_name == "DMSFeedForwardModel":
-        if len(list(layers)) == 0:
+        if len(layers) == 0:
             click.echo(f"LOG: No layers provided means creating a linear model")
         for layer in layers:
-            if type(layer) != int:
+            if not isinstance(layer, int):
                 raise TypeError("All layer input must be integers")
         model = DMSFeedForwardModel(
-            test_BMD.feature_count(), list(layers), test_BMD.targets.shape[1]
+            test_BMD.feature_count(),
+            layers,
+            test_BMD.targets.shape[1],
+            beta_l1_coefficient=beta_l1_coefficient,
         )
     else:
         model = known_models[model_name](test_BMD.feature_count())
@@ -190,12 +209,13 @@ def create(model_name, data_path, out_path, layers, monotonic):
     click.echo(f"LOG: Saved model to {out_path}")
 
 
-# TODO train should just take the config file as a dict
-@cli.command(name="train", short_help="Train a Model")
+@cli.command()
 @argument("model_path", type=click.Path(exists=True))
 @argument("data_path", type=click.Path(exists=True))
 @option("--loss-out", type=click.Path(), required=False)
-@option("--loss-fn", default="rmse", required=True, help="Loss function for training.")
+@option(
+    "--loss-fn", default="rmse", show_default=True, help="Loss function for training."
+)
 @option(
     "--batch-size", default=500, show_default=True, help="Batch size for training.",
 )
@@ -217,6 +237,7 @@ def create(model_name, data_path, out_path, layers, monotonic):
 @option(
     "--epochs", default=5, show_default=True, help="Number of epochs for training.",
 )
+@click_config_file.configuration_option(implicit=False, provider=json_provider)
 def train(
     model_path,
     data_path,
@@ -262,18 +283,16 @@ def train(
         losses.to_csv(loss_out)
 
 
-@cli.command(
-    name="eval",
-    short_help="Evaluate the performance of a model and dump \
-    the a dictionary containing the results",
-)
+@cli.command()
 @argument("model_path", type=click.Path(exists=True))
 @argument("data_path", type=click.Path(exists=True))
 @option("--out", required=True, type=click.Path())
 @option("--device", type=str, required=False, default="cpu")
 def eval(model_path, data_path, out, device):
     """
-    TODO
+    Evaluate the performance of a model.
+
+    Dump to a dictionary containing the results.
     """
     click.echo(f"LOG: Loading model from {model_path}")
     model = torch.load(model_path)
@@ -282,7 +301,7 @@ def eval(model_path, data_path, out, device):
     [test_data, _] = from_pickle_file(data_path)
 
     click.echo(f"LOG: evaluating test data with given model")
-    evaluation = evaluatation_dict(model, test_data, device)
+    evaluation = evaluation_dict(model, test_data, device)
 
     click.echo(f"LOG: pickle dump evalution data dictionary to {out}")
     to_pickle_file(evaluation, out)
@@ -290,19 +309,15 @@ def eval(model_path, data_path, out, device):
     click.echo("eval finished")
 
 
-@cli.command(
-    name="scatter",
-    short_help="Evaluate and produce scatter plot of observed vs. predicted \
-    targets on the test set provided.",
-)
+@cli.command()
 @argument("model_path", type=click.Path(exists=True))
 @argument("data_path", type=click.Path(exists=True))
 @option("--out", required=True, type=click.Path())
 @option("--device", type=str, required=False, default="cpu")
 def scatter(model_path, data_path, out, device):
     """
-    Evaluate and produce scatter plot of observed vs. predicted
-    targets on the test set provided
+    Evaluate and produce scatter plot of observed vs. predicted targets on the test set
+    provided.
     """
     click.echo(f"LOG: Loading model from {model_path}")
     model = torch.load(model_path)
@@ -311,36 +326,34 @@ def scatter(model_path, data_path, out, device):
     [test_data, _] = from_pickle_file(data_path)
 
     click.echo(f"LOG: evaluating test data with given model")
-    evaluation = evaluatation_dict(model, test_data, device)
+    evaluation = evaluation_dict(model, test_data, device)
 
-    at_least_one = True
     click.echo(f"LOG: plotting scatter correlation")
     plot_test_correlation(evaluation, out)
 
     click.echo(f"LOG: scatter plot finished and dumped to {out}")
 
 
-@cli.command(
-    name="contour",
-    short_help="Evaluate the the latent space of a model with a two \
-    dimensional latent space by predicting across grid of values",
-)
+@cli.command()
 @argument("model_path", type=click.Path(exists=True))
 @option("--start", required=False, type=int, default=0, show_default=True)
 @option("--end", required=False, type=int, default=1000, show_default=True)
 @option("--nticks", required=False, type=int, default=100, show_default=True)
 @option("--out", required=True, type=click.Path())
 @option("--device", type=str, required=False, default="cpu")
+@click_config_file.configuration_option(implicit=False, provider=json_provider)
 def contour(model_path, start, end, nticks, out, device):
     """
-    Evaluate the the latent space of a model with a two
-    dimensional latent space by predicting across grid of values
+    Visualize the the latent space of a model.
+
+    Make a contour plot with a two dimensional latent space by predicting across grid of
+    values.
     """
     click.echo(f"LOG: Loading model from {model_path}")
     model = torch.load(model_path)
 
     # TODO also check for 2d latent space
-    if type(model) != DMSFeedForwardModel:
+    if not isinstance(model, DMSFeedForwardModel):
         raise TypeError("Model must be a DMSFeedForwardModel")
 
     # TODO add device
@@ -350,18 +363,14 @@ def contour(model_path, start, end, nticks, out, device):
     click.echo(f"LOG: Contour finished and dumped to {out}")
 
 
-@cli.command(
-    name="beta",
-    short_help="This command will plot the beta coeff for each possible mutation \
-    at each site along the sequence as a heatmap",
-)
+@cli.command()
 @argument("model_path", type=click.Path(exists=True))
 @argument("data_path", type=click.Path(exists=True))
 @option("--out", required=True, type=click.Path())
+@click_config_file.configuration_option(implicit=False, provider=json_provider)
 def beta(model_path, data_path, out):
     """
-    This command will plot the beta coeff for each possible mutation \
-    at each site along the sequence as a heatmap
+    Plot beta coefficients as a heatmap.
     """
     click.echo(f"LOG: Loading model from {model_path}")
     model = torch.load(model_path)
@@ -369,12 +378,54 @@ def beta(model_path, data_path, out):
     # the test data holds some metadata
     click.echo(f"LOG: loading testing data from {data_path}")
     [test_data, _] = from_pickle_file(data_path)
-    click.echo(f"LOG: loaded data, evaluating beta coeff for wildtype seq: {test_data.wtseq}")
+    click.echo(
+        f"LOG: loaded data, evaluating beta coeff for wildtype seq: {test_data.wtseq}"
+    )
 
     click.echo(f"LOG: plotting beta coefficients")
     beta_coefficients(model, test_data, out)
 
     click.echo(f"LOG: Beta coefficients plotted and dumped to {out}")
+
+
+def restrict_dict_to_params(d, cmd):
+    param_names = {param.name for param in cmd.params}
+    return {key: d[key] for key in d if key in param_names}
+
+
+@cli.command()
+@click.pass_context
+@click_config_file.configuration_option(implicit=False, provider=json_provider)
+def go(ctx):
+    """
+    Run a common sequence of commands: create, train, scatter, and beta.
+    """
+    prefix = ctx.default_map["prefix"]
+    model_path = prefix + ".model"
+    ctx.invoke(
+        create, out_path=model_path, **restrict_dict_to_params(ctx.default_map, create),
+    )
+    loss_path = prefix + ".loss.csv"
+    ctx.invoke(
+        train,
+        model_path=model_path,
+        loss_out=loss_path,
+        **restrict_dict_to_params(ctx.default_map, train),
+    )
+    scatter_path = prefix + ".scatter.pdf"
+    ctx.invoke(
+        scatter,
+        model_path=model_path,
+        out=scatter_path,
+        **restrict_dict_to_params(ctx.default_map, scatter),
+    )
+    beta_path = prefix + ".beta.pdf"
+    ctx.invoke(
+        beta,
+        model_path=model_path,
+        out=beta_path,
+        **restrict_dict_to_params(ctx.default_map, beta),
+    )
 
 
 if __name__ == "__main__":
