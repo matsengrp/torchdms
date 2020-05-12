@@ -9,6 +9,15 @@ from torch.utils.data import Dataset
 from collections import defaultdict
 import itertools
 import random
+from torchdms.utils import (
+    beta_coefficients,
+    evaluation_dict,
+    from_pickle_file,
+    to_pickle_file,
+    monotonic_params_from_latent_space,
+    latent_space_contour_plot_2D,
+    plot_test_correlation,
+)
 
 
 class BinaryMapDataset(Dataset):
@@ -49,8 +58,7 @@ def partition(
     aa_func_scores,
     per_stratum_variants_for_test=100,
     skip_stratum_if_count_is_smaller_than=250,
-    export=False,
-    filename='partitioned_data'
+    export_dataframe=None
 ):
     """
     Partition the data into a test partition, and a list of training data partitions.
@@ -91,10 +99,9 @@ def partition(
     test_partition = aa_func_scores.loc[aa_func_scores["in_test"] == True,].reset_index(
         drop=True
     )
-    
-    if export==True:
-    with open(f"{filename}.pkl", "wb") as f:
-        pickle.dump([test_partition, partitioned_train_data], f)
+
+    if export_dataframe != None:
+        to_pickle_file(aa_func_scores, f'{export_dataframe}')
 
     return test_partition, partitioned_train_data
 

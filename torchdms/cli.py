@@ -72,21 +72,12 @@ def cli():
     we throw out the stratum completely.",
 )
 @option(
-    "--export",
-    type=bool,
-    required=False,
-    default=False,
-    show_default=True,
-    help="If True, exports the test and train partitions \
-    as dataframes in a .pkl file."
-)
-@option(
-    "--filename",
+    "--export-dataframe",
     type=str,
     required=False,
-    default='partitioned_data',
-    show_default=True,
-    help="This is the filename for your exported data."
+    default=None,
+    help="Filename for exporting the original dataframe \
+    in a .pkl file with an appended in_test column.",
 )
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
 def prep(
@@ -95,8 +86,7 @@ def prep(
     targets,
     per_stratum_variants_for_test,
     skip_stratum_if_count_is_smaller_than,
-    export,
-    filename
+    export_dataframe
 ):
     """
     Prepare data for training.
@@ -118,8 +108,7 @@ def prep(
         aa_func_scores,
         per_stratum_variants_for_test,
         skip_stratum_if_count_is_smaller_than,
-        export,
-        filename
+        export_dataframe
     )
     for train_part in partitioned_train_data:
         num_subs = len(train_part["aa_substitutions"][0].split())
