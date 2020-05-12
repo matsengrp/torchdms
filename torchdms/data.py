@@ -112,6 +112,8 @@ def prepare(test_partition, train_partition_list, wtseq, targets):
     number of substitutions, and making bmappluses.
     """
 
+    # check for column
+
     test_data = BinaryMapDataset(test_partition, wtseq=wtseq, targets=targets)
     train_data_list = [
         BinaryMapDataset(train_data_partition, wtseq=wtseq, targets=targets)

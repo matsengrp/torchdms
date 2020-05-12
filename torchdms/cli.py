@@ -74,7 +74,7 @@ def cli(ctx, dry_run):
 
 @cli.command()
 @click.argument("in_path", required=True, type=click.Path(exists=True))
-@click.argument("out_path", required=True, type=click.Path())
+@click.argument("out_prefix", required=True, type=click.Path())
 @click.argument("targets", type=str, nargs=-1, required=True)
 @click.option(
     "--per-stratum-variants-for-test",
@@ -109,11 +109,11 @@ def cli(ctx, dry_run):
 def prep(
     ctx,
     in_path,
-    out_path,
+    out_prefix,
     targets,
     per_stratum_variants_for_test,
     skip_stratum_if_count_is_smaller_than,
-    export_dataframe
+    export_dataframe,
 ):
     """
     Prepare data for training.
@@ -132,25 +132,34 @@ def prep(
     total_variants = len(aa_func_scores.iloc[:, 1])
     click.echo(f"LOG: There are {total_variants} in this dataset")
 
-    test_partition, partitioned_train_data = partition(
-        aa_func_scores,
-        per_stratum_variants_for_test,
-        skip_stratum_if_count_is_smaller_than,
-        export_dataframe
-    )
-    for train_part in partitioned_train_data:
-        num_subs = len(train_part["aa_substitutions"][0].split())
-        click.echo(
-            f"LOG: There are {len(train_part)} training examples \
-              for stratum: {num_subs}"
-        )
-    click.echo(f"LOG: There are {len(test_partition)} test points")
-    click.echo(f"LOG: Successfully partitioned data")
+    if "library" in aa_func_scores.columns:
 
-    click.echo(f"LOG: preparing binary map dataset")
-    to_pickle_file(
-        prepare(test_partition, partitioned_train_data, wtseq, list(targets)), out_path
-    )
+        all_prepped_libraries = []
+        # library = name of library
+        # grouped = the subsetted df
+        for library, grouped in aa_func_scores.groupby("library"):
+
+            test_partition, partitioned_train_data = partition(
+                grouped,
+                per_stratum_variants_for_test,
+                skip_stratum_if_count_is_smaller_than,
+                export_dataframe,
+            )
+            for train_part in partitioned_train_data:
+                num_subs = len(train_part["aa_substitutions"][0].split())
+                click.echo(
+                    f"LOG: There are {len(train_part)} training examples \
+                      for stratum: {num_subs}"
+                )
+            click.echo(f"LOG: There are {len(test_partition)} test points")
+            click.echo(f"LOG: Successfully partitioned data")
+
+            click.echo(f"LOG: preparing binary map dataset")
+            all_prepped_libraries.append(
+                prepare(test_partition, partitioned_train_data, wtseq, list(targets))
+            )
+
+        to_pickle_file(all_prepped_libraries, out_prefix)
     click.echo(
         f"LOG: Successfully finished prep and dumped BinaryMapDataset \
           object to {out_path}"
