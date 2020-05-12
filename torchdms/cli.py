@@ -71,6 +71,14 @@ def cli():
     particular stratum is lower than this number, \
     we throw out the stratum completely.",
 )
+@option(
+    "--export-dataframe",
+    type=str,
+    required=False,
+    default=None,
+    help="Filename for exporting the original dataframe \
+    in a .pkl file with an appended in_test column.",
+)
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
 def prep(
     in_path,
@@ -78,6 +86,7 @@ def prep(
     targets,
     per_stratum_variants_for_test,
     skip_stratum_if_count_is_smaller_than,
+    export_dataframe
 ):
     """
     Prepare data for training.
@@ -99,6 +108,7 @@ def prep(
         aa_func_scores,
         per_stratum_variants_for_test,
         skip_stratum_if_count_is_smaller_than,
+        export_dataframe
     )
     for train_part in partitioned_train_data:
         num_subs = len(train_part["aa_substitutions"][0].split())
