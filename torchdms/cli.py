@@ -104,6 +104,15 @@ def cli(ctx, dry_run):
     help="Filename for exporting the original dataframe \
     in a .pkl file with an appended in_test column.",
 )
+@option(
+    "--split-by",
+    type=str,
+    required=False,
+    default=None,
+    help="Column name containing a feature by which \
+    the data should be split into independent datasets \
+    for partitioning; e.g. 'library'.",
+)
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
 @click.pass_context
 def prep(
@@ -114,13 +123,14 @@ def prep(
     per_stratum_variants_for_test,
     skip_stratum_if_count_is_smaller_than,
     export_dataframe,
+    split_by,
 ):
     """
     Prepare data for training.
 
     IN_PATH should point to a pickle dump'd Pandas DataFrame containing the string
-    encoded `aa_substitutions` column along with any TARGETS you specify. OUT_PATH is
-    the location to dump the prepped data to another pickle file.
+    encoded `aa_substitutions` column along with any TARGETS you specify.
+    OUT_PREFIX is the location to dump the prepped data to another pickle file.
     """
     if process_dry_run(ctx, "prep", locals()):
         return
@@ -132,19 +142,18 @@ def prep(
     total_variants = len(aa_func_scores.iloc[:, 1])
     click.echo(f"LOG: There are {total_variants} in this dataset")
 
-    if "library" in aa_func_scores.columns:
-
-        all_prepped_libraries = []
-        # library = name of library
+    if "split_by" in aa_func_scores.columns:
+        # feature = name of library or general feature
         # grouped = the subsetted df
-        for library, grouped in aa_func_scores.groupby("library"):
-
+        for feature, grouped in aa_func_scores.groupby("split_by"):
+            click.echo(f"LOG: Partitioning data from {feature}")
             test_partition, partitioned_train_data = partition(
                 grouped,
                 per_stratum_variants_for_test,
                 skip_stratum_if_count_is_smaller_than,
                 export_dataframe,
             )
+
             for train_part in partitioned_train_data:
                 num_subs = len(train_part["aa_substitutions"][0].split())
                 click.echo(
@@ -155,14 +164,42 @@ def prep(
             click.echo(f"LOG: Successfully partitioned data")
 
             click.echo(f"LOG: preparing binary map dataset")
-            all_prepped_libraries.append(
-                prepare(test_partition, partitioned_train_data, wtseq, list(targets))
+
+            feature_filename = feature.replace(" ", "_")
+            feature_filename = "".join(x for x in feature_filename if x.isalnum())
+
+            to_pickle_file(
+                prepare(test_partition, partitioned_train_data, wtseq, list(targets)),
+                f"{out_prefix}_{feature_filename}.pkl",
             )
 
-        to_pickle_file(all_prepped_libraries, out_prefix)
+    else:
+        test_partition, partitioned_train_data = partition(
+            aa_func_scores,
+            per_stratum_variants_for_test,
+            skip_stratum_if_count_is_smaller_than,
+            export_dataframe,
+        )
+
+        for train_part in partitioned_train_data:
+            num_subs = len(train_part["aa_substitutions"][0].split())
+            click.echo(
+                f"LOG: There are {len(train_part)} training examples \
+                  for stratum: {num_subs}"
+            )
+        click.echo(f"LOG: There are {len(test_partition)} test points")
+        click.echo(f"LOG: Successfully partitioned data")
+
+        click.echo(f"LOG: preparing binary map dataset")
+
+        to_pickle_file(
+            prepare(test_partition, partitioned_train_data, wtseq, list(targets)),
+            f"{out_prefix}.pkl",
+        )
+
     click.echo(
         f"LOG: Successfully finished prep and dumped BinaryMapDataset \
-          object to {out_path}"
+          object to {out_prefix}"
     )
     return None
 
