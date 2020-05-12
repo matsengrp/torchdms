@@ -71,6 +71,23 @@ def cli():
     particular stratum is lower than this number, \
     we throw out the stratum completely.",
 )
+@option(
+    "--export",
+    type=bool,
+    required=False,
+    default=False,
+    show_default=True,
+    help="If True, exports the test and train partitions \
+    as dataframes in a .pkl file."
+)
+@option(
+    "--filename",
+    type=str,
+    required=False,
+    default='partitioned_data',
+    show_default=True,
+    help="This is the filename for your exported data."
+)
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
 def prep(
     in_path,
