@@ -26,10 +26,10 @@ class BinaryMapDataset(Dataset):
 
     This class organizes the information from the input dataset
     into a wrapper containing all relevent attributes for training
-    and evaluation. 
+    and evaluation.
 
     We also store the original dataframe as it may contain
-    important metadata (such as target variance), but 
+    important metadata (such as target variance), but
     drop redundant columns that are already attributes
     """
 
@@ -58,7 +58,8 @@ def partition(
     aa_func_scores,
     per_stratum_variants_for_test=100,
     skip_stratum_if_count_is_smaller_than=250,
-    export_dataframe=None
+    export_dataframe=None,
+    feature=None
 ):
     """
     Partition the data into a test partition, and a list of training data partitions.
@@ -95,13 +96,18 @@ def partition(
                 & (aa_func_scores["n_aa_substitutions"] == mutation_count)
             ].reset_index(drop=True)
         )
-    
+
     test_partition = aa_func_scores.loc[aa_func_scores["in_test"] == True,].reset_index(
         drop=True
     )
 
     if export_dataframe != None:
-        to_pickle_file(aa_func_scores, f'{export_dataframe}')
+        if feature != None:
+            feature_filename = feature.replace(" ", "_")
+            feature_filename = "".join(x for x in feature_filename if x.isalnum())
+            to_pickle_file(aa_func_scores, f'{export_dataframe}_{feature_filename}.pkl')
+        else:
+            to_pickle_file(aa_func_scores, f'{export_dataframe}.pkl')
 
     return test_partition, partitioned_train_data
 
@@ -119,5 +125,5 @@ def prepare(test_partition, train_partition_list, wtseq, targets):
         BinaryMapDataset(train_data_partition, wtseq=wtseq, targets=targets)
         for train_data_partition in train_partition_list
     ]
-    
+
     return test_data, train_data_list

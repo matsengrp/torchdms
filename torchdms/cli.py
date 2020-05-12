@@ -101,8 +101,9 @@ def cli(ctx, dry_run):
     type=str,
     required=False,
     default=None,
-    help="Filename for exporting the original dataframe \
-    in a .pkl file with an appended in_test column.",
+    help="Filename prefix for exporting the original \
+    dataframe in a .pkl file with an appended in_test \
+    column.",
 )
 @option(
     "--split-by",
@@ -152,6 +153,7 @@ def prep(
                 per_stratum_variants_for_test,
                 skip_stratum_if_count_is_smaller_than,
                 export_dataframe,
+                feature,
             )
 
             for train_part in partitioned_train_data:
