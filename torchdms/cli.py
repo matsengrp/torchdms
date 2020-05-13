@@ -319,6 +319,7 @@ def train(
 @click.argument("data_path", type=click.Path(exists=True))
 @click.option("--out", required=True, type=click.Path())
 @click.option("--device", type=str, required=False, default="cpu")
+@click_config_file.configuration_option(implicit=False, provider=json_provider)
 @click.pass_context
 def eval(ctx, model_path, data_path, out, device):
     """
@@ -348,6 +349,7 @@ def eval(ctx, model_path, data_path, out, device):
 @click.argument("data_path", type=click.Path(exists=True))
 @click.option("--out", required=True, type=click.Path())
 @click.option("--device", type=str, required=False, default="cpu")
+@click_config_file.configuration_option(implicit=False, provider=json_provider)
 @click.pass_context
 def scatter(ctx, model_path, data_path, out, device):
     """
