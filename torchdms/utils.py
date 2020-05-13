@@ -7,6 +7,7 @@ import os
 import os.path
 import pickle
 import json
+import re
 import torchdms.model
 
 
@@ -114,6 +115,13 @@ def cartesian_product(option_dict):
     return _cartesian_product_aux([([], option_dict)])
 
 
+def defunkified_str(in_object):
+    """
+    Apply str, then replace shell-problematic characters with underscores.
+    """
+    return re.sub(r"[(),]", "_", str(in_object))
+
+
 def _cartesian_product_aux(list_of_choice_list_and_option_dict_pairs):
     """
     Recursive procedure to assist cartesian_product.
@@ -127,7 +135,7 @@ def _cartesian_product_aux(list_of_choice_list_and_option_dict_pairs):
         # else:
         expanded_something = True
         for option_value in option_dict[option_key]:
-            key_value_str = str(option_key) + "@" + str(option_value)
+            key_value_str = str(option_key) + "@" + defunkified_str(option_value)
             new_option_dict = deepcopy(option_dict)
             new_option_dict[option_key] = option_value
             expanded_list.append((choice_list + [key_value_str], new_option_dict))
