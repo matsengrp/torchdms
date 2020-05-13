@@ -1,14 +1,17 @@
+"""
+Plotting functions.
+"""
+
 import os.path
 import dms_variants as dms
 import matplotlib.pyplot as plt
-from matplotlib.colors import ListedColormap
 import numpy as np
 import pandas as pd
 import scipy.stats as stats
 import torch
 
 
-def plot_test_correlation(evaluation_dict, out, cmap="plasma"):
+def plot_test_correlation(evaluation_dict, model, out, cmap="plasma"):
     """
     Plot scatter plot and correlation values between predicted and
     observed for each target.
@@ -40,9 +43,20 @@ def plot_test_correlation(evaluation_dict, out, cmap="plasma"):
         correlation_series["correlation " + str(target)] = (
             per_target_df.groupby("n_aa_substitutions").corr().iloc[0::2, -1]
         )
+
     correlation_df = pd.DataFrame(correlation_series)
     correlation_df.index = correlation_df.index.droplevel(1)
     correlation_path = os.path.splitext(out)[0]
+    internal_layer_dimensions = [
+        getattr(model, layer).in_features
+        for layer in model.layers
+        if "internal" in layer
+    ]
+    correlation_df["internal_dimensions"] = ",".join(
+        [str(dim) for dim in internal_layer_dimensions]
+    )
+    for name, characteristic in model.characteristics.items():
+        correlation_df[name] = characteristic
     correlation_df.to_csv(correlation_path + ".corr.csv")
 
     ax[0].legend(

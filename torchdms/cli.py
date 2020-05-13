@@ -329,7 +329,7 @@ def scatter(model_path, data_path, out, device):
     evaluation = evaluation_dict(model, test_data, device)
 
     click.echo(f"LOG: plotting scatter correlation")
-    plot_test_correlation(evaluation, out)
+    plot_test_correlation(evaluation, model, out)
 
     click.echo(f"LOG: scatter plot finished and dumped to {out}")
 
@@ -389,6 +389,9 @@ def beta(model_path, data_path, out):
 
 
 def restrict_dict_to_params(d, cmd):
+    """
+    Restrict the given dictionary to the names of parameters for cmd.
+    """
     param_names = {param.name for param in cmd.params}
     return {key: d[key] for key in d if key in param_names}
 
