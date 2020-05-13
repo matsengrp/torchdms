@@ -50,9 +50,9 @@ def plot_test_correlation(evaluation_dict, model, out, cmap="plasma"):
     internal_layer_dimensions = [
         getattr(model, layer).in_features
         for layer in model.layers
-        if "internal" in layer
+        if "input" not in layer
     ]
-    correlation_df["internal_dimensions"] = ",".join(
+    correlation_df["internal_dimensions"] = ";".join(
         [str(dim) for dim in internal_layer_dimensions]
     )
     for name, characteristic in model.characteristics.items():
