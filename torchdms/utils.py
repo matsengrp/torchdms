@@ -43,7 +43,7 @@ def to_json_file(obj, path):
         file.write("\n")
 
 
-def monotonic_params_from_latent_space(model: torchdms.model.DMSFeedForwardModel):
+def monotonic_params_from_latent_space(model: torchdms.model.VanillaGGE):
     """
         following the hueristic that the input layer of a network
         is named 'input_layer' and the weight bias are denoted:

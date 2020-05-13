@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 
 
-class DMSFeedForwardModel(nn.Module):
+class VanillaGGE(nn.Module):
     """
     Make it just how you like it.
 
@@ -29,7 +29,7 @@ class DMSFeedForwardModel(nn.Module):
         monotonic=False,
         beta_l1_coefficient=0.0,
     ):
-        super(DMSFeedForwardModel, self).__init__()
+        super(VanillaGGE, self).__init__()
         self.monotonic = monotonic
         self.input_size = input_size
         self.output_size = output_size
@@ -74,11 +74,7 @@ class DMSFeedForwardModel(nn.Module):
         }
 
     def __str__(self):
-        return (
-            super(DMSFeedForwardModel, self).__str__()
-            + "\n"
-            + self.characteristics.__str__()
-        )
+        return super(VanillaGGE, self).__str__() + "\n" + self.characteristics.__str__()
 
     def forward(self, x):
         out = x

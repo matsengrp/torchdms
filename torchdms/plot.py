@@ -67,7 +67,7 @@ def plot_test_correlation(evaluation_dict, model, out, cmap="plasma"):
 
 def latent_space_contour_plot_2D(model, out, start=0, end=1000, nticks=100):
     """
-    This function takes in an Object of type torch.model.DMSFeedForwardModel.
+    This function takes in an Object of type torch.model.VanillaGGE.
     It uses the `from_latent()` Method to produce a matrix X of predictions given
     combinations or parameters (X_{i}_{j}) fed into the latent space of the model.
     """

@@ -11,7 +11,7 @@ from click import group, option, argument
 import click_config_file
 from torchdms.analysis import Analysis
 from torchdms.data import prepare, partition
-from torchdms.model import DMSFeedForwardModel
+from torchdms.model import VanillaGGE
 from torchdms.loss import rmse, mse
 from torchdms.utils import (
     evaluation_dict,
@@ -174,12 +174,12 @@ def create(ctx, model_string, data_path, out_path, monotonic, beta_l1_coefficien
     """
     Create a model.
 
-    Model string describes the model, such as 'DMSFeedForwardModel(1,10)'.
+    Model string describes the model, such as 'VanillaGGE(1,10)'.
     """
     if process_dry_run(ctx, "create", locals()):
         return
     known_models = {
-        "DMSFeedForwardModel": DMSFeedForwardModel,
+        "VanillaGGE": VanillaGGE,
     }
     try:
         model_regex = re.compile(r"(.*)\((.*)\)")
@@ -198,13 +198,13 @@ def create(ctx, model_string, data_path, out_path, monotonic, beta_l1_coefficien
 
     click.echo(f"LOG: Test data input size: {test_BMD.feature_count()}")
     click.echo(f"LOG: Test data output size: {test_BMD.targets.shape[1]}")
-    if model_name == "DMSFeedForwardModel":
+    if model_name == "VanillaGGE":
         if len(layers) == 0:
             click.echo(f"LOG: No layers provided means creating a linear model")
         for layer in layers:
             if not isinstance(layer, int):
                 raise TypeError("All layer input must be integers")
-        model = DMSFeedForwardModel(
+        model = VanillaGGE(
             test_BMD.feature_count(),
             layers,
             test_BMD.targets.shape[1],
@@ -393,8 +393,8 @@ def contour(ctx, model_path, start, end, nticks, out, device):
     model = torch.load(model_path)
 
     # TODO also check for 2d latent space
-    if not isinstance(model, DMSFeedForwardModel):
-        raise TypeError("Model must be a DMSFeedForwardModel")
+    if not isinstance(model, VanillaGGE):
+        raise TypeError("Model must be a VanillaGGE")
 
     # TODO add device
     click.echo(f"LOG: plotting contour")
@@ -440,7 +440,9 @@ def restrict_dict_to_params(d, cmd):
 
 
 @cli.command()
-@click_config_file.configuration_option(implicit=False, provider=json_provider)
+@click_config_file.configuration_option(
+    implicit=False, required=True, provider=json_provider
+)
 @click.pass_context
 def go(ctx):
     """
