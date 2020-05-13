@@ -97,7 +97,9 @@ def partition(
         if feature != None:
             feature_filename = feature.replace(" ", "_")
             feature_filename = "".join(x for x in feature_filename if x.isalnum())
-            to_pickle_file(aa_func_scores, f'{export_dataframe}_{feature_filename}.pkl')
+            # to_pickle_file(aa_func_scores, f'{export_dataframe}_{feature_filename}.pkl')
+            with open(f'{export_dataframe}_{feature_filename}.pkl', "wb") as file:
+                pickle.dump(aa_func_scores, file)
         else:
             to_pickle_file(aa_func_scores, f'{export_dataframe}.pkl')
 

@@ -120,7 +120,7 @@ def prep(
     per_stratum_variants_for_test,
     skip_stratum_if_count_is_smaller_than,
     export_dataframe,
-    split_by,
+    split_by
 ):
     """
     Prepare data for training.
@@ -137,12 +137,12 @@ def prep(
     click.echo(f"LOG: Successfully loaded data")
 
     total_variants = len(aa_func_scores.iloc[:, 1])
-    click.echo(f"LOG: There are {total_variants} in this dataset")
+    click.echo(f"LOG: There are {total_variants} total variants in this dataset")
 
     if split_by in aa_func_scores.columns:
         # feature = name of library or general feature
         # grouped = the subsetted df
-        for feature, grouped in aa_func_scores.groupby("split_by"):
+        for feature, grouped in aa_func_scores.groupby(split_by):
             click.echo(f"LOG: Partitioning data from {feature}")
             test_partition, partitioned_train_data = partition(
                 grouped,
