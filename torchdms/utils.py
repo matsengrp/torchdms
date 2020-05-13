@@ -138,7 +138,7 @@ def _cartesian_product_aux(list_of_choice_list_and_option_dict_pairs):
     return list_of_choice_list_and_option_dict_pairs
 
 
-def make_cartesian_product_hierarchy(dict_of_option_dicts, just_print=False):
+def make_cartesian_product_hierarchy(dict_of_option_dicts, dry_run=False):
     """
     Make a directory hierarchy expanding the option_dict via a cartesian product.
     """
@@ -151,7 +151,7 @@ def make_cartesian_product_hierarchy(dict_of_option_dicts, just_print=False):
             else:
                 breakpoint()
             print(json_path)
-            if not just_print:
+            if not dry_run:
                 if not os.path.exists(directory_path):
                     os.makedirs(directory_path)
                 to_json_file(final_dict, json_path)

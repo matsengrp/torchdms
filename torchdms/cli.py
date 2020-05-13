@@ -433,16 +433,16 @@ def go(ctx):
 
 @cli.command()
 @click.option(
-    "--just-print",
+    "--dry-run",
     is_flag=True,
     help="Only print paths and files to be made, rather than actually making them.",
 )
 @click.argument("choice_json_path", required=True, type=click.Path(exists=True))
-def cartesian(choice_json_path, just_print):
+def cartesian(choice_json_path, dry_run):
     """
     Take the cartesian product of the variable options in a config file.
     """
-    make_cartesian_product_hierarchy(from_json_file(choice_json_path), just_print)
+    make_cartesian_product_hierarchy(from_json_file(choice_json_path), dry_run)
 
 
 if __name__ == "__main__":
