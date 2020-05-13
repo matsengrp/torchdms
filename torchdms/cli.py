@@ -14,11 +14,13 @@ from torchdms.data import prepare, partition
 from torchdms.model import DMSFeedForwardModel
 from torchdms.loss import rmse, mse
 from torchdms.utils import (
-    beta_coefficients,
     evaluation_dict,
     from_pickle_file,
     to_pickle_file,
     monotonic_params_from_latent_space,
+)
+from torchdms.plot import (
+    beta_coefficients,
     latent_space_contour_plot_2D,
     plot_test_correlation,
 )
