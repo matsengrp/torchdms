@@ -1,20 +1,46 @@
+"""
+Utility functions.
+"""
+
 from copy import deepcopy
+import os
 import os.path
 import pickle
-import dms_variants as dms
-import numpy as np
-import pandas as pd
+import json
 import torchdms.model
 
 
 def from_pickle_file(path):
+    """
+    Load an object from a pickle file.
+    """
     with open(path, "rb") as file:
         return pickle.load(file)
 
 
 def to_pickle_file(obj, path):
+    """
+    Write an object to a pickle file.
+    """
     with open(path, "wb") as file:
         pickle.dump(obj, file)
+
+
+def from_json_file(path):
+    """
+    Load an object from a JSON file.
+    """
+    with open(path, "r") as file:
+        return json.load(file)
+
+
+def to_json_file(obj, path):
+    """
+    Write an object to a JSON file.
+    """
+    with open(path, "w") as file:
+        json.dump(obj, file, indent=4, sort_keys=True)
+        file.write("\n")
 
 
 def monotonic_params_from_latent_space(model: torchdms.model.DMSFeedForwardModel):
@@ -110,3 +136,22 @@ def _cartesian_product_aux(list_of_choice_list_and_option_dict_pairs):
         return _cartesian_product_aux(expanded_list)
     # else:
     return list_of_choice_list_and_option_dict_pairs
+
+
+def make_cartesian_product_hierarchy(dict_of_option_dicts, just_print=False):
+    """
+    Make a directory hierarchy expanding the option_dict via a cartesian product.
+    """
+    for master_key, option_dict in dict_of_option_dicts.items():
+        for choice_list, choice_dict in cartesian_product(option_dict):
+            final_dict = {master_key: choice_dict}
+            if choice_list:
+                directory_path = os.path.join(*choice_list)
+                json_path = os.path.join(directory_path, "config.json")
+            else:
+                breakpoint()
+            print(json_path)
+            if not just_print:
+                if not os.path.exists(directory_path):
+                    os.makedirs(directory_path)
+                to_json_file(final_dict, json_path)

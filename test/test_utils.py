@@ -5,6 +5,9 @@ from torchdms.utils import cartesian_product
 
 
 def test_cartesian_product():
+    """
+    Test the cartesian_product function.
+    """
     test = cartesian_product({"i": 5})
     correct = [([], {"i": 5})]
     assert correct == test

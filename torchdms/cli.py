@@ -7,7 +7,7 @@ import pandas as pd
 import torch
 
 
-from click import Choice, Path, group, option, argument
+from click import group, option, argument
 import click_config_file
 from torchdms.analysis import Analysis
 from torchdms.data import prepare, partition
@@ -16,6 +16,8 @@ from torchdms.loss import rmse, mse
 from torchdms.utils import (
     evaluation_dict,
     from_pickle_file,
+    from_json_file,
+    make_cartesian_product_hierarchy,
     to_pickle_file,
     monotonic_params_from_latent_space,
 )
@@ -41,7 +43,7 @@ def json_provider(file_path, cmd_name):
 
 
 # Entry point
-@group(context_settings={"help_option_names": ["-h", "--help"]})
+@click.group(context_settings={"help_option_names": ["-h", "--help"]})
 def cli():
     """
     Train and evaluate neural networks on deep mutational scanning data.
@@ -50,10 +52,10 @@ def cli():
 
 
 @cli.command()
-@argument("in_path", required=True, type=click.Path(exists=True))
-@argument("out_path", required=True, type=click.Path())
-@argument("targets", type=str, nargs=-1, required=True)
-@option(
+@click.argument("in_path", required=True, type=click.Path(exists=True))
+@click.argument("out_path", required=True, type=click.Path())
+@click.argument("targets", type=str, nargs=-1, required=True)
+@click.option(
     "--per-stratum-variants-for-test",
     type=int,
     required=False,
@@ -63,7 +65,7 @@ def cli():
     to hold out for testing. \
     The rest of the examples will be used for training the model.",
 )
-@option(
+@click.option(
     "--skip-stratum-if-count-is-smaller-than",
     type=int,
     required=False,
@@ -123,10 +125,10 @@ def prep(
 
 
 @cli.command()
-@argument("data_path", type=click.Path(exists=True))
-@argument("out_path", type=click.Path())
-@argument("model_string")
-@option(
+@click.argument("data_path", type=click.Path(exists=True))
+@click.argument("out_path", type=click.Path())
+@click.argument("model_string")
+@click.option(
     "--monotonic",
     is_flag=True,
     help="If this flag is used, "
@@ -134,7 +136,7 @@ def prep(
     "During training with this model then, tdms will put a floor of "
     "0 on all non-bias weights.",
 )
-@option(
+@click.option(
     "--beta-l1-coefficient",
     type=float,
     default=0.0,
@@ -208,31 +210,31 @@ def create(model_string, data_path, out_path, monotonic, beta_l1_coefficient):
 
 
 @cli.command()
-@argument("model_path", type=click.Path(exists=True))
-@argument("data_path", type=click.Path(exists=True))
-@option("--loss-out", type=click.Path(), required=False)
-@option(
+@click.argument("model_path", type=click.Path(exists=True))
+@click.argument("data_path", type=click.Path(exists=True))
+@click.option("--loss-out", type=click.Path(), required=False)
+@click.option(
     "--loss-fn", default="rmse", show_default=True, help="Loss function for training."
 )
-@option(
+@click.option(
     "--batch-size", default=500, show_default=True, help="Batch size for training.",
 )
-@option(
+@click.option(
     "--learning-rate", default=1e-3, show_default=True, help="Initial learning rate.",
 )
-@option(
+@click.option(
     "--min-lr",
     default=1e-6,
     show_default=True,
     help="Minimum learning rate before early stopping on training.",
 )
-@option(
+@click.option(
     "--patience", default=10, show_default=True, help="Patience for ReduceLROnPlateau.",
 )
-@option(
+@click.option(
     "--device", default="cpu", show_default=True, help="Device used to train nn",
 )
-@option(
+@click.option(
     "--epochs", default=5, show_default=True, help="Number of epochs for training.",
 )
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
@@ -282,10 +284,10 @@ def train(
 
 
 @cli.command()
-@argument("model_path", type=click.Path(exists=True))
-@argument("data_path", type=click.Path(exists=True))
-@option("--out", required=True, type=click.Path())
-@option("--device", type=str, required=False, default="cpu")
+@click.argument("model_path", type=click.Path(exists=True))
+@click.argument("data_path", type=click.Path(exists=True))
+@click.option("--out", required=True, type=click.Path())
+@click.option("--device", type=str, required=False, default="cpu")
 def eval(model_path, data_path, out, device):
     """
     Evaluate the performance of a model.
@@ -308,10 +310,10 @@ def eval(model_path, data_path, out, device):
 
 
 @cli.command()
-@argument("model_path", type=click.Path(exists=True))
-@argument("data_path", type=click.Path(exists=True))
-@option("--out", required=True, type=click.Path())
-@option("--device", type=str, required=False, default="cpu")
+@click.argument("model_path", type=click.Path(exists=True))
+@click.argument("data_path", type=click.Path(exists=True))
+@click.option("--out", required=True, type=click.Path())
+@click.option("--device", type=str, required=False, default="cpu")
 def scatter(model_path, data_path, out, device):
     """
     Evaluate and produce scatter plot of observed vs. predicted targets on the test set
@@ -333,12 +335,12 @@ def scatter(model_path, data_path, out, device):
 
 
 @cli.command()
-@argument("model_path", type=click.Path(exists=True))
-@option("--start", required=False, type=int, default=0, show_default=True)
-@option("--end", required=False, type=int, default=1000, show_default=True)
-@option("--nticks", required=False, type=int, default=100, show_default=True)
-@option("--out", required=True, type=click.Path())
-@option("--device", type=str, required=False, default="cpu")
+@click.argument("model_path", type=click.Path(exists=True))
+@click.option("--start", required=False, type=int, default=0, show_default=True)
+@click.option("--end", required=False, type=int, default=1000, show_default=True)
+@click.option("--nticks", required=False, type=int, default=100, show_default=True)
+@click.option("--out", required=True, type=click.Path())
+@click.option("--device", type=str, required=False, default="cpu")
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
 def contour(model_path, start, end, nticks, out, device):
     """
@@ -362,9 +364,9 @@ def contour(model_path, start, end, nticks, out, device):
 
 
 @cli.command()
-@argument("model_path", type=click.Path(exists=True))
-@argument("data_path", type=click.Path(exists=True))
-@option("--out", required=True, type=click.Path())
+@click.argument("model_path", type=click.Path(exists=True))
+@click.argument("data_path", type=click.Path(exists=True))
+@click.option("--out", required=True, type=click.Path())
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
 def beta(model_path, data_path, out):
     """
@@ -427,15 +429,17 @@ def go(ctx):
 
 
 @cli.command()
-@argument("in_path", required=True, type=click.Path(exists=True))
-@argument("out_prefix", required=True, type=click.Path())
-def cartesian(
-    in_path, out_prefix,
-):
+@click.option(
+    "--just-print",
+    is_flag=True,
+    help="Only print paths and files to be made, rather than actually making them.",
+)
+@click.argument("choice_json_path", required=True, type=click.Path(exists=True))
+def cartesian(choice_json_path, just_print):
     """
     Take the cartesian product of the variable options in a config file.
     """
-    pass
+    make_cartesian_product_hierarchy(from_json_file(choice_json_path), just_print)
 
 
 if __name__ == "__main__":
