@@ -426,5 +426,17 @@ def go(ctx):
     )
 
 
+@cli.command()
+@argument("in_path", required=True, type=click.Path(exists=True))
+@argument("out_prefix", required=True, type=click.Path())
+def cartesian(
+    in_path, out_prefix,
+):
+    """
+    Take the cartesian product of the variable options in a config file.
+    """
+    pass
+
+
 if __name__ == "__main__":
     cli()

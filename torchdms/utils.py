@@ -1,3 +1,4 @@
+from copy import deepcopy
 import os.path
 import pickle
 import dms_variants as dms
@@ -63,3 +64,49 @@ def evaluation_dict(model, test_data, device="cpu"):
         "wtseq": test_data.wtseq,
         "target_names": test_data.target_names,
     }
+
+
+def get_first_key_with_an_option(option_dict):
+    """
+    Return the first key that maps to a list.
+
+    We will call such a key-value pair an "option". An "option dict" will be a dict that
+    (may) have such a key-value pair.
+    """
+    for key, value in option_dict.items():
+        if isinstance(value, list):
+            return key
+    return None
+
+
+def cartesian_product(option_dict):
+    """
+    Expand an option dict, collecting the choices made in the first return value of the tuple.
+
+    The best way to understand this function is to look at the test in `test/test_utils.py`.
+    """
+    return _cartesian_product_aux([([], option_dict)])
+
+
+def _cartesian_product_aux(list_of_choice_list_and_option_dict_pairs):
+    """
+    Recursive procedure to assist cartesian_product.
+    """
+    expanded_something = False
+    expanded_list = []
+    for choice_list, option_dict in list_of_choice_list_and_option_dict_pairs:
+        option_key = get_first_key_with_an_option(option_dict)
+        if option_key is None:
+            continue
+        # else:
+        expanded_something = True
+        for option_value in option_dict[option_key]:
+            key_value_str = str(option_key) + "@" + str(option_value)
+            new_option_dict = deepcopy(option_dict)
+            new_option_dict[option_key] = option_value
+            expanded_list.append((choice_list + [key_value_str], new_option_dict))
+
+    if expanded_something:
+        return _cartesian_product_aux(expanded_list)
+    # else:
+    return list_of_choice_list_and_option_dict_pairs
