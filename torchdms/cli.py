@@ -82,9 +82,8 @@ def cli(ctx, dry_run):
     required=False,
     default=100,
     show_default=True,
-    help="This is the number samples for each stratum \
-    to hold out for testing. \
-    The rest of the examples will be used for training the model.",
+    help="This is the number of variants for each stratum to hold out for testing. The "
+    "rest of the examples will be used for training the model.",
 )
 @click.option(
     "--skip-stratum-if-count-is-smaller-than",
@@ -92,27 +91,24 @@ def cli(ctx, dry_run):
     required=False,
     default=250,
     show_default=True,
-    help="If the total number of examples for any \
-    particular stratum is lower than this number, \
-    we throw out the stratum completely.",
+    help="If the total number of examples for any particular stratum is lower than this "
+    "number, we throw out the stratum completely.",
 )
 @option(
     "--export-dataframe",
     type=str,
     required=False,
     default=None,
-    help="Filename prefix for exporting the original \
-    dataframe in a .pkl file with an appended in_test \
-    column.",
+    help="Filename prefix for exporting the original dataframe in a .pkl file with an "
+    "appended in_test column.",
 )
 @option(
     "--split-by",
     type=str,
     required=False,
     default=None,
-    help="Column name containing a feature by which \
-    the data should be split into independent datasets \
-    for partitioning; e.g. 'library'.",
+    help="Column name containing a feature by which the data should be split into "
+    "independent datasets for partitioning; e.g. 'library'.",
 )
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
 @click.pass_context
@@ -143,7 +139,7 @@ def prep(
     total_variants = len(aa_func_scores.iloc[:, 1])
     click.echo(f"LOG: There are {total_variants} in this dataset")
 
-    if "split_by" in aa_func_scores.columns:
+    if split_by in aa_func_scores.columns:
         # feature = name of library or general feature
         # grouped = the subsetted df
         for feature, grouped in aa_func_scores.groupby("split_by"):
@@ -203,7 +199,6 @@ def prep(
         f"LOG: Successfully finished prep and dumped BinaryMapDataset \
           object to {out_prefix}"
     )
-    return None
 
 
 @cli.command()
