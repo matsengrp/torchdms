@@ -10,12 +10,17 @@ import torch
 from click import group, option, argument
 import click_config_file
 from torchdms.analysis import Analysis
-from torchdms.data import prepare, partition
+from torchdms.data import (
+    prepare,
+    partition,
+    prep_by_stratum_and_export,
+)
 from torchdms.model import VanillaGGE
 from torchdms.loss import rmse, mse
 from torchdms.utils import (
     evaluation_dict,
     from_pickle_file,
+    make_legal_filename,
     from_json_file,
     make_cartesian_product_hierarchy,
     to_pickle_file,
@@ -74,7 +79,7 @@ def cli(ctx, dry_run):
 
 @cli.command()
 @click.argument("in_path", required=True, type=click.Path(exists=True))
-@click.argument("out_path", required=True, type=click.Path())
+@click.argument("out_prefix", required=True, type=click.Path())
 @click.argument("targets", type=str, nargs=-1, required=True)
 @click.option(
     "--per-stratum-variants-for-test",
@@ -82,9 +87,8 @@ def cli(ctx, dry_run):
     required=False,
     default=100,
     show_default=True,
-    help="This is the number samples for each stratum \
-    to hold out for testing. \
-    The rest of the examples will be used for training the model.",
+    help="This is the number of variants for each stratum to hold out for testing. The "
+    "rest of the examples will be used for training the model.",
 )
 @click.option(
     "--skip-stratum-if-count-is-smaller-than",
@@ -92,35 +96,43 @@ def cli(ctx, dry_run):
     required=False,
     default=250,
     show_default=True,
-    help="If the total number of examples for any \
-    particular stratum is lower than this number, \
-    we throw out the stratum completely.",
+    help="If the total number of examples for any particular stratum is lower than this "
+    "number, we throw out the stratum completely.",
 )
 @option(
     "--export-dataframe",
     type=str,
     required=False,
     default=None,
-    help="Filename for exporting the original dataframe \
-    in a .pkl file with an appended in_test column.",
+    help="Filename prefix for exporting the original dataframe in a .pkl file with an "
+    "appended in_test column.",
+)
+@option(
+    "--split-by",
+    type=str,
+    required=False,
+    default=None,
+    help="Column name containing a feature by which the data should be split into "
+    "independent datasets for partitioning; e.g. 'library'.",
 )
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
 @click.pass_context
 def prep(
     ctx,
     in_path,
-    out_path,
+    out_prefix,
     targets,
     per_stratum_variants_for_test,
     skip_stratum_if_count_is_smaller_than,
-    export_dataframe
+    export_dataframe,
+    split_by,
 ):
     """
     Prepare data for training.
 
     IN_PATH should point to a pickle dump'd Pandas DataFrame containing the string
-    encoded `aa_substitutions` column along with any TARGETS you specify. OUT_PATH is
-    the location to dump the prepped data to another pickle file.
+    encoded `aa_substitutions` column along with any TARGETS you specify.
+    OUT_PREFIX is the location to dump the prepped data to another pickle file.
     """
     if process_dry_run(ctx, "prep", locals()):
         return
@@ -130,32 +142,44 @@ def prep(
     click.echo(f"LOG: Successfully loaded data")
 
     total_variants = len(aa_func_scores.iloc[:, 1])
-    click.echo(f"LOG: There are {total_variants} in this dataset")
+    click.echo(f"LOG: There are {total_variants} total variants in this dataset")
 
-    test_partition, partitioned_train_data = partition(
-        aa_func_scores,
-        per_stratum_variants_for_test,
-        skip_stratum_if_count_is_smaller_than,
-        export_dataframe
-    )
-    for train_part in partitioned_train_data:
-        num_subs = len(train_part["aa_substitutions"][0].split())
-        click.echo(
-            f"LOG: There are {len(train_part)} training examples \
-              for stratum: {num_subs}"
+    if split_by in aa_func_scores.columns:
+        for split_label, per_split_label_df in aa_func_scores.groupby(split_by):
+            click.echo(f"LOG: Partitioning data via '{split_label}'")
+            test_partition, partitioned_train_data = partition(
+                per_split_label_df,
+                per_stratum_variants_for_test,
+                skip_stratum_if_count_is_smaller_than,
+                export_dataframe,
+                split_label,
+            )
+
+            prep_by_stratum_and_export(
+                test_partition,
+                partitioned_train_data,
+                wtseq,
+                targets,
+                out_prefix,
+                split_label,
+            )
+
+    else:
+        test_partition, partitioned_train_data = partition(
+            aa_func_scores,
+            per_stratum_variants_for_test,
+            skip_stratum_if_count_is_smaller_than,
+            export_dataframe,
         )
-    click.echo(f"LOG: There are {len(test_partition)} test points")
-    click.echo(f"LOG: Successfully partitioned data")
 
-    click.echo(f"LOG: preparing binary map dataset")
-    to_pickle_file(
-        prepare(test_partition, partitioned_train_data, wtseq, list(targets)), out_path
-    )
+        prep_by_stratum_and_export(
+            test_partition, partitioned_train_data, wtseq, targets, out_prefix,
+        )
+
     click.echo(
         f"LOG: Successfully finished prep and dumped BinaryMapDataset \
-          object to {out_path}"
+          object to {out_prefix}"
     )
-    return None
 
 
 @cli.command()
