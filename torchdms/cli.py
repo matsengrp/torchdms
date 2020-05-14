@@ -173,11 +173,7 @@ def prep(
         )
 
         prep_by_stratum_and_export(
-            test_partition,
-            partitioned_train_data,
-            wtseq,
-            targets,
-            out_prefix,
+            test_partition, partitioned_train_data, wtseq, targets, out_prefix,
         )
 
     click.echo(

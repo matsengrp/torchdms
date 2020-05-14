@@ -15,6 +15,7 @@ from torchdms.utils import (
     make_legal_filename,
 )
 
+
 class BinaryMapDataset(Dataset):
     """
     Binarymap dataset.
@@ -78,9 +79,13 @@ def partition(
         # Here, we grab a subset of unique variants so that
         # we are not training on the same variants that we see in the testing data
         unique_variants = defaultdict(list)
-        for index, sub in zip(labeled_examples.index, labeled_examples["aa_substitutions"]):
+        for index, sub in zip(
+            labeled_examples.index, labeled_examples["aa_substitutions"]
+        ):
             unique_variants[sub].append(index)
-        test_variants = random.sample(unique_variants.keys(), per_stratum_variants_for_test)
+        test_variants = random.sample(
+            unique_variants.keys(), per_stratum_variants_for_test
+        )
         test_dict = {key: unique_variants[key] for key in test_variants}
         to_put_in_test = list(itertools.chain(*list(test_dict.values())))
 
@@ -99,9 +104,11 @@ def partition(
     if export_dataframe != None:
         if split_label != None:
             split_label_filename = make_legal_filename(split_label)
-            to_pickle_file(aa_func_scores, f'{export_dataframe}_{split_label_filename}.pkl')
+            to_pickle_file(
+                aa_func_scores, f"{export_dataframe}_{split_label_filename}.pkl"
+            )
         else:
-            to_pickle_file(aa_func_scores, f'{export_dataframe}.pkl')
+            to_pickle_file(aa_func_scores, f"{export_dataframe}.pkl")
 
     return test_partition, partitioned_train_data
 
@@ -121,8 +128,9 @@ def prepare(test_partition, train_partition_list, wtseq, targets):
     return test_data, train_data_list
 
 
-def prep_by_stratum_and_export(test_partition, partitioned_train_data, wtseq,
-targets, out_prefix, split_label=None):
+def prep_by_stratum_and_export(
+    test_partition, partitioned_train_data, wtseq, targets, out_prefix, split_label=None
+):
     """
     Print number of training examples per stratum and test samples, run
     prepare(), and export to .pkl file with descriptive filename.
