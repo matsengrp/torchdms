@@ -10,12 +10,17 @@ import torch
 from click import group, option, argument
 import click_config_file
 from torchdms.analysis import Analysis
-from torchdms.data import prepare, partition
+from torchdms.data import (
+    prepare,
+    partition,
+    prep_by_stratum_and_export,
+)
 from torchdms.model import VanillaGGE
 from torchdms.loss import rmse, mse
 from torchdms.utils import (
     evaluation_dict,
     from_pickle_file,
+    make_legal_filename,
     from_json_file,
     make_cartesian_product_hierarchy,
     to_pickle_file,
@@ -140,35 +145,23 @@ def prep(
     click.echo(f"LOG: There are {total_variants} total variants in this dataset")
 
     if split_by in aa_func_scores.columns:
-        # feature = name of library or general feature
-        # grouped = the subsetted df
-        for feature, grouped in aa_func_scores.groupby(split_by):
-            click.echo(f"LOG: Partitioning data via '{feature}'")
+        for split_label, per_split_label_df in aa_func_scores.groupby(split_by):
+            click.echo(f"LOG: Partitioning data via '{split_label}'")
             test_partition, partitioned_train_data = partition(
-                grouped,
+                per_split_label_df,
                 per_stratum_variants_for_test,
                 skip_stratum_if_count_is_smaller_than,
                 export_dataframe,
-                feature,
+                split_label,
             )
 
-            for train_part in partitioned_train_data:
-                num_subs = len(train_part["aa_substitutions"][0].split())
-                click.echo(
-                    f"LOG: There are {len(train_part)} training examples \
-                      for stratum: {num_subs}"
-                )
-            click.echo(f"LOG: There are {len(test_partition)} test points")
-            click.echo(f"LOG: Successfully partitioned data")
-
-            click.echo(f"LOG: preparing binary map dataset")
-
-            feature_filename = feature.replace(" ", "_")
-            feature_filename = "".join(x for x in feature_filename if x.isalnum())
-
-            to_pickle_file(
-                prepare(test_partition, partitioned_train_data, wtseq, list(targets)),
-                f"{out_prefix}_{feature_filename}.pkl",
+            prep_by_stratum_and_export(
+                test_partition,
+                partitioned_train_data,
+                wtseq,
+                targets,
+                out_prefix,
+                split_label,
             )
 
     else:
@@ -179,20 +172,12 @@ def prep(
             export_dataframe,
         )
 
-        for train_part in partitioned_train_data:
-            num_subs = len(train_part["aa_substitutions"][0].split())
-            click.echo(
-                f"LOG: There are {len(train_part)} training examples \
-                  for stratum: {num_subs}"
-            )
-        click.echo(f"LOG: There are {len(test_partition)} test points")
-        click.echo(f"LOG: Successfully partitioned data")
-
-        click.echo(f"LOG: preparing binary map dataset")
-
-        to_pickle_file(
-            prepare(test_partition, partitioned_train_data, wtseq, list(targets)),
-            f"{out_prefix}.pkl",
+        prep_by_stratum_and_export(
+            test_partition,
+            partitioned_train_data,
+            wtseq,
+            targets,
+            out_prefix,
         )
 
     click.echo(

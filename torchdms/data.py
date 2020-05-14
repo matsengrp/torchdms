@@ -9,8 +9,10 @@ from torch.utils.data import Dataset
 from collections import defaultdict
 import itertools
 import random
+import click
 from torchdms.utils import (
     to_pickle_file,
+    make_legal_filename,
 )
 
 class BinaryMapDataset(Dataset):
@@ -52,7 +54,7 @@ def partition(
     per_stratum_variants_for_test=100,
     skip_stratum_if_count_is_smaller_than=250,
     export_dataframe=None,
-    feature=None
+    split_label=None,
 ):
     """
     Partition the data into a test partition, and a list of training data partitions.
@@ -95,10 +97,9 @@ def partition(
     )
 
     if export_dataframe != None:
-        if feature != None:
-            feature_filename = feature.replace(" ", "_")
-            feature_filename = "".join(x for x in feature_filename if x.isalnum())
-            to_pickle_file(aa_func_scores, f'{export_dataframe}_{feature_filename}.pkl')
+        if split_label != None:
+            split_label_filename = make_legal_filename(split_label)
+            to_pickle_file(aa_func_scores, f'{export_dataframe}_{split_label_filename}.pkl')
         else:
             to_pickle_file(aa_func_scores, f'{export_dataframe}.pkl')
 
@@ -111,8 +112,6 @@ def prepare(test_partition, train_partition_list, wtseq, targets):
     number of substitutions, and making bmappluses.
     """
 
-    # check for column
-
     test_data = BinaryMapDataset(test_partition, wtseq=wtseq, targets=targets)
     train_data_list = [
         BinaryMapDataset(train_data_partition, wtseq=wtseq, targets=targets)
@@ -120,3 +119,34 @@ def prepare(test_partition, train_partition_list, wtseq, targets):
     ]
 
     return test_data, train_data_list
+
+
+def prep_by_stratum_and_export(test_partition, partitioned_train_data, wtseq,
+targets, out_prefix, split_label=None):
+    """
+    Print number of training examples per stratum and test samples, run
+    prepare(), and export to .pkl file with descriptive filename.
+    """
+
+    for train_part in partitioned_train_data:
+        num_subs = len(train_part["aa_substitutions"][0].split())
+        click.echo(
+            f"LOG: There are {len(train_part)} training examples \
+              for stratum: {num_subs}"
+        )
+    click.echo(f"LOG: There are {len(test_partition)} test points")
+    click.echo(f"LOG: Successfully partitioned data")
+
+    click.echo(f"LOG: preparing binary map dataset")
+
+    if split_label != None:
+        split_label_filename = make_legal_filename(split_label)
+        to_pickle_file(
+            prepare(test_partition, partitioned_train_data, wtseq, list(targets)),
+            f"{out_prefix}_{split_label_filename}.pkl",
+        )
+    else:
+        to_pickle_file(
+            prepare(test_partition, partitioned_train_data, wtseq, list(targets)),
+            f"{out_prefix}.pkl",
+        )
