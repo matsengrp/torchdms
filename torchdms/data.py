@@ -142,12 +142,12 @@ def prep_by_stratum_and_export(
             f"LOG: There are {len(train_part)} training examples \
               for stratum: {num_subs}"
         )
+
     click.echo(f"LOG: There are {len(test_partition)} test points")
     click.echo(f"LOG: Successfully partitioned data")
-
     click.echo(f"LOG: preparing binary map dataset")
 
-    if split_label != None:
+    if split_label is not None:
         split_label_filename = make_legal_filename(split_label)
         to_pickle_file(
             prepare(test_partition, partitioned_train_data, wtseq, list(targets)),
