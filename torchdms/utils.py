@@ -27,6 +27,16 @@ def to_pickle_file(obj, path):
         pickle.dump(obj, file)
 
 
+def make_legal_filename(label):
+    """
+    Remove spaces and non-alphanumeric characters from
+    a given string.
+    """
+    legal_filename = label.replace(" ", "_")
+    legal_filename = "".join(x for x in legal_filename if x.isalnum())
+    return legal_filename
+
+
 def from_json_file(path):
     """
     Load an object from a JSON file.
