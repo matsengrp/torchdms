@@ -120,7 +120,7 @@ def prep(
     per_stratum_variants_for_test,
     skip_stratum_if_count_is_smaller_than,
     export_dataframe,
-    split_by
+    split_by,
 ):
     """
     Prepare data for training.
@@ -143,7 +143,7 @@ def prep(
         # feature = name of library or general feature
         # grouped = the subsetted df
         for feature, grouped in aa_func_scores.groupby(split_by):
-            click.echo(f"LOG: Partitioning data from {feature}")
+            click.echo(f"LOG: Partitioning data via '{feature}'")
             test_partition, partitioned_train_data = partition(
                 grouped,
                 per_stratum_variants_for_test,
