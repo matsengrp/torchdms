@@ -18,3 +18,4 @@ dependencies:
       - dms_variants
       - flake8
       - pylint
+      - pytest

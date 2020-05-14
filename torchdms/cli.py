@@ -7,18 +7,22 @@ import pandas as pd
 import torch
 
 
-from click import Choice, Path, group, option, argument
+from click import group, option, argument
 import click_config_file
 from torchdms.analysis import Analysis
 from torchdms.data import prepare, partition
-from torchdms.model import DMSFeedForwardModel
+from torchdms.model import VanillaGGE
 from torchdms.loss import rmse, mse
 from torchdms.utils import (
-    beta_coefficients,
     evaluation_dict,
     from_pickle_file,
+    from_json_file,
+    make_cartesian_product_hierarchy,
     to_pickle_file,
     monotonic_params_from_latent_space,
+)
+from torchdms.plot import (
+    beta_coefficients,
     latent_space_contour_plot_2D,
     plot_test_correlation,
 )
@@ -38,20 +42,41 @@ def json_provider(file_path, cmd_name):
     return None
 
 
+def process_dry_run(ctx, method_name, local_variables):
+    """
+    Return whether ctx tells us we are doing a dry run; print the call.
+    """
+    if "ctx" in local_variables:
+        del local_variables["ctx"]
+    if ctx.obj["dry_run"]:
+        print(f"{method_name}{local_variables})")
+        return True
+    # else:
+    return False
+
+
 # Entry point
-@group(context_settings={"help_option_names": ["-h", "--help"]})
-def cli():
+@click.group(context_settings={"help_option_names": ["-h", "--help"]})
+@click.option(
+    "--dry-run",
+    is_flag=True,
+    help="Only print paths and files to be made, rather than actually making them.",
+)
+@click.pass_context
+def cli(ctx, dry_run):
     """
     Train and evaluate neural networks on deep mutational scanning data.
     """
+    ctx.ensure_object(dict)
+    ctx.obj["dry_run"] = dry_run
     pass
 
 
 @cli.command()
-@argument("in_path", required=True, type=click.Path(exists=True))
-@argument("out_path", required=True, type=click.Path())
-@argument("targets", type=str, nargs=-1, required=True)
-@option(
+@click.argument("in_path", required=True, type=click.Path(exists=True))
+@click.argument("out_path", required=True, type=click.Path())
+@click.argument("targets", type=str, nargs=-1, required=True)
+@click.option(
     "--per-stratum-variants-for-test",
     type=int,
     required=False,
@@ -61,7 +86,7 @@ def cli():
     to hold out for testing. \
     The rest of the examples will be used for training the model.",
 )
-@option(
+@click.option(
     "--skip-stratum-if-count-is-smaller-than",
     type=int,
     required=False,
@@ -80,7 +105,9 @@ def cli():
     in a .pkl file with an appended in_test column.",
 )
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
+@click.pass_context
 def prep(
+    ctx,
     in_path,
     out_path,
     targets,
@@ -95,7 +122,8 @@ def prep(
     encoded `aa_substitutions` column along with any TARGETS you specify. OUT_PATH is
     the location to dump the prepped data to another pickle file.
     """
-
+    if process_dry_run(ctx, "prep", locals()):
+        return
     click.echo(f"LOG: Targets: {targets}")
     click.echo(f"LOG: Loading substitution data for: {in_path}")
     aa_func_scores, wtseq = from_pickle_file(in_path)
@@ -131,10 +159,10 @@ def prep(
 
 
 @cli.command()
-@argument("data_path", type=click.Path(exists=True))
-@argument("out_path", type=click.Path())
-@argument("model_string")
-@option(
+@click.argument("data_path", type=click.Path(exists=True))
+@click.argument("out_path", type=click.Path())
+@click.argument("model_string")
+@click.option(
     "--monotonic",
     is_flag=True,
     help="If this flag is used, "
@@ -142,7 +170,7 @@ def prep(
     "During training with this model then, tdms will put a floor of "
     "0 on all non-bias weights.",
 )
-@option(
+@click.option(
     "--beta-l1-coefficient",
     type=float,
     default=0.0,
@@ -151,14 +179,17 @@ def prep(
     "those to the first latent dimension.",
 )
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
-def create(model_string, data_path, out_path, monotonic, beta_l1_coefficient):
+@click.pass_context
+def create(ctx, model_string, data_path, out_path, monotonic, beta_l1_coefficient):
     """
     Create a model.
 
-    Model string describes the model, such as 'DMSFeedForwardModel(1,10)'.
+    Model string describes the model, such as 'VanillaGGE(1,10)'.
     """
+    if process_dry_run(ctx, "create", locals()):
+        return
     known_models = {
-        "DMSFeedForwardModel": DMSFeedForwardModel,
+        "VanillaGGE": VanillaGGE,
     }
     try:
         model_regex = re.compile(r"(.*)\((.*)\)")
@@ -177,13 +208,13 @@ def create(model_string, data_path, out_path, monotonic, beta_l1_coefficient):
 
     click.echo(f"LOG: Test data input size: {test_BMD.feature_count()}")
     click.echo(f"LOG: Test data output size: {test_BMD.targets.shape[1]}")
-    if model_name == "DMSFeedForwardModel":
+    if model_name == "VanillaGGE":
         if len(layers) == 0:
             click.echo(f"LOG: No layers provided means creating a linear model")
         for layer in layers:
             if not isinstance(layer, int):
                 raise TypeError("All layer input must be integers")
-        model = DMSFeedForwardModel(
+        model = VanillaGGE(
             test_BMD.feature_count(),
             layers,
             test_BMD.targets.shape[1],
@@ -216,35 +247,37 @@ def create(model_string, data_path, out_path, monotonic, beta_l1_coefficient):
 
 
 @cli.command()
-@argument("model_path", type=click.Path(exists=True))
-@argument("data_path", type=click.Path(exists=True))
-@option("--loss-out", type=click.Path(), required=False)
-@option(
+@click.argument("model_path", type=click.Path(exists=True))
+@click.argument("data_path", type=click.Path(exists=True))
+@click.option("--loss-out", type=click.Path(), required=False)
+@click.option(
     "--loss-fn", default="rmse", show_default=True, help="Loss function for training."
 )
-@option(
+@click.option(
     "--batch-size", default=500, show_default=True, help="Batch size for training.",
 )
-@option(
+@click.option(
     "--learning-rate", default=1e-3, show_default=True, help="Initial learning rate.",
 )
-@option(
+@click.option(
     "--min-lr",
     default=1e-6,
     show_default=True,
     help="Minimum learning rate before early stopping on training.",
 )
-@option(
+@click.option(
     "--patience", default=10, show_default=True, help="Patience for ReduceLROnPlateau.",
 )
-@option(
+@click.option(
     "--device", default="cpu", show_default=True, help="Device used to train nn",
 )
-@option(
+@click.option(
     "--epochs", default=5, show_default=True, help="Number of epochs for training.",
 )
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
+@click.pass_context
 def train(
+    ctx,
     model_path,
     data_path,
     loss_out,
@@ -259,6 +292,8 @@ def train(
     """
     Train a model, saving trained model to original location.
     """
+    if process_dry_run(ctx, "train", locals()):
+        return
     model = torch.load(model_path)
     [_, train_data_list] = from_pickle_file(data_path)
 
@@ -290,16 +325,20 @@ def train(
 
 
 @cli.command()
-@argument("model_path", type=click.Path(exists=True))
-@argument("data_path", type=click.Path(exists=True))
-@option("--out", required=True, type=click.Path())
-@option("--device", type=str, required=False, default="cpu")
-def eval(model_path, data_path, out, device):
+@click.argument("model_path", type=click.Path(exists=True))
+@click.argument("data_path", type=click.Path(exists=True))
+@click.option("--out", required=True, type=click.Path())
+@click.option("--device", type=str, required=False, default="cpu")
+@click_config_file.configuration_option(implicit=False, provider=json_provider)
+@click.pass_context
+def eval(ctx, model_path, data_path, out, device):
     """
     Evaluate the performance of a model.
 
     Dump to a dictionary containing the results.
     """
+    if process_dry_run(ctx, "eval", locals()):
+        return
     click.echo(f"LOG: Loading model from {model_path}")
     model = torch.load(model_path)
 
@@ -316,15 +355,19 @@ def eval(model_path, data_path, out, device):
 
 
 @cli.command()
-@argument("model_path", type=click.Path(exists=True))
-@argument("data_path", type=click.Path(exists=True))
-@option("--out", required=True, type=click.Path())
-@option("--device", type=str, required=False, default="cpu")
-def scatter(model_path, data_path, out, device):
+@click.argument("model_path", type=click.Path(exists=True))
+@click.argument("data_path", type=click.Path(exists=True))
+@click.option("--out", required=True, type=click.Path())
+@click.option("--device", type=str, required=False, default="cpu")
+@click_config_file.configuration_option(implicit=False, provider=json_provider)
+@click.pass_context
+def scatter(ctx, model_path, data_path, out, device):
     """
     Evaluate and produce scatter plot of observed vs. predicted targets on the test set
     provided.
     """
+    if process_dry_run(ctx, "scatter", locals()):
+        return
     click.echo(f"LOG: Loading model from {model_path}")
     model = torch.load(model_path)
 
@@ -335,32 +378,35 @@ def scatter(model_path, data_path, out, device):
     evaluation = evaluation_dict(model, test_data, device)
 
     click.echo(f"LOG: plotting scatter correlation")
-    plot_test_correlation(evaluation, out)
+    plot_test_correlation(evaluation, model, out)
 
     click.echo(f"LOG: scatter plot finished and dumped to {out}")
 
 
 @cli.command()
-@argument("model_path", type=click.Path(exists=True))
-@option("--start", required=False, type=int, default=0, show_default=True)
-@option("--end", required=False, type=int, default=1000, show_default=True)
-@option("--nticks", required=False, type=int, default=100, show_default=True)
-@option("--out", required=True, type=click.Path())
-@option("--device", type=str, required=False, default="cpu")
+@click.argument("model_path", type=click.Path(exists=True))
+@click.option("--start", required=False, type=int, default=0, show_default=True)
+@click.option("--end", required=False, type=int, default=1000, show_default=True)
+@click.option("--nticks", required=False, type=int, default=100, show_default=True)
+@click.option("--out", required=True, type=click.Path())
+@click.option("--device", type=str, required=False, default="cpu")
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
-def contour(model_path, start, end, nticks, out, device):
+@click.pass_context
+def contour(ctx, model_path, start, end, nticks, out, device):
     """
     Visualize the the latent space of a model.
 
     Make a contour plot with a two dimensional latent space by predicting across grid of
     values.
     """
+    if process_dry_run(ctx, "contour", locals()):
+        return
     click.echo(f"LOG: Loading model from {model_path}")
     model = torch.load(model_path)
 
     # TODO also check for 2d latent space
-    if not isinstance(model, DMSFeedForwardModel):
-        raise TypeError("Model must be a DMSFeedForwardModel")
+    if not isinstance(model, VanillaGGE):
+        raise TypeError("Model must be a VanillaGGE")
 
     # TODO add device
     click.echo(f"LOG: plotting contour")
@@ -370,14 +416,17 @@ def contour(model_path, start, end, nticks, out, device):
 
 
 @cli.command()
-@argument("model_path", type=click.Path(exists=True))
-@argument("data_path", type=click.Path(exists=True))
-@option("--out", required=True, type=click.Path())
+@click.argument("model_path", type=click.Path(exists=True))
+@click.argument("data_path", type=click.Path(exists=True))
+@click.option("--out", required=True, type=click.Path())
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
-def beta(model_path, data_path, out):
+@click.pass_context
+def beta(ctx, model_path, data_path, out):
     """
     Plot beta coefficients as a heatmap.
     """
+    if process_dry_run(ctx, "beta", locals()):
+        return
     click.echo(f"LOG: Loading model from {model_path}")
     model = torch.load(model_path)
 
@@ -395,13 +444,18 @@ def beta(model_path, data_path, out):
 
 
 def restrict_dict_to_params(d, cmd):
+    """
+    Restrict the given dictionary to the names of parameters for cmd.
+    """
     param_names = {param.name for param in cmd.params}
     return {key: d[key] for key in d if key in param_names}
 
 
 @cli.command()
+@click_config_file.configuration_option(
+    implicit=False, required=True, provider=json_provider
+)
 @click.pass_context
-@click_config_file.configuration_option(implicit=False, provider=json_provider)
 def go(ctx):
     """
     Run a common sequence of commands: create, train, scatter, and beta.
@@ -431,6 +485,18 @@ def go(ctx):
         model_path=model_path,
         out=beta_path,
         **restrict_dict_to_params(ctx.default_map, beta),
+    )
+
+
+@cli.command()
+@click.argument("choice_json_path", required=True, type=click.Path(exists=True))
+@click.pass_context
+def cartesian(ctx, choice_json_path):
+    """
+    Take the cartesian product of the variable options in a config file.
+    """
+    make_cartesian_product_hierarchy(
+        from_json_file(choice_json_path), ctx.obj["dry_run"]
     )
 
 
