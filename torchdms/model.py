@@ -71,10 +71,14 @@ class VanillaGGE(nn.Module):
                 in_size = layers[layer_index]
                 bias = True
 
-            # final layer
-            layer_name = f"output_layer"
+            # The layer before the final linear transformation.
+            layer_name = f"pre_output_layer"
             self.layers.append(layer_name)
             setattr(self, layer_name, nn.Linear(num_nodes, output_size))
+
+            layer_name = f"output_layer"
+            self.layers.append(layer_name)
+            setattr(self, layer_name, ElementwiseLinear(output_size))
 
     @property
     def characteristics(self):
