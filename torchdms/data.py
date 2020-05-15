@@ -1,15 +1,13 @@
 """
 Tools for handling data.
 """
-
-import pickle
-import torch
-from dms_variants.binarymap import BinaryMap
-from torch.utils.data import Dataset
 from collections import defaultdict
 import itertools
 import random
 import click
+import torch
+from torch.utils.data import Dataset
+from dms_variants.binarymap import BinaryMap
 from torchdms.utils import (
     to_pickle_file,
     make_legal_filename,

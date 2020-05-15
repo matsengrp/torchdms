@@ -95,7 +95,7 @@ def cli(ctx, dry_run):
     help="If the total number of examples for any particular stratum is lower than this "
     "number, we throw out the stratum completely.",
 )
-@option(
+@click.option(
     "--export-dataframe",
     type=str,
     required=False,
@@ -103,7 +103,7 @@ def cli(ctx, dry_run):
     help="Filename prefix for exporting the original dataframe in a .pkl file with an "
     "appended in_test column.",
 )
-@option(
+@click.option(
     "--split-by",
     type=str,
     required=False,
@@ -139,6 +139,11 @@ def prep(
 
     total_variants = len(aa_func_scores.iloc[:, 1])
     click.echo(f"LOG: There are {total_variants} total variants in this dataset")
+
+    if split_by is None and "library" in aa_func_scores.columns:
+        click.echo(
+            f"WARNING: you have a 'library' column but haven't specified a split via '--split-by'"
+        )
 
     if split_by in aa_func_scores.columns:
         for split_label, per_split_label_df in aa_func_scores.groupby(split_by):
