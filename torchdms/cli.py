@@ -1,17 +1,14 @@
-import inspect
-import os
+"""
+The command line interface.
+"""
+import json
 import re
 import click
-import json
+import click_config_file
 import pandas as pd
 import torch
-
-
-from click import group, option, argument
-import click_config_file
 from torchdms.analysis import Analysis
 from torchdms.data import (
-    prepare,
     partition,
     prep_by_stratum_and_export,
 )
@@ -20,7 +17,6 @@ from torchdms.loss import rmse, mse
 from torchdms.utils import (
     evaluation_dict,
     from_pickle_file,
-    make_legal_filename,
     from_json_file,
     make_cartesian_product_hierarchy,
     to_pickle_file,
