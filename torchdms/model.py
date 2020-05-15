@@ -9,8 +9,8 @@ class ElementwiseLinear(nn.Module):
 
     def __init__(self, size):
         super(ElementwiseLinear, self).__init__()
-        self.weights = nn.Parameter(torch.zeros(size))
-        self.biases = nn.Parameter(torch.zeros(size))
+        self.weight = nn.Parameter(torch.zeros(size))
+        self.bias = nn.Parameter(torch.zeros(size))
 
     def forward(self, x):
         """ The forward transformation."""
