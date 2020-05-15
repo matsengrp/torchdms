@@ -37,7 +37,7 @@ def json_provider(file_path, cmd_name):
         with open(file_path) as config_data:
             config_dict = json.load(config_data)
             if cmd_name not in config_dict:
-                if config_dict == "any":
+                if "any" not in config_dict:
                     return config_dict["any"]
                 # else:
                 raise IOError(
