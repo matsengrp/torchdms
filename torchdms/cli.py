@@ -178,8 +178,8 @@ def prep(
         )
 
     click.echo(
-        f"LOG: Successfully finished prep and dumped BinaryMapDataset \
-          object to {out_prefix}"
+        "LOG: Successfully finished prep and dumped BinaryMapDataset "
+        f"object to {out_prefix}"
     )
 
 
