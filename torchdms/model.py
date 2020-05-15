@@ -2,6 +2,21 @@ import torch
 import torch.nn as nn
 
 
+class ElementwiseLinear(nn.Module):
+    """
+    An elementwise linear transformation layer.
+    """
+
+    def __init__(self, size):
+        super(ElementwiseLinear, self).__init__(size)
+        self.weights = nn.Parameter(torch.zeros(size))
+        self.biases = nn.Parameter(torch.zeros(size))
+
+    def forward(self, x):
+        """ The forward transformation."""
+        return x * self.weights + self.biases
+
+
 class VanillaGGE(nn.Module):
     """
     Make it just how you like it.
@@ -78,6 +93,7 @@ class VanillaGGE(nn.Module):
 
     def forward(self, x):
         out = x
+        # TODO: Change to index-free loop.
         for layer_index in range(len(self.layers) - 1):
             out = self.activation_fn(getattr(self, self.layers[layer_index])(out))
         prediction = getattr(self, self.layers[-1])(out)
