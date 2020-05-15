@@ -14,7 +14,7 @@ class ElementwiseLinear(nn.Module):
 
     def forward(self, x):
         """ The forward transformation."""
-        return x * self.weights + self.biases
+        return x * self.weight + self.bias
 
 
 class VanillaGGE(nn.Module):
