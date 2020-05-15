@@ -37,11 +37,11 @@ def json_provider(file_path, cmd_name):
         with open(file_path) as config_data:
             config_dict = json.load(config_data)
             if cmd_name not in config_dict:
-                if "any" not in config_dict:
-                    return config_dict["any"]
+                if "default" in config_dict:
+                    return config_dict["default"]
                 # else:
                 raise IOError(
-                    f"Could not find a '{cmd_name}' or 'any' section in '{file_path}'"
+                    f"Could not find a '{cmd_name}' or 'default' section in '{file_path}'"
                 )
             return config_dict[cmd_name]
     # else:
