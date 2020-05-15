@@ -8,7 +8,7 @@ class ElementwiseLinear(nn.Module):
     """
 
     def __init__(self, size):
-        super(ElementwiseLinear, self).__init__(size)
+        super(ElementwiseLinear, self).__init__()
         self.weights = nn.Parameter(torch.zeros(size))
         self.biases = nn.Parameter(torch.zeros(size))
 
