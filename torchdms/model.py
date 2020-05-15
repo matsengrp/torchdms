@@ -97,11 +97,11 @@ class VanillaGGE(nn.Module):
 
     def forward(self, x):
         out = x
-        # TODO: Change to index-free loop.
-        for layer_index in range(len(self.layers) - 1):
-            out = self.activation_fn(getattr(self, self.layers[layer_index])(out))
-        prediction = getattr(self, self.layers[-1])(out)
-        return prediction
+        for layer_name in self.layers[:-2]:
+            out = self.activation_fn(getattr(self, layer_name)(out))
+        out = getattr(self, self.layers[-2])(out)
+        out = getattr(self, self.layers[-1])(out)
+        return out
 
     def regularization_loss(self):
         """
