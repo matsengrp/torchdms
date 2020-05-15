@@ -70,8 +70,9 @@ def monotonic_params_from_latent_space(model: torchdms.model.VanillaGGE):
     for name, param in model.named_parameters():
         parse_name = name.split(".")
         is_input_layer = parse_name[0] == "input_layer"
+        is_output_layer = parse_name[0] == "output_layer"
         is_bias = parse_name[1] == "bias"
-        if not is_input_layer and not is_bias:
+        if not is_input_layer and not is_output_layer and not is_bias:
             yield param
 
 
