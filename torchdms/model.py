@@ -78,7 +78,7 @@ class VanillaGGE(nn.Module):
 
             layer_name = f"output_layer"
             self.layers.append(layer_name)
-            setattr(self, layer_name, ElementwiseLinear(output_size))
+            setattr(self, layer_name, nn.Linear(output_size, output_size))
 
     @property
     def characteristics(self):
