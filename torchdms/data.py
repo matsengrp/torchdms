@@ -137,8 +137,8 @@ def prep_by_stratum_and_export(
     for train_part in partitioned_train_data:
         num_subs = len(train_part["aa_substitutions"][0].split())
         click.echo(
-            f"LOG: There are {len(train_part)} training examples \
-              for stratum: {num_subs}"
+            f"LOG: There are {len(train_part)} training examples "
+            "for stratum: {num_subs}"
         )
 
     click.echo(f"LOG: There are {len(test_partition)} test points")

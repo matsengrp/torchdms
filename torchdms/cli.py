@@ -149,7 +149,7 @@ def prep(
         for split_label, per_split_label_df in aa_func_scores.groupby(split_by):
             click.echo(f"LOG: Partitioning data via '{split_label}'")
             test_partition, partitioned_train_data = partition(
-                per_split_label_df,
+                per_split_label_df.copy(),
                 per_stratum_variants_for_test,
                 skip_stratum_if_count_is_smaller_than,
                 export_dataframe,
