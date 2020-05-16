@@ -1,0 +1,34 @@
+[MASTER]
+
+
+[BASIC]
+
+# Good variable names which should always be accepted, separated by a comma.
+good-names=i,
+           j,
+           k,
+           x,
+           _,
+           ax,
+           aa,
+           df,
+           go
+
+
+[DESIGN]
+# Maximum number of arguments for function / method.
+max-args=500
+
+# Maximum number of attributes for a class (see R0902).
+max-attributes=700
+
+# Maximum number of local variables.
+max-locals=700
+
+
+[MESSAGES CONTROL]
+disable=bad-continuation,missing-function-docstring,too-few-public-methods
+# List of members which are set dynamically and missed by pylint inference
+# system, and so shouldn't trigger E1101 when accessed. Python regular
+# expressions are accepted.
+generated-members=numpy.*, torch.*

@@ -1,6 +1,4 @@
-"""
-Tools for handling data.
-"""
+"""Tools for handling data."""
 from collections import defaultdict
 import itertools
 import random
@@ -16,8 +14,7 @@ from torchdms.utils import (
 
 
 class BinaryMapDataset(Dataset):
-    """
-    Binarymap dataset.
+    """Binarymap dataset.
 
     This class organizes the information from the input dataset
     into a wrapper containing all relevent attributes for training
@@ -64,11 +61,13 @@ def partition(
     export_dataframe=None,
     split_label=None,
 ):
-    """
-    Partition the data into a test partition, and a list of training data partitions.
+    """Partition the data into a test partition, and a list of training data
+    partitions.
+
     A "stratum" is a slice of the data with a given number of mutations.
-    We group training data sets into strata based on their number of mutations so that
-    the data is presented the neural network with an even propotion of each.
+    We group training data sets into strata based on their number of
+    mutations so that the data is presented the neural network with an
+    even propotion of each.
     """
     aa_func_scores["n_aa_substitutions"] = [
         len(s.split()) for s in aa_func_scores["aa_substitutions"]
@@ -108,8 +107,8 @@ def partition(
         drop=True
     )
 
-    if export_dataframe != None:
-        if split_label != None:
+    if export_dataframe is not None:
+        if split_label is not None:
             split_label_filename = make_legal_filename(split_label)
             to_pickle_file(
                 aa_func_scores, f"{export_dataframe}_{split_label_filename}.pkl"
@@ -121,10 +120,8 @@ def partition(
 
 
 def prepare(test_partition, train_partition_list, wtseq, targets):
-    """
-    Prepare data for training by splitting into test and train, partitioning by
-    number of substitutions, and making bmappluses.
-    """
+    """Prepare data for training by splitting into test and train, partitioning
+    by number of substitutions, and making bmappluses."""
 
     test_data = BinaryMapDataset(test_partition, wtseq=wtseq, targets=targets)
     train_data_list = [
@@ -138,10 +135,8 @@ def prepare(test_partition, train_partition_list, wtseq, targets):
 def prep_by_stratum_and_export(
     test_partition, partitioned_train_data, wtseq, targets, out_prefix, split_label=None
 ):
-    """
-    Print number of training examples per stratum and test samples, run
-    prepare(), and export to .pkl file with descriptive filename.
-    """
+    """Print number of training examples per stratum and test samples, run
+    prepare(), and export to .pkl file with descriptive filename."""
 
     for train_part in partitioned_train_data:
         num_subs = len(train_part["aa_substitutions"][0].split())

@@ -1,6 +1,4 @@
-"""
-Utility functions.
-"""
+"""Utility functions."""
 
 from copy import deepcopy
 import os
@@ -12,51 +10,39 @@ import pandas as pd
 
 
 def from_pickle_file(path):
-    """
-    Load an object from a pickle file.
-    """
+    """Load an object from a pickle file."""
     with open(path, "rb") as file:
         return pickle.load(file)
 
 
 def to_pickle_file(obj, path):
-    """
-    Write an object to a pickle file.
-    """
+    """Write an object to a pickle file."""
     with open(path, "wb") as file:
         pickle.dump(obj, file)
 
 
 def from_json_file(path):
-    """
-    Load an object from a JSON file.
-    """
+    """Load an object from a JSON file."""
     with open(path, "r") as file:
         return json.load(file)
 
 
 def to_json_file(obj, path):
-    """
-    Write an object to a JSON file.
-    """
+    """Write an object to a JSON file."""
     with open(path, "w") as file:
         json.dump(obj, file, indent=4, sort_keys=True)
         file.write("\n")
 
 
 def make_legal_filename(label):
-    """
-    Remove spaces and non-alphanumeric characters from
-    a given string.
-    """
+    """Remove spaces and non-alphanumeric characters from a given string."""
     legal_filename = label.replace(" ", "_")
     legal_filename = "".join(x for x in legal_filename if x.isalnum())
     return legal_filename
 
 
 def build_evaluation_dict(model, test_data, device="cpu"):
-    """
-    Evaluate & Organize all testing data paried with metadata.
+    """Evaluate & Organize all testing data paried with metadata.
 
     A function which takes a trained model, matching test
     dataset (BinaryMapDataset w/ the same input dimensions.)
@@ -83,9 +69,7 @@ def build_evaluation_dict(model, test_data, device="cpu"):
 
 
 def error_df_of_evaluation_dict(evaluation_dict):
-    """
-    Build a dataframe that describes the error per test point.
-    """
+    """Build a dataframe that describes the error per test point."""
 
     def error_df_of_target_idx(target_idx):
         assert target_idx < len(evaluation_dict["target_names"])
@@ -108,11 +92,10 @@ def error_df_of_evaluation_dict(evaluation_dict):
 
 
 def get_first_key_with_an_option(option_dict):
-    """
-    Return the first key that maps to a list.
+    """Return the first key that maps to a list.
 
-    We will call such a key-value pair an "option". An "option dict" will be a dict that
-    (may) have such a key-value pair.
+    We will call such a key-value pair an "option". An "option dict"
+    will be a dict that (may) have such a key-value pair.
     """
     for key, value in option_dict.items():
         if isinstance(value, list):
@@ -121,25 +104,23 @@ def get_first_key_with_an_option(option_dict):
 
 
 def cartesian_product(option_dict):
-    """
-    Expand an option dict, collecting the choices made in the first return value of the tuple.
+    """Expand an option dict, collecting the choices made in the first return
+    value of the tuple.
 
-    The best way to understand this function is to look at the test in `test/test_utils.py`.
+    The best way to understand this function is to look at the test in
+    `test/test_utils.py`.
     """
     return _cartesian_product_aux([([], option_dict)])
 
 
 def defunkified_str(in_object):
-    """
-    Apply str, then replace shell-problematic characters with underscores.
-    """
+    """Apply str, then replace shell-problematic characters with
+    underscores."""
     return re.sub(r"[(),]", "_", str(in_object))
 
 
 def _cartesian_product_aux(list_of_choice_list_and_option_dict_pairs):
-    """
-    Recursive procedure to assist cartesian_product.
-    """
+    """Recursive procedure to assist cartesian_product."""
     expanded_something = False
     expanded_list = []
     for choice_list, option_dict in list_of_choice_list_and_option_dict_pairs:
@@ -161,9 +142,8 @@ def _cartesian_product_aux(list_of_choice_list_and_option_dict_pairs):
 
 
 def make_cartesian_product_hierarchy(dict_of_option_dicts, dry_run=False):
-    """
-    Make a directory hierarchy expanding the option_dict via a cartesian product.
-    """
+    """Make a directory hierarchy expanding the option_dict via a cartesian
+    product."""
     for master_key, option_dict in dict_of_option_dicts.items():
         for choice_list, choice_dict in cartesian_product(option_dict):
             final_dict = {master_key: choice_dict}

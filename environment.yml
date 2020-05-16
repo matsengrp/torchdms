@@ -16,6 +16,7 @@ dependencies:
       - black
       - click-config-file
       - dms_variants
+      - docformatter
       - flake8
       - pylint
       - pytest
