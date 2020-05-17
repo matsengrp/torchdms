@@ -102,19 +102,12 @@ class VanillaGGE(nn.Module):
         return super(VanillaGGE, self).__str__() + "\n" + self.characteristics.__str__()
 
     def forward(self, x):
-
-        # New version
-        # for layer_name in self.layers[:-2]:
-        #     out = self.activation_fn(getattr(self, layer_name)(out))
-        # out = getattr(self, self.layers[-2])(out)
-        # out = getattr(self, self.layers[-1])(out)
-        # return out
-
         out = x
-        for layer_index in range(len(self.layers) - 1):
-            out = self.activation_fn(getattr(self, self.layers[layer_index])(out))
-        prediction = getattr(self, self.layers[-1])(out)
-        return prediction
+        for layer_name in self.layers[:-1]:
+            out = self.activation_fn(getattr(self, layer_name)(out))
+        out = getattr(self, self.layers[-1])(out)
+        out *= -1.0
+        return out
 
     def regularization_loss(self):
         """
