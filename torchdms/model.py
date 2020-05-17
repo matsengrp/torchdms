@@ -71,14 +71,20 @@ class VanillaGGE(nn.Module):
                 in_size = layers[layer_index]
                 bias = True
 
-            # The layer before the final linear transformation.
-            layer_name = f"pre_output_layer"
+            # final layer
+            layer_name = f"output_layer"
             self.layers.append(layer_name)
             setattr(self, layer_name, nn.Linear(num_nodes, output_size))
 
-            layer_name = f"output_layer"
-            self.layers.append(layer_name)
-            setattr(self, layer_name, nn.Linear(output_size, output_size))
+            # Commenting things out to return to original setup.
+            # # The layer before the final linear transformation.
+            # layer_name = f"pre_output_layer"
+            # self.layers.append(layer_name)
+            # setattr(self, layer_name, nn.Linear(num_nodes, output_size))
+
+            # layer_name = f"output_layer"
+            # self.layers.append(layer_name)
+            # setattr(self, layer_name, nn.Linear(output_size, output_size))
 
     @property
     def characteristics(self):
@@ -96,12 +102,19 @@ class VanillaGGE(nn.Module):
         return super(VanillaGGE, self).__str__() + "\n" + self.characteristics.__str__()
 
     def forward(self, x):
+
+        # New version
+        # for layer_name in self.layers[:-2]:
+        #     out = self.activation_fn(getattr(self, layer_name)(out))
+        # out = getattr(self, self.layers[-2])(out)
+        # out = getattr(self, self.layers[-1])(out)
+        # return out
+
         out = x
-        for layer_name in self.layers[:-2]:
-            out = self.activation_fn(getattr(self, layer_name)(out))
-        out = getattr(self, self.layers[-2])(out)
-        out = getattr(self, self.layers[-1])(out)
-        return out
+        for layer_index in range(len(self.layers) - 1):
+            out = self.activation_fn(getattr(self, self.layers[layer_index])(out))
+        prediction = getattr(self, self.layers[-1])(out)
+        return prediction
 
     def regularization_loss(self):
         """
