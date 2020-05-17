@@ -41,7 +41,7 @@ class VanillaGGE(nn.Module):
         layers,
         output_size,
         activation_fn=torch.sigmoid,
-        monotonic=False,
+        monotonic=None,
         beta_l1_coefficient=0.0,
     ):
         super(VanillaGGE, self).__init__()
@@ -106,7 +106,8 @@ class VanillaGGE(nn.Module):
         for layer_name in self.layers[:-1]:
             out = self.activation_fn(getattr(self, layer_name)(out))
         out = getattr(self, self.layers[-1])(out)
-        out *= -1.0
+        if self.monotonic:
+            out *= self.monotonic
         return out
 
     def regularization_loss(self):

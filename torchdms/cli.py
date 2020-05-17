@@ -194,11 +194,13 @@ def prep(
 @click.argument("model_string")
 @click.option(
     "--monotonic",
-    is_flag=True,
-    help="If this flag is used, "
+    type=float,
+    default=None,
+    help="If this option is used, "
     "then the model will be initialized with weights greater than zero. "
     "During training with this model then, tdms will put a floor of "
-    "0 on all non-bias weights.",
+    "0 on all non-bias weights. It will also multiply the output by the value provided "
+    "here, so use -1 if you want your nonlinearity to be monotonic decreasing.",
 )
 @click.option(
     "--beta-l1-coefficient",
@@ -257,11 +259,11 @@ def create(ctx, model_string, data_path, out_path, monotonic, beta_l1_coefficien
     # if monotonic, we want to initialize all parameters
     # which will be floored at 0, to a value above zero.
     if monotonic:
-        click.echo(f"LOG: Successfully created model")
+        click.echo(f"LOG: Successfully created model with monotonicity {monotonic}")
 
         # this flag will tell the ModelFitter to clamp (floor at 0)
         # the appropriate parameters after updating the weights
-        model.monotonic = True
+        model.monotonic = monotonic
         for param in monotonic_params_from_latent_space(model):
 
             # https://pytorch.org/docs/stable/nn.html#linear
