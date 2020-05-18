@@ -87,7 +87,7 @@ class Analysis:
 
                     # if the model is monotonic, we clamp all negative parameters
                     # after the latent space ecluding all bias parameters.
-                    if self.model.monotonic:
+                    if self.model.monotonic_sign:
                         for param in monotonic_params_from_latent_space(self.model):
                             param.data.clamp_(0)
                 losses_history.append(per_batch_loss)

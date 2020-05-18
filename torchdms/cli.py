@@ -260,9 +260,7 @@ def create(ctx, model_string, data_path, out_path, monotonic, beta_l1_coefficien
     # If monotonic, we want to initialize all parameters
     # which will be floored at 0, to a value above zero.
     if monotonic:
-        click.echo(
-            f"LOG: Successfully created model with monotonicity sign {monotonic}"
-        )
+        click.echo(f"LOG: Successfully created model with monotonic sign {monotonic}")
 
         # this flag will tell the ModelFitter to clamp (floor at 0)
         # the appropriate parameters after updating the weights
