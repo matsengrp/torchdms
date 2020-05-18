@@ -1,17 +1,14 @@
-import inspect
-import os
+"""
+The command line interface.
+"""
+import json
 import re
 import click
-import json
+import click_config_file
 import pandas as pd
 import torch
-
-
-from click import group, option, argument
-import click_config_file
 from torchdms.analysis import Analysis
 from torchdms.data import (
-    prepare,
     partition,
     prep_by_stratum_and_export,
 )
@@ -20,7 +17,6 @@ from torchdms.loss import rmse, mse
 from torchdms.utils import (
     evaluation_dict,
     from_pickle_file,
-    make_legal_filename,
     from_json_file,
     make_cartesian_product_hierarchy,
     to_pickle_file,
@@ -41,7 +37,12 @@ def json_provider(file_path, cmd_name):
         with open(file_path) as config_data:
             config_dict = json.load(config_data)
             if cmd_name not in config_dict:
-                raise IOError(f"Could not find a '{cmd_name}' section in '{file_path}'")
+                if "default" in config_dict:
+                    return config_dict["default"]
+                # else:
+                raise IOError(
+                    f"Could not find a '{cmd_name}' or 'default' section in '{file_path}'"
+                )
             return config_dict[cmd_name]
     # else:
     return None
@@ -99,7 +100,7 @@ def cli(ctx, dry_run):
     help="If the total number of examples for any particular stratum is lower than this "
     "number, we throw out the stratum completely.",
 )
-@option(
+@click.option(
     "--export-dataframe",
     type=str,
     required=False,
@@ -107,7 +108,7 @@ def cli(ctx, dry_run):
     help="Filename prefix for exporting the original dataframe in a .pkl file with an "
     "appended in_test column.",
 )
-@option(
+@click.option(
     "--split-by",
     type=str,
     required=False,
@@ -144,11 +145,16 @@ def prep(
     total_variants = len(aa_func_scores.iloc[:, 1])
     click.echo(f"LOG: There are {total_variants} total variants in this dataset")
 
+    if split_by is None and "library" in aa_func_scores.columns:
+        click.echo(
+            f"WARNING: you have a 'library' column but haven't specified a split via '--split-by'"
+        )
+
     if split_by in aa_func_scores.columns:
         for split_label, per_split_label_df in aa_func_scores.groupby(split_by):
             click.echo(f"LOG: Partitioning data via '{split_label}'")
             test_partition, partitioned_train_data = partition(
-                per_split_label_df,
+                per_split_label_df.copy(),
                 per_stratum_variants_for_test,
                 skip_stratum_if_count_is_smaller_than,
                 export_dataframe,
@@ -177,8 +183,8 @@ def prep(
         )
 
     click.echo(
-        f"LOG: Successfully finished prep and dumped BinaryMapDataset \
-          object to {out_prefix}"
+        "LOG: Successfully finished prep and dumped BinaryMapDataset "
+        f"object to {out_prefix}"
     )
 
 
@@ -188,11 +194,14 @@ def prep(
 @click.argument("model_string")
 @click.option(
     "--monotonic",
-    is_flag=True,
-    help="If this flag is used, "
+    type=float,
+    default=None,
+    help="If this option is used, "
     "then the model will be initialized with weights greater than zero. "
     "During training with this model then, tdms will put a floor of "
-    "0 on all non-bias weights.",
+    "0 on all non-bias weights. It will also multiply the output by the value provided "
+    " as an option argument here, so use -1.0 if you want your nonlinearity to be "
+    "monotonically decreasing, or 1.0 if you want it to be increasing.",
 )
 @click.option(
     "--beta-l1-coefficient",
@@ -248,14 +257,14 @@ def create(ctx, model_string, data_path, out_path, monotonic, beta_l1_coefficien
         model = known_models[model_name](test_BMD.feature_count())
     click.echo(f"LOG: Successfully created model")
 
-    # if monotonic, we want to initialize all parameters
+    # If monotonic, we want to initialize all parameters
     # which will be floored at 0, to a value above zero.
     if monotonic:
-        click.echo(f"LOG: Successfully created model")
+        click.echo(f"LOG: Successfully created model with monotonic sign {monotonic}")
 
         # this flag will tell the ModelFitter to clamp (floor at 0)
         # the appropriate parameters after updating the weights
-        model.monotonic = True
+        model.monotonic_sign = monotonic
         for param in monotonic_params_from_latent_space(model):
 
             # https://pytorch.org/docs/stable/nn.html#linear

@@ -26,11 +26,11 @@ class VanillaGGE(nn.Module):
         layers,
         output_size,
         activation_fn=torch.sigmoid,
-        monotonic=False,
+        monotonic_sign=None,
         beta_l1_coefficient=0.0,
     ):
         super(VanillaGGE, self).__init__()
-        self.monotonic = monotonic
+        self.monotonic_sign = monotonic_sign
         self.input_size = input_size
         self.output_size = output_size
         self.layers = []
@@ -68,7 +68,7 @@ class VanillaGGE(nn.Module):
         PyTorch description.
         """
         return {
-            "monotonic": self.monotonic,
+            "monotonic": self.monotonic_sign,
             "activation_fn": self.activation_fn,
             "beta_l1_coefficient": self.beta_l1_coefficient,
         }
@@ -78,10 +78,12 @@ class VanillaGGE(nn.Module):
 
     def forward(self, x):
         out = x
-        for layer_index in range(len(self.layers) - 1):
-            out = self.activation_fn(getattr(self, self.layers[layer_index])(out))
-        prediction = getattr(self, self.layers[-1])(out)
-        return prediction
+        for layer_name in self.layers[:-1]:
+            out = self.activation_fn(getattr(self, layer_name)(out))
+        out = getattr(self, self.layers[-1])(out)
+        if self.monotonic_sign:
+            out *= self.monotonic_sign
+        return out
 
     def regularization_loss(self):
         """
