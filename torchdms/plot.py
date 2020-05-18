@@ -7,8 +7,34 @@ import dms_variants as dms
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import plotnine
+from plotnine import (
+    aes,
+    geom_point,
+    geom_smooth,
+    ggplot,
+    ggtitle,
+    save_as_pdf_pages,
+    theme_seaborn,
+    theme_set,
+)
 import scipy.stats as stats
 import torch
+
+
+def plot_error(error_df, out_path, show_points=False):
+    theme_set(theme_seaborn(style="whitegrid", context="paper"))
+    base_plot = [
+        aes(x="observed", y="abs_error", color="n_aa_substitutions"),
+        geom_smooth(aes(group="n_aa_substitutions"), method="lowess"),
+    ]
+    if show_points:
+        base_plot.append(geom_point(alpha=0.1))
+    plots = [
+        ggplot(per_target_error_df) + base_plot + ggtitle(target)
+        for target, per_target_error_df in error_df.groupby("target")
+    ]
+    save_as_pdf_pages(plots, filename=out_path)
 
 
 def plot_test_correlation(evaluation_dict, model, out, cmap="plasma"):

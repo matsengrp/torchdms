@@ -15,7 +15,8 @@ from torchdms.data import (
 from torchdms.model import VanillaGGE
 from torchdms.loss import rmse, mse
 from torchdms.utils import (
-    evaluation_dict,
+    build_evaluation_dict,
+    error_df_of_evaluation_dict,
     from_pickle_file,
     from_json_file,
     make_cartesian_product_hierarchy,
@@ -25,6 +26,7 @@ from torchdms.utils import (
 from torchdms.plot import (
     beta_coefficients,
     latent_space_contour_plot_2D,
+    plot_error,
     plot_test_correlation,
 )
 
@@ -135,6 +137,7 @@ def prep(
     encoded `aa_substitutions` column along with any TARGETS you specify.
     OUT_PREFIX is the location to dump the prepped data to another pickle file.
     """
+    # TODO can I make this a decorator?
     if process_dry_run(ctx, "prep", locals()):
         return
     click.echo(f"LOG: Targets: {targets}")
@@ -287,6 +290,14 @@ def create(ctx, model_string, data_path, out_path, monotonic, beta_l1_coefficien
     "--loss-fn", default="rmse", show_default=True, help="Loss function for training."
 )
 @click.option(
+    "--loss-weight-span",
+    type=float,
+    default=None,
+    # TODO make proper docs.
+    help="If this option is used, add a weight to a mean-absolute-deviation loss equal "
+    "to the exponential of a loss decay times the true score.",
+)
+@click.option(
     "--batch-size", default=500, show_default=True, help="Batch size for training.",
 )
 @click.option(
@@ -315,6 +326,7 @@ def train(
     data_path,
     loss_out,
     loss_fn,
+    loss_weight_span,
     batch_size,
     learning_rate,
     min_lr,
@@ -348,6 +360,7 @@ def train(
         "loss_fn": known_loss_fn[loss_fn],
         "patience": patience,
         "min_lr": min_lr,
+        "loss_weight_span": loss_weight_span,
     }
 
     click.echo(f"Starting training. {training_params}")
@@ -379,12 +392,45 @@ def eval(ctx, model_path, data_path, out, device):
     [test_data, _] = from_pickle_file(data_path)
 
     click.echo(f"LOG: evaluating test data with given model")
-    evaluation = evaluation_dict(model, test_data, device)
+    evaluation = build_evaluation_dict(model, test_data, device)
 
     click.echo(f"LOG: pickle dump evalution data dictionary to {out}")
     to_pickle_file(evaluation, out)
 
     click.echo("eval finished")
+
+
+@cli.command()
+@click.argument("model_path", type=click.Path(exists=True))
+@click.argument("data_path", type=click.Path(exists=True))
+@click.option("--out", required=True, type=click.Path())
+@click.option(
+    "--show-points", is_flag=True, help="Show points in addition to LOWESS curves.",
+)
+@click.option("--device", type=str, required=False, default="cpu")
+@click_config_file.configuration_option(implicit=False, provider=json_provider)
+@click.pass_context
+def error(ctx, model_path, data_path, out, show_points, device):
+    """
+    Evaluate and produce plot of error.
+    """
+    if process_dry_run(ctx, "error", locals()):
+        return
+    # TODO DRY this up
+    click.echo(f"LOG: Loading model from {model_path}")
+    model = torch.load(model_path)
+
+    click.echo(f"LOG: loading testing data from {data_path}")
+    [test_data, _] = from_pickle_file(data_path)
+
+    click.echo(f"LOG: evaluating test data with given model")
+    evaluation = build_evaluation_dict(model, test_data, device)
+    error_df = error_df_of_evaluation_dict(evaluation)
+
+    click.echo(f"LOG: plotting error")
+    plot_error(error_df, out, show_points)
+
+    click.echo(f"LOG: error plot finished and dumped to {out}")
 
 
 @cli.command()
@@ -408,7 +454,7 @@ def scatter(ctx, model_path, data_path, out, device):
     [test_data, _] = from_pickle_file(data_path)
 
     click.echo(f"LOG: evaluating test data with given model")
-    evaluation = evaluation_dict(model, test_data, device)
+    evaluation = build_evaluation_dict(model, test_data, device)
 
     click.echo(f"LOG: plotting scatter correlation")
     plot_test_correlation(evaluation, model, out)
@@ -504,6 +550,13 @@ def go(ctx):
         model_path=model_path,
         loss_out=loss_path,
         **restrict_dict_to_params(ctx.default_map, train),
+    )
+    error_path = prefix + ".error.pdf"
+    ctx.invoke(
+        error,
+        model_path=model_path,
+        out=error_path,
+        **restrict_dict_to_params(ctx.default_map, error),
     )
     scatter_path = prefix + ".scatter.pdf"
     ctx.invoke(
