@@ -257,14 +257,16 @@ def create(ctx, model_string, data_path, out_path, monotonic, beta_l1_coefficien
         model = known_models[model_name](test_BMD.feature_count())
     click.echo(f"LOG: Successfully created model")
 
-    # if monotonic, we want to initialize all parameters
+    # If monotonic, we want to initialize all parameters
     # which will be floored at 0, to a value above zero.
     if monotonic:
-        click.echo(f"LOG: Successfully created model with monotonicity {monotonic}")
+        click.echo(
+            f"LOG: Successfully created model with monotonicity sign {monotonic}"
+        )
 
         # this flag will tell the ModelFitter to clamp (floor at 0)
         # the appropriate parameters after updating the weights
-        model.monotonic = monotonic
+        model.monotonic_sign = monotonic
         for param in monotonic_params_from_latent_space(model):
 
             # https://pytorch.org/docs/stable/nn.html#linear
