@@ -41,11 +41,11 @@ class VanillaGGE(nn.Module):
         layers,
         output_size,
         activation_fn=torch.sigmoid,
-        monotonic=None,
+        monotonic_sign=None,
         beta_l1_coefficient=0.0,
     ):
         super(VanillaGGE, self).__init__()
-        self.monotonic = monotonic
+        self.monotonic_sign = monotonic_sign
         self.input_size = input_size
         self.output_size = output_size
         self.layers = []
@@ -76,16 +76,6 @@ class VanillaGGE(nn.Module):
             self.layers.append(layer_name)
             setattr(self, layer_name, nn.Linear(num_nodes, output_size))
 
-            # Commenting things out to return to original setup.
-            # # The layer before the final linear transformation.
-            # layer_name = f"pre_output_layer"
-            # self.layers.append(layer_name)
-            # setattr(self, layer_name, nn.Linear(num_nodes, output_size))
-
-            # layer_name = f"output_layer"
-            # self.layers.append(layer_name)
-            # setattr(self, layer_name, nn.Linear(output_size, output_size))
-
     @property
     def characteristics(self):
         """
@@ -93,7 +83,7 @@ class VanillaGGE(nn.Module):
         PyTorch description.
         """
         return {
-            "monotonic": self.monotonic,
+            "monotonic": self.monotonic_sign,
             "activation_fn": self.activation_fn,
             "beta_l1_coefficient": self.beta_l1_coefficient,
         }
@@ -106,8 +96,8 @@ class VanillaGGE(nn.Module):
         for layer_name in self.layers[:-1]:
             out = self.activation_fn(getattr(self, layer_name)(out))
         out = getattr(self, self.layers[-1])(out)
-        if self.monotonic:
-            out *= self.monotonic
+        if self.monotonic_sign:
+            out *= self.monotonic_sign
         return out
 
     def regularization_loss(self):
