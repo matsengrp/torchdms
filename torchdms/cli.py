@@ -200,7 +200,8 @@ def prep(
     "then the model will be initialized with weights greater than zero. "
     "During training with this model then, tdms will put a floor of "
     "0 on all non-bias weights. It will also multiply the output by the value provided "
-    "here, so use -1 if you want your nonlinearity to be monotonic decreasing.",
+    " as an option argument here, so use -1.0 if you want your nonlinearity to be "
+    "monotonically decreasing, or 1.0 if you want it to be increasing.",
 )
 @click.option(
     "--beta-l1-coefficient",
