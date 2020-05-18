@@ -2,21 +2,6 @@ import torch
 import torch.nn as nn
 
 
-class ElementwiseLinear(nn.Module):
-    """
-    An elementwise linear transformation layer.
-    """
-
-    def __init__(self, size):
-        super(ElementwiseLinear, self).__init__()
-        self.weight = nn.Parameter(torch.zeros(size))
-        self.bias = nn.Parameter(torch.zeros(size))
-
-    def forward(self, x):
-        """ The forward transformation."""
-        return x * self.weight + self.bias
-
-
 class VanillaGGE(nn.Module):
     """
     Make it just how you like it.
