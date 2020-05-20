@@ -9,7 +9,6 @@ import pickle
 import json
 import re
 import pandas as pd
-import torchdms.model
 
 
 def from_pickle_file(path):
@@ -26,16 +25,6 @@ def to_pickle_file(obj, path):
     """
     with open(path, "wb") as file:
         pickle.dump(obj, file)
-
-
-def make_legal_filename(label):
-    """
-    Remove spaces and non-alphanumeric characters from
-    a given string.
-    """
-    legal_filename = label.replace(" ", "_")
-    legal_filename = "".join(x for x in legal_filename if x.isalnum())
-    return legal_filename
 
 
 def from_json_file(path):
@@ -55,25 +44,14 @@ def to_json_file(obj, path):
         file.write("\n")
 
 
-def monotonic_params_from_latent_space(model: torchdms.model.VanillaGGE):
+def make_legal_filename(label):
     """
-        following the hueristic that the input layer of a network
-        is named 'input_layer' and the weight bias are denoted:
-
-        layer_name.weight
-        layer_name.bias.
-
-        this function returns all the parameters
-        to be floored to zero in a monotonic model.
-        this is every parameter after the latent space
-        excluding bias parameters.
-        """
-    for name, param in model.named_parameters():
-        parse_name = name.split(".")
-        is_input_layer = parse_name[0] == "input_layer"
-        is_bias = parse_name[1] == "bias"
-        if not is_input_layer and not is_bias:
-            yield param
+    Remove spaces and non-alphanumeric characters from
+    a given string.
+    """
+    legal_filename = label.replace(" ", "_")
+    legal_filename = "".join(x for x in legal_filename if x.isalnum())
+    return legal_filename
 
 
 def build_evaluation_dict(model, test_data, device="cpu"):

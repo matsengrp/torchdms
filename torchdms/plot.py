@@ -98,6 +98,11 @@ def latent_space_contour_plot_2D(model, out, start=0, end=1000, nticks=100):
     combinations or parameters (X_{i}_{j}) fed into the latent space of the model.
     """
 
+    raise NotImplementedError(
+        "This is currently broken, with the idea of reimplementing "
+        "it like https://github.com/matsengrp/torchdms/issues/26"
+    )
+
     num_targets = model.output_size
     prediction_matrices = [np.empty([nticks, nticks]) for _ in range(num_targets)]
     for i, latent1_value in enumerate(np.linspace(start, end, nticks)):
@@ -154,7 +159,9 @@ def beta_coefficients(model, test_data, out):
 
     # plot beta's
     num_latent_dims = beta_coefficients.shape[0]
-    fig, ax = plt.subplots(2, figsize=(10, 5 * num_latent_dims))
+    fig, ax = plt.subplots(num_latent_dims, figsize=(10, 5 * num_latent_dims))
+    if num_latent_dims == 1:
+        ax = [ax]
     for latent_dim in range(num_latent_dims):
         latent = beta_coefficients[latent_dim].numpy()
         beta_map = latent.reshape(len(bmap.alphabet), len(test_data.wtseq))

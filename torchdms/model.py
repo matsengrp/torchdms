@@ -1,5 +1,15 @@
+import re
+import click
 import torch
 import torch.nn as nn
+from torchdms.utils import from_pickle_file
+
+
+def identity(x):
+    """
+    The identity function, to be used as "no activation."
+    """
+    return x
 
 
 class VanillaGGE(nn.Module):
@@ -11,21 +21,25 @@ class VanillaGGE(nn.Module):
     specified. the rest should simply be fed in as a list
     like:
 
-    layers = [2, 10, 10]
+    layer_sizes = [2, 10, 10]
 
     means we have a 'latent' space of 2 nodes, connected to
-    two more dense layers, each with 10 layers, before the output.
+    two more dense layers, each with 10 nodes, before the output.
+
+    `activations` is a list of torch activations, which can be identity for no
+    activation. Activations just happen between the hidden layers, and not at the output
+    layer (so we aren't restricted by the range of the activation).
 
     If layers is fed an empty list, the model will be a
-    neural network equivilent of the Additive linear model.
+    neural network implementation of the additive linear model.
     """
 
     def __init__(
         self,
         input_size,
-        layers,
+        layer_sizes,
+        activations,
         output_size,
-        activation_fn=torch.sigmoid,
         monotonic_sign=None,
         beta_l1_coefficient=0.0,
     ):
@@ -34,32 +48,33 @@ class VanillaGGE(nn.Module):
         self.input_size = input_size
         self.output_size = output_size
         self.layers = []
-        self.activation_fn = activation_fn
+        self.activations = activations
         self.beta_l1_coefficient = beta_l1_coefficient
+
+        assert len(layer_sizes) == len(activations)
 
         layer_name = f"input_layer"
 
         # additive model
-        if len(layers) == 0:
+        if len(layer_sizes) == 0:
             self.layers.append(layer_name)
             setattr(self, layer_name, nn.Linear(input_size, output_size))
 
         # all other models
         else:
-            # all internal layers
             in_size = input_size
             bias = False
-            for layer_index, num_nodes in enumerate(layers):
+            for layer_index, num_nodes in enumerate(layer_sizes):
                 self.layers.append(layer_name)
                 setattr(self, layer_name, nn.Linear(in_size, num_nodes, bias=bias))
                 layer_name = f"internal_layer_{layer_index}"
-                in_size = layers[layer_index]
+                in_size = layer_sizes[layer_index]
                 bias = True
 
             # final layer
             layer_name = f"output_layer"
             self.layers.append(layer_name)
-            setattr(self, layer_name, nn.Linear(num_nodes, output_size))
+            setattr(self, layer_name, nn.Linear(layer_sizes[-1], output_size))
 
     @property
     def characteristics(self):
@@ -68,8 +83,10 @@ class VanillaGGE(nn.Module):
         PyTorch description.
         """
         return {
+            "activations": str(
+                [activation.__name__ for activation in self.activations]
+            ),
             "monotonic": self.monotonic_sign,
-            "activation_fn": self.activation_fn,
             "beta_l1_coefficient": self.beta_l1_coefficient,
         }
 
@@ -78,8 +95,10 @@ class VanillaGGE(nn.Module):
 
     def forward(self, x):
         out = x
-        for layer_name in self.layers[:-1]:
-            out = self.activation_fn(getattr(self, layer_name)(out))
+        for layer_name, activation in zip(self.layers[:-1], self.activations):
+            out = activation(getattr(self, layer_name)(out))
+        # The last layer acts without an activation, which is on purpose because we
+        # don't want to be limited to the range of the activation.
         out = getattr(self, self.layers[-1])(out)
         if self.monotonic_sign:
             out *= self.monotonic_sign
@@ -108,10 +127,78 @@ class VanillaGGE(nn.Module):
             )
         )
 
-    def from_latent(self, x):
-        assert len(self.layers) != 0
-        out = x
-        for layer_index in range(1, len(self.layers) - 1):
-            out = self.activation_fn(getattr(self, self.layers[layer_index])(out))
-        prediction = getattr(self, self.layers[-1])(out)
-        return prediction
+
+def monotonic_params_from_latent_space(model: VanillaGGE):
+    """
+        following the hueristic that the input layer of a network
+        is named 'input_layer' and the weight bias are denoted:
+
+        layer_name.weight
+        layer_name.bias.
+
+        this function returns all the parameters
+        to be floored to zero in a monotonic model.
+        this is every parameter after the latent space
+        excluding bias parameters.
+        """
+    for name, param in model.named_parameters():
+        parse_name = name.split(".")
+        is_input_layer = parse_name[0] == "input_layer"
+        is_bias = parse_name[1] == "bias"
+        if not is_input_layer and not is_bias:
+            yield param
+
+
+KNOWN_MODELS = {
+    "VanillaGGE": VanillaGGE,
+}
+
+
+def activation_of_string(string):
+    if string == "identity":
+        return identity
+    # else:
+    if hasattr(torch, string):
+        return getattr(torch, string)
+    # else:
+    raise IOError(f"Don't know activation named {string}.")
+
+
+def model_of_string(model_string, data_path):
+    """Build a model out of a string specification."""
+    try:
+        model_regex = re.compile(r"(.*)\((.*)\)")
+        match = model_regex.match(model_string)
+        model_name = match.group(1)
+        arguments = match.group(2).split(",")
+        if arguments == [""]:
+            arguments = []
+        if len(arguments) % 2 != 0:
+            raise IOError
+        layers = list(map(int, arguments[0::2]))
+        activations = list(map(activation_of_string, arguments[1::2]))
+    except Exception:
+        click.echo(
+            f"ERROR: Couldn't parse model description: '{model_string}'."
+            "The number of arguments to a model specification must be "
+            "even, alternating between layer sizes and activations."
+        )
+        raise
+    if model_name not in KNOWN_MODELS:
+        raise IOError(model_name + " not known")
+    [test_dataset, _] = from_pickle_file(data_path)
+    if model_name == "VanillaGGE":
+        if len(layers) == 0:
+            click.echo(f"LOG: No layers provided, so I'm creating a linear model.")
+        for layer in layers:
+            if not isinstance(layer, int):
+                raise TypeError("All layer input must be integers")
+        model = VanillaGGE(
+            test_dataset.feature_count(),
+            layers,
+            activations,
+            test_dataset.targets.shape[1],
+        )
+    else:
+        model = KNOWN_MODELS[model_name](test_dataset.feature_count())
+    return model
