@@ -2,7 +2,6 @@
 The command line interface.
 """
 import json
-import re
 import click
 import click_config_file
 import pandas as pd
@@ -12,7 +11,11 @@ from torchdms.data import (
     partition,
     prep_by_stratum_and_export,
 )
-from torchdms.model import VanillaGGE
+from torchdms.model import (
+    model_of_string,
+    monotonic_params_from_latent_space,
+    VanillaGGE,
+)
 from torchdms.loss import rmse, mse
 from torchdms.utils import (
     build_evaluation_dict,
@@ -21,7 +24,6 @@ from torchdms.utils import (
     from_json_file,
     make_cartesian_product_hierarchy,
     to_pickle_file,
-    monotonic_params_from_latent_space,
 )
 from torchdms.plot import (
     beta_coefficients,
@@ -77,7 +79,6 @@ def cli(ctx, dry_run):
     """
     ctx.ensure_object(dict)
     ctx.obj["dry_run"] = dry_run
-    pass
 
 
 @cli.command()
@@ -224,47 +225,13 @@ def create(ctx, model_string, data_path, out_path, monotonic, beta_l1_coefficien
     """
     if process_dry_run(ctx, "create", locals()):
         return
-    known_models = {
-        "VanillaGGE": VanillaGGE,
-    }
-    try:
-        model_regex = re.compile(r"(.*)\((.*)\)")
-        match = model_regex.match(model_string)
-        model_name = match.group(1)
-        layers = list(map(int, match.group(2).split(",")))
-    except Exception:
-        click.echo(f"ERROR: Couldn't parse model description: '{model_string}'")
-        raise
-    click.echo(f"LOG: searching for {model_name}")
-    if model_name not in known_models:
-        raise IOError(model_name + " not known")
-    click.echo(f"LOG: found {model_name}")
-    click.echo(f"LOG: loading training data")
-    [test_BMD, _] = from_pickle_file(data_path)
 
-    click.echo(f"LOG: Test data input size: {test_BMD.feature_count()}")
-    click.echo(f"LOG: Test data output size: {test_BMD.targets.shape[1]}")
-    if model_name == "VanillaGGE":
-        if len(layers) == 0:
-            click.echo(f"LOG: No layers provided means creating a linear model")
-        for layer in layers:
-            if not isinstance(layer, int):
-                raise TypeError("All layer input must be integers")
-        model = VanillaGGE(
-            test_BMD.feature_count(),
-            layers,
-            test_BMD.targets.shape[1],
-            beta_l1_coefficient=beta_l1_coefficient,
-        )
-    else:
-        model = known_models[model_name](test_BMD.feature_count())
-    click.echo(f"LOG: Successfully created model")
+    model = model_of_string(model_string, data_path)
+    model.beta_l1_coefficient = beta_l1_coefficient
 
     # If monotonic, we want to initialize all parameters
     # which will be floored at 0, to a value above zero.
     if monotonic:
-        click.echo(f"LOG: Successfully created model with monotonic sign {monotonic}")
-
         # this flag will tell the ModelFitter to clamp (floor at 0)
         # the appropriate parameters after updating the weights
         model.monotonic_sign = monotonic
@@ -305,7 +272,7 @@ def create(ctx, model_string, data_path, out_path, monotonic, beta_l1_coefficien
 )
 @click.option(
     "--min-lr",
-    default=1e-6,
+    default=1e-5,
     show_default=True,
     help="Minimum learning rate before early stopping on training.",
 )

@@ -4,7 +4,7 @@ import math
 import torch
 from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import ReduceLROnPlateau
-from torchdms.utils import monotonic_params_from_latent_space
+from torchdms.model import monotonic_params_from_latent_space
 
 
 def make_data_loader_infinite(data_loader):
@@ -37,7 +37,7 @@ class Analysis:
         self.optimizer = torch.optim.Adam(model.parameters(), lr=self.learning_rate)
 
     def train(
-        self, epoch_count, loss_fn, patience=10, min_lr=1e-6, loss_weight_span=None
+        self, epoch_count, loss_fn, patience=10, min_lr=1e-5, loss_weight_span=None
     ):
 
         assert len(self.train_datasets) > 0
