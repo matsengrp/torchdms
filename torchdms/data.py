@@ -5,6 +5,7 @@ from collections import defaultdict
 import itertools
 import random
 import click
+import numpy as np
 import torch
 from torch.utils.data import Dataset
 from dms_variants.binarymap import BinaryMap
@@ -46,6 +47,14 @@ class BinaryMapDataset(Dataset):
 
     def feature_count(self):
         return self.samples.shape[1]
+
+    def target_count(self):
+        return len(self.target_names)
+
+    def target_extrema(self):
+        """Return a (min, max) tuple for the value of each target."""
+        numpy_targets = self.targets.numpy()
+        return [(np.nanmin(column), np.nanmax(column)) for column in numpy_targets.T]
 
 
 def partition(

@@ -8,6 +8,7 @@ import os.path
 import pickle
 import json
 import re
+import pandas as pd
 import torchdms.model
 
 
@@ -75,7 +76,7 @@ def monotonic_params_from_latent_space(model: torchdms.model.VanillaGGE):
             yield param
 
 
-def evaluation_dict(model, test_data, device="cpu"):
+def build_evaluation_dict(model, test_data, device="cpu"):
     """
     Evaluate & Organize all testing data paried with metadata.
 
@@ -101,6 +102,31 @@ def evaluation_dict(model, test_data, device="cpu"):
         "wtseq": test_data.wtseq,
         "target_names": test_data.target_names,
     }
+
+
+def error_df_of_evaluation_dict(evaluation_dict):
+    """
+    Build a dataframe that describes the error per test point.
+    """
+
+    def error_df_of_target_idx(target_idx):
+        assert target_idx < len(evaluation_dict["target_names"])
+        return pd.DataFrame(
+            {
+                "observed": evaluation_dict["targets"][:, target_idx],
+                "predicted": evaluation_dict["predictions"][:, target_idx],
+                "n_aa_substitutions": evaluation_dict["original_df"][
+                    "n_aa_substitutions"
+                ],
+                "target": evaluation_dict["target_names"][target_idx],
+            }
+        )
+
+    error_df = pd.concat(
+        map(error_df_of_target_idx, range(len(evaluation_dict["target_names"])))
+    )
+    error_df["abs_error"] = (error_df["observed"] - error_df["predicted"]).abs()
+    return error_df
 
 
 def get_first_key_with_an_option(option_dict):

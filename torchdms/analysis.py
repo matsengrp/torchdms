@@ -1,5 +1,6 @@
 import itertools
 import click
+import math
 import torch
 from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import ReduceLROnPlateau
@@ -35,9 +36,36 @@ class Analysis:
         ]
         self.optimizer = torch.optim.Adam(model.parameters(), lr=self.learning_rate)
 
-    def train(self, epoch_count, loss_fn, patience=10, min_lr=1e-6):
+    def train(
+        self, epoch_count, loss_fn, patience=10, min_lr=1e-6, loss_weight_span=None
+    ):
 
-        # TODO assert self.model.output_size == len(self.train_datasets[0].targets)
+        assert len(self.train_datasets) > 0
+        target_count = self.train_datasets[0].target_count()
+        assert self.model.output_size == target_count
+
+        if loss_weight_span is not None:
+            assert isinstance(loss_weight_span, float)
+
+            def loss_decay_of_extrema(worst_score, best_score):
+                loss_decay = math.log(loss_weight_span) / (worst_score - best_score)
+                assert loss_decay > 0.0
+                if loss_decay > 1e3:
+                    click.echo("WARNING: whoa, you have a big loss decay!")
+                return loss_decay
+
+            target_extrema_across_strata = [
+                train_dataset.target_extrema() for train_dataset in self.train_datasets
+            ]
+            loss_decays = [
+                [
+                    loss_decay_of_extrema(*extremum_pair)
+                    for extremum_pair in extremum_pairs_across_targets
+                ]
+                for extremum_pairs_across_targets in target_extrema_across_strata
+            ]
+        else:
+            loss_decays = [[None] * target_count for _ in self.train_datasets]
 
         losses_history = []
         batch_count = 1 + max(map(len, self.train_datasets)) // self.batch_size
@@ -50,7 +78,9 @@ class Analysis:
             for _ in range(batch_count):
                 self.optimizer.zero_grad()
                 per_batch_loss = 0.0
-                for train_infinite_loader in self.train_infinite_loaders:
+                for train_infinite_loader, per_stratum_loss_decays in zip(
+                    self.train_infinite_loaders, loss_decays
+                ):
 
                     batch = next(train_infinite_loader)
                     samples = batch["samples"].to(self.device)
@@ -61,21 +91,25 @@ class Analysis:
                     # take advantage of the samples which may contain
                     # missing information for a subset of the targets.
                     per_target_loss = []
-                    for target in range(batch["targets"].shape[1]):
+                    for target, per_target_loss_decay in zip(
+                        range(batch["targets"].shape[1]), per_stratum_loss_decays
+                    ):
 
-                        # batch["targets"] is tensor of shape
-                        # (n samples, n targets) so we identify
-                        # all samples for a target which are not NaN.
-                        valid_targets_index = torch.isfinite(
+                        # batch["targets"] is tensor of shape (n samples, n targets) so
+                        # we identify all samples for a target which are not NaN.
+                        valid_target_indices = torch.isfinite(
                             batch["targets"][:, target]
                         )
                         valid_targets = batch["targets"][:, target][
-                            valid_targets_index
+                            valid_target_indices
                         ].to(self.device)
-                        valid_predict = prediction[:, target][valid_targets_index].to(
+                        valid_predict = prediction[:, target][valid_target_indices].to(
                             self.device
                         )
-                        per_target_loss.append(loss_fn(valid_targets, valid_predict))
+                        this_per_target_loss = loss_fn(
+                            valid_targets, valid_predict, per_target_loss_decay
+                        )
+                        per_target_loss.append(this_per_target_loss)
 
                     loss = sum(per_target_loss) + self.model.regularization_loss()
                     per_batch_loss += loss.item()
