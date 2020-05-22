@@ -4,12 +4,14 @@ import itertools
 import random
 import click
 import numpy as np
+import pandas as pd
 import torch
 from torch.utils.data import Dataset
 from dms_variants.binarymap import BinaryMap
 from torchdms.utils import (
-    to_pickle_file,
+    get_only_entry_from_constant_list,
     make_legal_filename,
+    to_pickle_file,
 )
 
 
@@ -25,16 +27,42 @@ class BinaryMapDataset(Dataset):
     drop redundant columns that are already attributes
     """
 
-    def __init__(self, pd_dataset, wtseq, targets):
+    def __init__(self, samples, targets, original_df, wtseq, target_names):
+        row_count = len(samples)
+        assert row_count == len(targets)
+        assert row_count == len(original_df)
+        assert targets.shape[1] == len(target_names)
+        self.samples = samples
+        self.targets = targets
+        self.original_df = original_df
+        self.wtseq = wtseq
+        self.target_names = target_names
 
+    @classmethod
+    def of_raw(cls, pd_dataset, wtseq, targets):
         bmap = BinaryMap(
             pd_dataset.loc[:, ["aa_substitutions"]], expand=True, wtseq=wtseq
         )
-        self.samples = torch.from_numpy(bmap.binary_variants.toarray()).float()
-        self.targets = torch.from_numpy(pd_dataset[targets].to_numpy()).float()
-        self.original_df = pd_dataset.drop(targets, axis=1)
-        self.wtseq = wtseq
-        self.target_names = targets
+        return cls(
+            torch.from_numpy(bmap.binary_variants.toarray()).float(),
+            torch.from_numpy(pd_dataset[targets].to_numpy()).float(),
+            pd_dataset.drop(targets, axis=1),
+            wtseq,
+            targets,
+        )
+
+    @classmethod
+    def cat(cls, datasets):
+        assert isinstance(datasets, list)
+        return cls(
+            torch.cat([dataset.samples for dataset in datasets], dim=0),
+            torch.cat([dataset.targets for dataset in datasets], dim=0),
+            pd.concat([dataset.original_df for dataset in datasets]),
+            get_only_entry_from_constant_list([dataset.wtseq for dataset in datasets]),
+            get_only_entry_from_constant_list(
+                [dataset.target_names for dataset in datasets]
+            ),
+        )
 
     def __getitem__(self, idxs):
         return {"samples": self.samples[idxs], "targets": self.targets[idxs]}
@@ -123,9 +151,9 @@ def prepare(test_partition, train_partition_list, wtseq, targets):
     """Prepare data for training by splitting into test and train, partitioning
     by number of substitutions, and making bmappluses."""
 
-    test_data = BinaryMapDataset(test_partition, wtseq=wtseq, targets=targets)
+    test_data = BinaryMapDataset.of_raw(test_partition, wtseq=wtseq, targets=targets)
     train_data_list = [
-        BinaryMapDataset(train_data_partition, wtseq=wtseq, targets=targets)
+        BinaryMapDataset.of_raw(train_data_partition, wtseq=wtseq, targets=targets)
         for train_data_partition in train_partition_list
     ]
 

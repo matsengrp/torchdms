@@ -10,6 +10,12 @@ from torchdms.data import (
     partition,
     prep_by_stratum_and_export,
 )
+from torchdms.evaluation import (
+    build_evaluation_dict,
+    complete_error_summary,
+    error_df_of_evaluation_dict,
+    error_summary_of_error_df,
+)
 from torchdms.model import (
     model_of_string,
     monotonic_params_from_latent_space,
@@ -17,8 +23,6 @@ from torchdms.model import (
 )
 from torchdms.loss import rmse, mse
 from torchdms.utils import (
-    build_evaluation_dict,
-    error_df_of_evaluation_dict,
     from_pickle_file,
     from_json_file,
     make_cartesian_product_hierarchy,
@@ -373,17 +377,19 @@ def error(ctx, model_path, data_path, out, show_points, device):
     # TODO DRY this up
     click.echo(f"LOG: Loading model from {model_path}")
     model = torch.load(model_path)
+    prefix = os.path.splitext(out)[0]
 
     click.echo(f"LOG: loading testing data from {data_path}")
-    [test_data, _] = from_pickle_file(data_path)
+    [test_data, train_data] = from_pickle_file(data_path)
 
-    click.echo(f"LOG: evaluating test data with given model")
     evaluation = build_evaluation_dict(model, test_data, device)
     error_df = error_df_of_evaluation_dict(evaluation)
 
-    click.echo(f"LOG: plotting the error")
     plot_error(error_df, out, show_points)
-    error_df.to_csv(os.path.splitext(out)[0] + ".csv")
+    error_df.to_csv(prefix + ".csv", index=False)
+
+    error_summary_df = complete_error_summary(test_data, train_data, model)
+    error_summary_df.to_csv(prefix + "-summary.csv")
 
     click.echo(f"LOG: error plot finished and dumped to {out}")
 
@@ -396,7 +402,8 @@ def error(ctx, model_path, data_path, out, show_points, device):
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
 @click.pass_context
 def scatter(ctx, model_path, data_path, out, device):
-    """Evaluate and produce scatter plot of observed vs predicted targets on the test set provided."""
+    """Evaluate and produce scatter plot of observed vs predicted targets on
+    the test set provided."""
     if process_dry_run(ctx, "scatter", locals()):
         return
     click.echo(f"LOG: Loading model from {model_path}")

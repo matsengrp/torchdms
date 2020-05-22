@@ -85,6 +85,31 @@ class VanillaGGE(nn.Module):
             "beta_l1_coefficient": self.beta_l1_coefficient,
         }
 
+    @property
+    def internal_layer_dimensions(self):
+        return [
+            getattr(self, layer).in_features
+            for layer in self.layers
+            if "input" not in layer
+        ]
+
+    def str_summary(self):
+        """A one-line summary of the model."""
+        if len(self.internal_layer_dimensions) == 0:
+            return "linear"
+        # else:
+        activation_names = [activation.__name__ for activation in self.activations]
+        if self.monotonic_sign is None:
+            monotonic = "non-mono"
+        else:
+            monotonic = "mono"
+        return f"{monotonic};" + ";".join(
+            [
+                f"{dim};{name}"
+                for dim, name in zip(self.internal_layer_dimensions, activation_names)
+            ]
+        )
+
     def __str__(self):
         return super(VanillaGGE, self).__str__() + "\n" + self.characteristics.__str__()
 
