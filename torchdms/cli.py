@@ -1,7 +1,6 @@
-"""
-The command line interface.
-"""
+"""The command line interface."""
 import json
+import os
 import click
 import click_config_file
 import pandas as pd
@@ -27,16 +26,14 @@ from torchdms.utils import (
 )
 from torchdms.plot import (
     beta_coefficients,
-    latent_space_contour_plot_2D,
+    latent_space_contour_plot_2d,
     plot_error,
     plot_test_correlation,
 )
 
 
 def json_provider(file_path, cmd_name):
-    """
-    Enable loading of flags from a JSON file via click_config_file.
-    """
+    """Enable loading of flags from a JSON file via click_config_file."""
     if cmd_name:
         with open(file_path) as config_data:
             config_dict = json.load(config_data)
@@ -53,9 +50,7 @@ def json_provider(file_path, cmd_name):
 
 
 def process_dry_run(ctx, method_name, local_variables):
-    """
-    Return whether ctx tells us we are doing a dry run; print the call.
-    """
+    """Return whether ctx tells us we are doing a dry run; print the call."""
     if "ctx" in local_variables:
         del local_variables["ctx"]
     if ctx.obj["dry_run"]:
@@ -74,9 +69,7 @@ def process_dry_run(ctx, method_name, local_variables):
 )
 @click.pass_context
 def cli(ctx, dry_run):
-    """
-    Train and evaluate neural networks on deep mutational scanning data.
-    """
+    """Train and evaluate neural networks on deep mutational scanning data."""
     ctx.ensure_object(dict)
     ctx.obj["dry_run"] = dry_run
 
@@ -131,12 +124,12 @@ def prep(
     export_dataframe,
     split_by,
 ):
-    """
-    Prepare data for training.
+    """Prepare data for training.
 
-    IN_PATH should point to a pickle dump'd Pandas DataFrame containing the string
-    encoded `aa_substitutions` column along with any TARGETS you specify.
-    OUT_PREFIX is the location to dump the prepped data to another pickle file.
+    IN_PATH should point to a pickle dump'd Pandas DataFrame containing
+    the string encoded `aa_substitutions` column along with any TARGETS
+    you specify. OUT_PREFIX is the location to dump the prepped data to
+    another pickle file.
     """
     # TODO can I make this a decorator?
     if process_dry_run(ctx, "prep", locals()):
@@ -218,8 +211,7 @@ def prep(
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
 @click.pass_context
 def create(ctx, model_string, data_path, out_path, monotonic, beta_l1_coefficient):
-    """
-    Create a model.
+    """Create a model.
 
     Model string describes the model, such as 'VanillaGGE(1,10)'.
     """
@@ -301,9 +293,7 @@ def train(
     device,
     epochs,
 ):
-    """
-    Train a model, saving trained model to original location.
-    """
+    """Train a model, saving trained model to original location."""
     if process_dry_run(ctx, "train", locals()):
         return
     model = torch.load(model_path)
@@ -345,8 +335,7 @@ def train(
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
 @click.pass_context
 def eval(ctx, model_path, data_path, out, device):
-    """
-    Evaluate the performance of a model.
+    """Evaluate the performance of a model.
 
     Dump to a dictionary containing the results.
     """
@@ -378,9 +367,7 @@ def eval(ctx, model_path, data_path, out, device):
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
 @click.pass_context
 def error(ctx, model_path, data_path, out, show_points, device):
-    """
-    Evaluate and produce plot of error.
-    """
+    """Evaluate and produce plot of error."""
     if process_dry_run(ctx, "error", locals()):
         return
     # TODO DRY this up
@@ -394,8 +381,9 @@ def error(ctx, model_path, data_path, out, show_points, device):
     evaluation = build_evaluation_dict(model, test_data, device)
     error_df = error_df_of_evaluation_dict(evaluation)
 
-    click.echo(f"LOG: plotting error")
+    click.echo(f"LOG: plotting the error")
     plot_error(error_df, out, show_points)
+    error_df.to_csv(os.path.splitext(out)[0] + ".csv")
 
     click.echo(f"LOG: error plot finished and dumped to {out}")
 
@@ -408,10 +396,7 @@ def error(ctx, model_path, data_path, out, show_points, device):
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
 @click.pass_context
 def scatter(ctx, model_path, data_path, out, device):
-    """
-    Evaluate and produce scatter plot of observed vs. predicted targets on the test set
-    provided.
-    """
+    """Evaluate and produce scatter plot of observed vs predicted targets on the test set provided."""
     if process_dry_run(ctx, "scatter", locals()):
         return
     click.echo(f"LOG: Loading model from {model_path}")
@@ -439,11 +424,10 @@ def scatter(ctx, model_path, data_path, out, device):
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
 @click.pass_context
 def contour(ctx, model_path, start, end, nticks, out, device):
-    """
-    Visualize the the latent space of a model.
+    """Visualize the the latent space of a model.
 
-    Make a contour plot with a two dimensional latent space by predicting across grid of
-    values.
+    Make a contour plot with a two dimensional latent space by
+    predicting across grid of values.
     """
     if process_dry_run(ctx, "contour", locals()):
         return
@@ -456,7 +440,7 @@ def contour(ctx, model_path, start, end, nticks, out, device):
 
     # TODO add device
     click.echo(f"LOG: plotting contour")
-    latent_space_contour_plot_2D(model, out, start, end, nticks)
+    latent_space_contour_plot_2d(model, out, start, end, nticks)
 
     click.echo(f"LOG: Contour finished and dumped to {out}")
 
@@ -468,9 +452,7 @@ def contour(ctx, model_path, start, end, nticks, out, device):
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
 @click.pass_context
 def beta(ctx, model_path, data_path, out):
-    """
-    Plot beta coefficients as a heatmap.
-    """
+    """Plot beta coefficients as a heatmap."""
     if process_dry_run(ctx, "beta", locals()):
         return
     click.echo(f"LOG: Loading model from {model_path}")
@@ -490,9 +472,7 @@ def beta(ctx, model_path, data_path, out):
 
 
 def restrict_dict_to_params(d, cmd):
-    """
-    Restrict the given dictionary to the names of parameters for cmd.
-    """
+    """Restrict the given dictionary to the names of parameters for cmd."""
     param_names = {param.name for param in cmd.params}
     return {key: d[key] for key in d if key in param_names}
 
@@ -503,9 +483,7 @@ def restrict_dict_to_params(d, cmd):
 )
 @click.pass_context
 def go(ctx):
-    """
-    Run a common sequence of commands: create, train, scatter, and beta.
-    """
+    """Run a common sequence of commands: create, train, scatter, and beta."""
     prefix = ctx.default_map["prefix"]
     model_path = prefix + ".model"
     ctx.invoke(
@@ -545,9 +523,7 @@ def go(ctx):
 @click.argument("choice_json_path", required=True, type=click.Path(exists=True))
 @click.pass_context
 def cartesian(ctx, choice_json_path):
-    """
-    Take the cartesian product of the variable options in a config file.
-    """
+    """Take the cartesian product of the variable options in a config file."""
     make_cartesian_product_hierarchy(
         from_json_file(choice_json_path), ctx.obj["dry_run"]
     )

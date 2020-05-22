@@ -1,13 +1,11 @@
-"""
-Plotting functions.
-"""
+"""Plotting functions."""
 
 import os.path
+import warnings
 import dms_variants as dms
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import plotnine
 from plotnine import (
     aes,
     geom_point,
@@ -30,18 +28,17 @@ def plot_error(error_df, out_path, show_points=False):
     ]
     if show_points:
         base_plot.append(geom_point(alpha=0.1))
+    warnings.filterwarnings("ignore")
     plots = [
         ggplot(per_target_error_df) + base_plot + ggtitle(target)
         for target, per_target_error_df in error_df.groupby("target")
     ]
-    save_as_pdf_pages(plots, filename=out_path)
+    save_as_pdf_pages(plots, filename=out_path, verbose=False)
 
 
 def plot_test_correlation(evaluation_dict, model, out, cmap="plasma"):
-    """
-    Plot scatter plot and correlation values between predicted and
-    observed for each target.
-    """
+    """Plot scatter plot and correlation values between predicted and observed
+    for each target."""
     num_targets = evaluation_dict["targets"].shape[1]
     n_aa_substitutions = [
         len(s.split()) for s in evaluation_dict["original_df"]["aa_substitutions"]
@@ -91,11 +88,12 @@ def plot_test_correlation(evaluation_dict, model, out, cmap="plasma"):
     fig.savefig(out)
 
 
-def latent_space_contour_plot_2D(model, out, start=0, end=1000, nticks=100):
-    """
-    This function takes in an Object of type torch.model.VanillaGGE.
-    It uses the `from_latent()` Method to produce a matrix X of predictions given
-    combinations or parameters (X_{i}_{j}) fed into the latent space of the model.
+def latent_space_contour_plot_2d(model, out, start=0, end=1000, nticks=100):
+    """This function takes in an Object of type torch.model.VanillaGGE.
+
+    It uses the `from_latent()` Method to produce a matrix X of
+    predictions given combinations or parameters (X_{i}_{j}) fed into
+    the latent space of the model.
     """
 
     raise NotImplementedError(
@@ -111,7 +109,9 @@ def latent_space_contour_plot_2D(model, out, start=0, end=1000, nticks=100):
                 np.array([latent1_value, latent2_value])
             ).float()
             predictions = model.from_latent(lat_sample)
-            for pred_idx in range(len(predictions)):
+            for pred_idx in range(  # pylint: disable=consider-using-enumerate
+                len(predictions)
+            ):
                 prediction_matrices[pred_idx][i][j] = predictions[pred_idx]
 
     width = 7 * num_targets
@@ -135,12 +135,12 @@ def latent_space_contour_plot_2D(model, out, start=0, end=1000, nticks=100):
 
 
 def beta_coefficients(model, test_data, out):
-    """
-    This function takes in a (ideally trained) model
-    and plots the values of the weights corresponding to
-    the inputs, dubbed "beta coefficients". We plot this
-    as a heatmap where the rows are substitutions nucleotides,
-    and the columns are the sequence positions for each mutation.
+    """This function takes in a (ideally trained) model and plots the values of
+    the weights corresponding to the inputs, dubbed "beta coefficients".
+
+    We plot this as a heatmap where the rows are substitutions
+    nucleotides, and the columns are the sequence positions for each
+    mutation.
     """
 
     # below gives us the first transformation matrix of the model

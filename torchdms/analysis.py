@@ -8,10 +8,8 @@ from torchdms.model import monotonic_params_from_latent_space
 
 
 def make_data_loader_infinite(data_loader):
-    """
-    With this we can always just ask for more data with next(), going through
-    minibatches as guided by DataLoader.
-    """
+    """With this we can always just ask for more data with next(), going
+    through minibatches as guided by DataLoader."""
     for loader in itertools.repeat(data_loader):
         for data in loader:
             yield data

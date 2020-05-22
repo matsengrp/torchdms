@@ -6,15 +6,12 @@ from torchdms.utils import from_pickle_file
 
 
 def identity(x):
-    """
-    The identity function, to be used as "no activation."
-    """
+    """The identity function, to be used as "no activation."."""
     return x
 
 
 class VanillaGGE(nn.Module):
-    """
-    Make it just how you like it.
+    """Make it just how you like it.
 
     input size can be inferred for the train/test datasets
     and output can be inferred from the number of targets
@@ -78,10 +75,8 @@ class VanillaGGE(nn.Module):
 
     @property
     def characteristics(self):
-        """
-        Return salient characteristics of the model that aren't represented in the
-        PyTorch description.
-        """
+        """Return salient characteristics of the model that aren't represented
+        in the PyTorch description."""
         return {
             "activations": str(
                 [activation.__name__ for activation in self.activations]
@@ -105,9 +100,8 @@ class VanillaGGE(nn.Module):
         return out
 
     def regularization_loss(self):
-        """
-        L1-penalize betas for all latent space dimensions except for the first one.
-        """
+        """L1-penalize betas for all latent space dimensions except for the
+        first one."""
         if self.beta_l1_coefficient == 0.0:
             return 0.0
         beta_parameters = next(self.parameters())
@@ -129,18 +123,17 @@ class VanillaGGE(nn.Module):
 
 
 def monotonic_params_from_latent_space(model: VanillaGGE):
+    """following the hueristic that the input layer of a network is named
+    'input_layer' and the weight bias are denoted:
+
+    layer_name.weight
+    layer_name.bias.
+
+    this function returns all the parameters
+    to be floored to zero in a monotonic model.
+    this is every parameter after the latent space
+    excluding bias parameters.
     """
-        following the hueristic that the input layer of a network
-        is named 'input_layer' and the weight bias are denoted:
-
-        layer_name.weight
-        layer_name.bias.
-
-        this function returns all the parameters
-        to be floored to zero in a monotonic model.
-        this is every parameter after the latent space
-        excluding bias parameters.
-        """
     for name, param in model.named_parameters():
         parse_name = name.split(".")
         is_input_layer = parse_name[0] == "input_layer"
