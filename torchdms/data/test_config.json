@@ -3,6 +3,7 @@
         "beta_l1_coefficient": 0,
         "data_path": "_ignore/test_df.prepped.pkl",
         "epochs": 1,
+        "independent_starts": 2,
         "loss_weight_span": 0.01,
         "model_string": "VanillaGGE(1,sigmoid,10,relu)",
         "monotonic": null,

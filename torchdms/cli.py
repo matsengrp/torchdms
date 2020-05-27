@@ -1,9 +1,9 @@
 """The command line interface."""
+import pathlib
 import json
 import os
 import click
 import click_config_file
-import pandas as pd
 import torch
 from torchdms.analysis import Analysis
 from torchdms.data import (
@@ -14,14 +14,12 @@ from torchdms.evaluation import (
     build_evaluation_dict,
     complete_error_summary,
     error_df_of_evaluation_dict,
-    error_summary_of_error_df,
 )
 from torchdms.model import (
     model_of_string,
-    monotonic_params_from_latent_space,
     VanillaGGE,
 )
-from torchdms.loss import rmse, mse
+from torchdms.loss import l1, mse, rmse
 from torchdms.utils import (
     from_pickle_file,
     from_json_file,
@@ -88,8 +86,9 @@ def cli(ctx, dry_run):
     required=False,
     default=100,
     show_default=True,
-    help="This is the number of variants for each stratum to hold out for testing. The "
-    "rest of the examples will be used for training the model.",
+    help="This is the number of variants for each stratum to hold out for testing, with "
+    "the same number used for validation. The rest of the examples will be used for "
+    "training the model.",
 )
 @click.option(
     "--skip-stratum-if-count-is-smaller-than",
@@ -135,7 +134,6 @@ def prep(
     you specify. OUT_PREFIX is the location to dump the prepped data to
     another pickle file.
     """
-    # TODO can I make this a decorator?
     if process_dry_run(ctx, "prep", locals()):
         return
     click.echo(f"LOG: Targets: {targets}")
@@ -154,7 +152,7 @@ def prep(
     if split_by in aa_func_scores.columns:
         for split_label, per_split_label_df in aa_func_scores.groupby(split_by):
             click.echo(f"LOG: Partitioning data via '{split_label}'")
-            test_partition, partitioned_train_data = partition(
+            test_partition, val_partition, partitioned_train_data = partition(
                 per_split_label_df.copy(),
                 per_stratum_variants_for_test,
                 skip_stratum_if_count_is_smaller_than,
@@ -164,15 +162,17 @@ def prep(
 
             prep_by_stratum_and_export(
                 test_partition,
+                val_partition,
                 partitioned_train_data,
                 wtseq,
                 targets,
                 out_prefix,
+                str(ctx.params),
                 split_label,
             )
 
     else:
-        test_partition, partitioned_train_data = partition(
+        test_partition, val_partition, partitioned_train_data = partition(
             aa_func_scores,
             per_stratum_variants_for_test,
             skip_stratum_if_count_is_smaller_than,
@@ -180,7 +180,14 @@ def prep(
         )
 
         prep_by_stratum_and_export(
-            test_partition, partitioned_train_data, wtseq, targets, out_prefix,
+            test_partition,
+            val_partition,
+            partitioned_train_data,
+            wtseq,
+            targets,
+            out_prefix,
+            str(ctx.params),
+            None,
         )
 
     click.echo(
@@ -222,23 +229,8 @@ def create(ctx, model_string, data_path, out_path, monotonic, beta_l1_coefficien
     if process_dry_run(ctx, "create", locals()):
         return
 
-    model = model_of_string(model_string, data_path)
+    model = model_of_string(model_string, data_path, monotonic)
     model.beta_l1_coefficient = beta_l1_coefficient
-
-    # If monotonic, we want to initialize all parameters
-    # which will be floored at 0, to a value above zero.
-    if monotonic:
-        # this flag will tell the ModelFitter to clamp (floor at 0)
-        # the appropriate parameters after updating the weights
-        model.monotonic_sign = monotonic
-        for param in monotonic_params_from_latent_space(model):
-
-            # https://pytorch.org/docs/stable/nn.html#linear
-            # because the original distribution is
-            # uniform between (-k, k) where k = 1/input_features,
-            # we can simply transform all weights < 0 to their positive
-            # counterpart
-            param.data[param.data < 0] *= -1
 
     torch.save(model, out_path)
     click.echo(f"LOG: Model defined as: {model}")
@@ -248,15 +240,13 @@ def create(ctx, model_string, data_path, out_path, monotonic, beta_l1_coefficien
 @cli.command()
 @click.argument("model_path", type=click.Path(exists=True))
 @click.argument("data_path", type=click.Path(exists=True))
-@click.option("--loss-out", type=click.Path(), required=False)
 @click.option(
-    "--loss-fn", default="rmse", show_default=True, help="Loss function for training."
+    "--loss-fn", default="l1", show_default=True, help="Loss function for training."
 )
 @click.option(
     "--loss-weight-span",
     type=float,
     default=None,
-    # TODO make proper docs.
     help="If this option is used, add a weight to a mean-absolute-deviation loss equal "
     "to the exponential of a loss decay times the true score.",
 )
@@ -279,7 +269,17 @@ def create(ctx, model_string, data_path, out_path, monotonic, beta_l1_coefficien
     "--device", default="cpu", show_default=True, help="Device used to train nn",
 )
 @click.option(
-    "--epochs", default=5, show_default=True, help="Number of epochs for training.",
+    "--independent-starts",
+    default=5,
+    show_default=True,
+    help="Number of independent training starts to use. Each training start gets trained "
+    "10% of the full number of epochs and the best start is used for full training.",
+)
+@click.option(
+    "--epochs",
+    default=5,
+    show_default=True,
+    help="Number of epochs for full training.",
 )
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
 @click.pass_context
@@ -287,7 +287,6 @@ def train(
     ctx,
     model_path,
     data_path,
-    loss_out,
     loss_fn,
     loss_weight_span,
     batch_size,
@@ -295,28 +294,38 @@ def train(
     min_lr,
     patience,
     device,
+    independent_starts,
     epochs,
 ):
     """Train a model, saving trained model to original location."""
     if process_dry_run(ctx, "train", locals()):
         return
     model = torch.load(model_path)
-    [_, train_data_list] = from_pickle_file(data_path)
+    data = from_pickle_file(data_path)
 
     analysis_params = {
         "model": model,
-        "train_data_list": train_data_list,
+        "model_path": model_path,
+        "val_data": data.val,
+        "train_data_list": data.train,
         "batch_size": batch_size,
         "learning_rate": learning_rate,
         "device": device,
     }
 
     analysis = Analysis(**analysis_params)
-    known_loss_fn = {"rmse": rmse, "mse": mse}
+    known_loss_fn = {"l1": l1, "mse": mse, "rmse": rmse}
     if loss_fn not in known_loss_fn:
         raise IOError(loss_fn + " not known")
 
+    if loss_weight_span is not None:
+        click.echo(
+            "NOTE: you are using loss decays, which assumes that you want to up-weight "
+            "the loss function when the true target value is large. Is that true?"
+        )
+
     training_params = {
+        "independent_start_count": independent_starts,
         "epoch_count": epochs,
         "loss_fn": known_loss_fn[loss_fn],
         "patience": patience,
@@ -325,10 +334,7 @@ def train(
     }
 
     click.echo(f"Starting training. {training_params}")
-    losses = pd.Series(analysis.train(**training_params))
-    torch.save(model, model_path)
-    if loss_out is not None:
-        losses.to_csv(loss_out)
+    analysis.multi_train(**training_params)
 
 
 @cli.command()
@@ -338,26 +344,26 @@ def train(
 @click.option("--device", type=str, required=False, default="cpu")
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
 @click.pass_context
-def eval(ctx, model_path, data_path, out, device):
+def evaluate(ctx, model_path, data_path, out, device):
     """Evaluate the performance of a model.
 
     Dump to a dictionary containing the results.
     """
-    if process_dry_run(ctx, "eval", locals()):
+    if process_dry_run(ctx, "evaluate", locals()):
         return
     click.echo(f"LOG: Loading model from {model_path}")
     model = torch.load(model_path)
 
     click.echo(f"LOG: loading testing data from {data_path}")
-    [test_data, _] = from_pickle_file(data_path)
+    data = from_pickle_file(data_path)
 
     click.echo(f"LOG: evaluating test data with given model")
-    evaluation = build_evaluation_dict(model, test_data, device)
+    evaluation = build_evaluation_dict(model, data.test, device)
 
     click.echo(f"LOG: pickle dump evalution data dictionary to {out}")
     to_pickle_file(evaluation, out)
 
-    click.echo("eval finished")
+    click.echo("evaluate finished")
 
 
 @cli.command()
@@ -374,21 +380,20 @@ def error(ctx, model_path, data_path, out, show_points, device):
     """Evaluate and produce plot of error."""
     if process_dry_run(ctx, "error", locals()):
         return
-    # TODO DRY this up
     click.echo(f"LOG: Loading model from {model_path}")
     model = torch.load(model_path)
     prefix = os.path.splitext(out)[0]
 
     click.echo(f"LOG: loading testing data from {data_path}")
-    [test_data, train_data] = from_pickle_file(data_path)
+    data = from_pickle_file(data_path)
 
-    evaluation = build_evaluation_dict(model, test_data, device)
+    evaluation = build_evaluation_dict(model, data.test, device)
     error_df = error_df_of_evaluation_dict(evaluation)
 
     plot_error(error_df, out, show_points)
     error_df.to_csv(prefix + ".csv", index=False)
 
-    error_summary_df = complete_error_summary(test_data, train_data, model)
+    error_summary_df = complete_error_summary(data, model)
     error_summary_df.to_csv(prefix + "-summary.csv")
 
     click.echo(f"LOG: error plot finished and dumped to {out}")
@@ -410,10 +415,10 @@ def scatter(ctx, model_path, data_path, out, device):
     model = torch.load(model_path)
 
     click.echo(f"LOG: loading testing data from {data_path}")
-    [test_data, _] = from_pickle_file(data_path)
+    data = from_pickle_file(data_path)
 
     click.echo(f"LOG: evaluating test data with given model")
-    evaluation = build_evaluation_dict(model, test_data, device)
+    evaluation = build_evaluation_dict(model, data.test, device)
 
     click.echo(f"LOG: plotting scatter correlation")
     plot_test_correlation(evaluation, model, out)
@@ -427,10 +432,9 @@ def scatter(ctx, model_path, data_path, out, device):
 @click.option("--end", required=False, type=int, default=1000, show_default=True)
 @click.option("--nticks", required=False, type=int, default=100, show_default=True)
 @click.option("--out", required=True, type=click.Path())
-@click.option("--device", type=str, required=False, default="cpu")
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
 @click.pass_context
-def contour(ctx, model_path, start, end, nticks, out, device):
+def contour(ctx, model_path, start, end, nticks, out):
     """Visualize the the latent space of a model.
 
     Make a contour plot with a two dimensional latent space by
@@ -441,11 +445,9 @@ def contour(ctx, model_path, start, end, nticks, out, device):
     click.echo(f"LOG: Loading model from {model_path}")
     model = torch.load(model_path)
 
-    # TODO also check for 2d latent space
     if not isinstance(model, VanillaGGE):
         raise TypeError("Model must be a VanillaGGE")
 
-    # TODO add device
     click.echo(f"LOG: plotting contour")
     latent_space_contour_plot_2d(model, out, start, end, nticks)
 
@@ -467,21 +469,21 @@ def beta(ctx, model_path, data_path, out):
 
     # the test data holds some metadata
     click.echo(f"LOG: loading testing data from {data_path}")
-    [test_data, _] = from_pickle_file(data_path)
+    data = from_pickle_file(data_path)
     click.echo(
-        f"LOG: loaded data, evaluating beta coeff for wildtype seq: {test_data.wtseq}"
+        f"LOG: loaded data, evaluating beta coeff for wildtype seq: {data.test.wtseq}"
     )
 
     click.echo(f"LOG: plotting beta coefficients")
-    beta_coefficients(model, test_data, out)
+    beta_coefficients(model, data.test, out)
 
     click.echo(f"LOG: Beta coefficients plotted and dumped to {out}")
 
 
-def restrict_dict_to_params(d, cmd):
+def restrict_dict_to_params(d_to_restrict, cmd):
     """Restrict the given dictionary to the names of parameters for cmd."""
     param_names = {param.name for param in cmd.params}
-    return {key: d[key] for key in d if key in param_names}
+    return {key: d_to_restrict[key] for key in d_to_restrict if key in param_names}
 
 
 @cli.command()
@@ -490,18 +492,17 @@ def restrict_dict_to_params(d, cmd):
 )
 @click.pass_context
 def go(ctx):
-    """Run a common sequence of commands: create, train, scatter, and beta."""
+    """Run a common sequence of commands: create, train, scatter, and beta.
+
+    Then touch a `.sentinel` file to signal successful completion.
+    """
     prefix = ctx.default_map["prefix"]
     model_path = prefix + ".model"
     ctx.invoke(
         create, out_path=model_path, **restrict_dict_to_params(ctx.default_map, create),
     )
-    loss_path = prefix + ".loss.csv"
     ctx.invoke(
-        train,
-        model_path=model_path,
-        loss_out=loss_path,
-        **restrict_dict_to_params(ctx.default_map, train),
+        train, model_path=model_path, **restrict_dict_to_params(ctx.default_map, train),
     )
     error_path = prefix + ".error.pdf"
     ctx.invoke(
@@ -524,6 +525,9 @@ def go(ctx):
         out=beta_path,
         **restrict_dict_to_params(ctx.default_map, beta),
     )
+    sentinel_path = prefix + ".sentinel"
+    click.echo(f"LOG: `tdms go` completed; touching {sentinel_path}")
+    pathlib.Path(sentinel_path).touch()
 
 
 @cli.command()
@@ -537,4 +541,4 @@ def cartesian(ctx, choice_json_path):
 
 
 if __name__ == "__main__":
-    cli()
+    cli()  # pylint: disable=no-value-for-parameter

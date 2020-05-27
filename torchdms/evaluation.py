@@ -1,14 +1,14 @@
 """Evaluating models."""
 
 import pandas as pd
-from torchdms.data import BinaryMapDataset
+from torchdms.data import SplitData
 from torchdms.utils import positions_in_list
 
 QUALITY_CUTOFFS = [-3.0, -1.0]
 
 
 def build_evaluation_dict(model, test_data, device="cpu"):
-    """Evaluate & Organize all testing data paried with metadata.
+    """Evaluate & Organize all testing data paired with metadata.
 
     A function which takes a trained model, matching test
     dataset (BinaryMapDataset w/ the same input dimensions.)
@@ -16,14 +16,13 @@ def build_evaluation_dict(model, test_data, device="cpu"):
 
     - samples: binary encodings numpy array shape (num samples, num possible mutations)
     - predictions and targets: both numpy arrays of shape (num samples, num targets)
-    -
 
     This should have everything mostly needed to do plotting
-    about testing data (not things like loss or latent space prediction)
+    about testing data (not things like loss or latent space prediction).
     """
-    # TODO check the testing dataset matches the
-    # model input size and output size!
 
+    assert test_data.feature_count() == model.input_size
+    assert test_data.target_count() == model.output_size
     return {
         "samples": test_data.samples.detach().numpy(),
         "predictions": model(test_data.samples.to(device)).detach().numpy(),
@@ -80,11 +79,10 @@ def error_summary_of_data(data, model, split_label=None):
     return error_summary_df
 
 
-def complete_error_summary(test_data, train_data, model):
-    data_dict = {"test": test_data, "train": BinaryMapDataset.cat(train_data)}
+def complete_error_summary(data: SplitData, model):
     return pd.concat(
         [
             error_summary_of_data(data, model, split_label)
-            for split_label, data in data_dict.items()
+            for split_label, data in data.labeled_splits
         ]
     )

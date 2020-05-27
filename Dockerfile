@@ -2,7 +2,8 @@ FROM continuumio/anaconda:2019.10
 
 RUN apt-get update -q && \
     apt-get install -y -q --no-install-recommends \
-        build-essential
+        build-essential \
+        findutils
 
 COPY environment.yml .
 
