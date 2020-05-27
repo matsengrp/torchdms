@@ -37,6 +37,6 @@ to get started.
 Synopsis:
 
     tdms prep tstarr_dms_full.pkl NIH_PREP.pkl affinity_score expr_score
-    tdms create NIH_PREP.pkl byov_10_10_10.model VanillaGGE(10,10,10)
-    tdms train byov_10_10_10.model NIH_PREP.pkl --epochs 100
-    tdms eval byov.model NIH_prep.pkl --scatter-plot-out NIH_Scatter_out.pdf
+    tdms create NIH_PREP.pkl my.model VanillaGGE(10,sigmoid,10,relu)
+    tdms train my.model NIH_PREP.pkl --epochs 100
+    tdms eval my.model NIH_prep.pkl --scatter-plot-out NIH_Scatter_out.pdf

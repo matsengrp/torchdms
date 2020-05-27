@@ -4,8 +4,8 @@ install:
 	pip install -e .
 
 test: torchdms/data/_ignore/test_df.prepped.pkl
-	pytest
 	cd torchdms/data; tdms go --config test_config.json
+	pytest
 
 format:
 	black torchdms

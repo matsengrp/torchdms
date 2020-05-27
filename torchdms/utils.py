@@ -41,54 +41,36 @@ def make_legal_filename(label):
     return legal_filename
 
 
-def build_evaluation_dict(model, test_data, device="cpu"):
-    """Evaluate & Organize all testing data paried with metadata.
+def positions_in_list(series, items):
+    """Give the positions of the things in a series relative to a list of
+    items.
 
-    A function which takes a trained model, matching test
-    dataset (BinaryMapDataset w/ the same input dimensions.)
-    and return a dictionary containing the
+    Example:
+    >>> positions_in_list(pd.Series([4., -3., -1., 9.]), [-2., 0.])
+    0    2
+    1    0
+    2    1
+    3    2
+    dtype: int64
 
-    - samples: binary encodings numpy array shape (num samples, num possible mutations)
-    - predictions and targets: both numpy arrays of shape (num samples, num targets)
-    -
-
-    This should have everything mostly needed to do plotting
-    about testing data (not things like loss or latent space prediction)
+    The first item is 2 because 4 is bigger than -2 and 0.
+    The second item is 0 because -3 is smaller than everything.
+    The third item is 1 because -1 is between -2 and 0.
     """
-    # TODO check the testing dataset matches the
-    # model input size and output size!
-
-    return {
-        "samples": test_data.samples.detach().numpy(),
-        "predictions": model(test_data.samples.to(device)).detach().numpy(),
-        "targets": test_data.targets.detach().numpy(),
-        "original_df": test_data.original_df,
-        "wtseq": test_data.wtseq,
-        "target_names": test_data.target_names,
-    }
+    assert items == sorted(items)
+    positions = pd.Series(data=0, index=series.index)
+    for idx, item in enumerate(items):
+        positions[item < series] = idx + 1
+    return positions
 
 
-def error_df_of_evaluation_dict(evaluation_dict):
-    """Build a dataframe that describes the error per test point."""
-
-    def error_df_of_target_idx(target_idx):
-        assert target_idx < len(evaluation_dict["target_names"])
-        return pd.DataFrame(
-            {
-                "observed": evaluation_dict["targets"][:, target_idx],
-                "predicted": evaluation_dict["predictions"][:, target_idx],
-                "n_aa_substitutions": evaluation_dict["original_df"][
-                    "n_aa_substitutions"
-                ],
-                "target": evaluation_dict["target_names"][target_idx],
-            }
-        )
-
-    error_df = pd.concat(
-        map(error_df_of_target_idx, range(len(evaluation_dict["target_names"])))
-    )
-    error_df["abs_error"] = (error_df["observed"] - error_df["predicted"]).abs()
-    return error_df
+def get_only_entry_from_constant_list(items):
+    """Assert that a list is constant and return that single value."""
+    assert len(items) > 0
+    first = items[0]
+    for item in items[1:]:
+        assert first == item
+    return first
 
 
 def get_first_key_with_an_option(option_dict):

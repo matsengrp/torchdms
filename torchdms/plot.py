@@ -70,14 +70,7 @@ def plot_test_correlation(evaluation_dict, model, out, cmap="plasma"):
     correlation_df = pd.DataFrame(correlation_series)
     correlation_df.index = correlation_df.index.droplevel(1)
     correlation_path = os.path.splitext(out)[0]
-    internal_layer_dimensions = [
-        getattr(model, layer).in_features
-        for layer in model.layers
-        if "input" not in layer
-    ]
-    correlation_df["internal_dimensions"] = ";".join(
-        [str(dim) for dim in internal_layer_dimensions]
-    )
+    correlation_df["model"] = model.str_summary()
     for name, characteristic in model.characteristics.items():
         correlation_df[name] = characteristic
     correlation_df.to_csv(correlation_path + ".corr.csv")
