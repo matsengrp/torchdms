@@ -85,6 +85,17 @@ def get_first_key_with_an_option(option_dict):
     return None
 
 
+def cat_list_values(list_valued_dict, desired_keys):
+    """
+    >>> cat_list_values({"a":[1,2], "b":[3,4], "c":[5]}, ["a", "c"])
+    [1, 2, 5]
+    """
+    output = []
+    for key in desired_keys:
+        output += list_valued_dict[key]
+    return output
+
+
 def cartesian_product(option_dict):
     """Expand an option dict, collecting the choices made in the first return
     value of the tuple.

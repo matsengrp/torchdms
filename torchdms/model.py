@@ -1,3 +1,4 @@
+"""Our models."""
 import re
 import click
 import torch
@@ -73,6 +74,11 @@ class VanillaGGE(nn.Module):
             self.layers.append(layer_name)
             setattr(self, layer_name, nn.Linear(layer_sizes[-1], output_size))
 
+        if self.monotonic_sign is not None:
+            # If monotonic, we want to initialize all parameters
+            # which will be floored at 0, to a value above zero.
+            self.reflect_monotonic_params()
+
     @property
     def characteristics(self):
         """Return salient characteristics of the model that aren't represented
@@ -113,7 +119,7 @@ class VanillaGGE(nn.Module):
     def __str__(self):
         return super(VanillaGGE, self).__str__() + "\n" + self.characteristics.__str__()
 
-    def forward(self, x):
+    def forward(self, x):  # pylint: disable=arguments-differ
         out = x
         for layer_name, activation in zip(self.layers[:-1], self.activations):
             out = activation(getattr(self, layer_name)(out))
@@ -145,6 +151,24 @@ class VanillaGGE(nn.Module):
                 )
             )
         )
+
+    def reflect_monotonic_params(self):
+        """Ensure that monotonic parameters are non-negative by flipping their
+        sign."""
+        for param in monotonic_params_from_latent_space(self):
+            # https://pytorch.org/docs/stable/nn.html#linear
+            # because the original distribution is
+            # uniform between (-k, k) where k = 1/input_features,
+            # we can simply transform all weights < 0 to their positive
+            # counterpart
+            param.data[param.data < 0] *= -1
+
+    def randomize_parameters(self):
+        """Randomize model parameters."""
+        for layer_name in self.layers:
+            getattr(self, layer_name).reset_parameters()
+        if self.monotonic_sign is not None:
+            self.reflect_monotonic_params()
 
 
 def monotonic_params_from_latent_space(model: VanillaGGE):
@@ -182,7 +206,7 @@ def activation_of_string(string):
     raise IOError(f"Don't know activation named {string}.")
 
 
-def model_of_string(model_string, data_path):
+def model_of_string(model_string, data_path, monotonic_sign):
     """Build a model out of a string specification."""
     try:
         model_regex = re.compile(r"(.*)\((.*)\)")
@@ -204,7 +228,8 @@ def model_of_string(model_string, data_path):
         raise
     if model_name not in KNOWN_MODELS:
         raise IOError(model_name + " not known")
-    [test_dataset, _] = from_pickle_file(data_path)
+    data = from_pickle_file(data_path)
+    test_dataset = data.test
     if model_name == "VanillaGGE":
         if len(layers) == 0:
             click.echo(f"LOG: No layers provided, so I'm creating a linear model.")
@@ -216,6 +241,7 @@ def model_of_string(model_string, data_path):
             layers,
             activations,
             test_dataset.targets.shape[1],
+            monotonic_sign=monotonic_sign,
         )
     else:
         model = KNOWN_MODELS[model_name](test_dataset.feature_count())
