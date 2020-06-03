@@ -17,7 +17,6 @@ from plotnine import (
     theme_set,
 )
 import scipy.stats as stats
-import torch
 
 
 def plot_error(error_df, out_path, show_points=False):
@@ -53,8 +52,8 @@ def plot_test_correlation(evaluation_dict, model, out, cmap="plasma"):
         targ = evaluation_dict["targets"][:, target]
         corr = stats.pearsonr(pred, targ)
         scatter = ax[target].scatter(pred, targ, cmap=cmap, c=n_aa_substitutions, s=8.0)
-        ax[target].set_xlabel(f"Predicted")
-        ax[target].set_ylabel(f"Observed")
+        ax[target].set_xlabel("Predicted")
+        ax[target].set_ylabel("Observed")
         target_name = evaluation_dict["target_names"][target]
         plot_title = f"Test Data for {target_name}\npearsonr = {round(corr[0],3)}"
         ax[target].set_title(plot_title)
@@ -94,38 +93,6 @@ def latent_space_contour_plot_2d(model, out, start=0, end=1000, nticks=100):
         "it like https://github.com/matsengrp/torchdms/issues/26"
     )
 
-    num_targets = model.output_size
-    prediction_matrices = [np.empty([nticks, nticks]) for _ in range(num_targets)]
-    for i, latent1_value in enumerate(np.linspace(start, end, nticks)):
-        for j, latent2_value in enumerate(np.linspace(start, end, nticks)):
-            lat_sample = torch.from_numpy(
-                np.array([latent1_value, latent2_value])
-            ).float()
-            predictions = model.from_latent(lat_sample)
-            for pred_idx in range(  # pylint: disable=consider-using-enumerate
-                len(predictions)
-            ):
-                prediction_matrices[pred_idx][i][j] = predictions[pred_idx]
-
-    width = 7 * num_targets
-    fig, ax = plt.subplots(1, num_targets, figsize=(width, 6))
-    # Make ax a list even if there's only one target.
-    if num_targets == 1:
-        ax = [ax]
-    for idx, matrix in enumerate(prediction_matrices):
-        mapp = ax[idx].imshow(matrix)
-
-        # TODO We should have the ticks which show the range of inputs
-        # matplotlib does not make this obvious.
-        # ax[idx].set_xticks(ticks=np.linspace(start,end,nticks))
-        # ax[idx].set_yticks(np.linspace(start,end,nticks))
-        ax[idx].set_xlabel("latent space dimension 1")
-        ax[idx].set_ylabel("latent space dimension 2")
-        ax[idx].set_title(f"Prediction Node {idx}\nrange {start} to {end}")
-        fig.colorbar(mapp, ax=ax[idx], shrink=0.5)
-    fig.tight_layout()
-    fig.savefig(out)
-
 
 def beta_coefficients(model, test_data, out):
     """This function takes in a (ideally trained) model and plots the values of
@@ -139,24 +106,24 @@ def beta_coefficients(model, test_data, out):
     # below gives us the first transformation matrix of the model
     # going from inputs -> latent space, thus
     # a tensor of shape (n latent space dims, n input nodes)
-    beta_coefficients = next(model.parameters()).data
+    beta_coefficient_data = next(model.parameters()).data
     bmap = dms.binarymap.BinaryMap(test_data.original_df,)
 
     # To represent the wtseq in the heatmap, create a mask
     # to encode which matrix entries are the wt nt in each position.
     wtmask = np.full([len(bmap.alphabet), len(test_data.wtseq)], False, dtype=bool)
     alphabet = bmap.alphabet
-    for column_position, nt in enumerate(test_data.wtseq):
-        row_position = alphabet.index(nt)
+    for column_position, aa in enumerate(test_data.wtseq):
+        row_position = alphabet.index(aa)
         wtmask[row_position, column_position] = True
 
     # plot beta's
-    num_latent_dims = beta_coefficients.shape[0]
+    num_latent_dims = beta_coefficient_data.shape[0]
     fig, ax = plt.subplots(num_latent_dims, figsize=(10, 5 * num_latent_dims))
     if num_latent_dims == 1:
         ax = [ax]
     for latent_dim in range(num_latent_dims):
-        latent = beta_coefficients[latent_dim].numpy()
+        latent = beta_coefficient_data[latent_dim].numpy()
         beta_map = latent.reshape(len(bmap.alphabet), len(test_data.wtseq))
         beta_map[wtmask] = np.nan
         mapp = ax[latent_dim].imshow(beta_map, aspect="auto")

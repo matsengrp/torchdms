@@ -1,7 +1,7 @@
 """Evaluating models."""
 
 import pandas as pd
-from torchdms.data import SplitData
+from torchdms.data import SplitDataset
 from torchdms.utils import positions_in_list
 
 QUALITY_CUTOFFS = [-3.0, -1.0]
@@ -71,18 +71,18 @@ def error_summary_of_error_df(error_df, model):
     return error_summary_df
 
 
-def error_summary_of_data(data, model, split_label=None):
+def error_summary_of_data(data, model, partition_label=None):
     error_df = error_df_of_evaluation_dict(build_evaluation_dict(model, data))
     error_summary_df = error_summary_of_error_df(error_df, model)
-    if split_label is not None:
-        error_summary_df["split_label"] = split_label
+    if partition_label is not None:
+        error_summary_df["partition_label"] = partition_label
     return error_summary_df
 
 
-def complete_error_summary(data: SplitData, model):
+def complete_error_summary(data: SplitDataset, model):
     return pd.concat(
         [
-            error_summary_of_data(data, model, split_label)
-            for split_label, data in data.labeled_splits
+            error_summary_of_data(data, model, partition_label)
+            for partition_label, data in data.labeled_splits
         ]
     )

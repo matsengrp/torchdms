@@ -1,25 +1,22 @@
 # torchdms
 
+![build and test](https://github.com/matsengrp/torchdms/workflows/build%20and%20test/badge.svg)
 [![Docker Repository on Quay](https://quay.io/repository/matsengrp/torchdms/status "Docker Repository on Quay")](https://quay.io/repository/matsengrp/torchdms)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 
 ## What is this?
 
-Pytorch - Deep Mutational Scanning (`torchdms`) is a small Python package made to train neural networks on amino-acid substitution data, predicting some chosen functional score(s).
+PyTorch - Deep Mutational Scanning (`torchdms`) is a Python package made to train neural networks on amino-acid substitution data, predicting some chosen functional score(s).
 We use the binary encoding of variants using [BinaryMap Object](https://jbloomlab.github.io/dms_variants/dms_variants.binarymap.html) as input to feed-forward networks.
 
 
 ## How do I install it?
 
-To install the API and command-line scripts at the moment, it suggested you clone the repository, create a conda environment from `environment.yaml`, and run the tests to make sure everything is working properly.
-
     git clone git@github.com:matsengrp/torchdms.git
-    conda env create -f environment.yaml
-    conda activate dms
-    pytest
-
-Install with `pip install -e .`
+    cd torchdms
+    pip install -r requirements.txt
+    pip install .
+    make test
 
 
 ## CLI
