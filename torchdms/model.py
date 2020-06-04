@@ -51,7 +51,7 @@ class VanillaGGE(nn.Module):
 
         assert len(layer_sizes) == len(activations)
 
-        layer_name = f"input_layer"
+        layer_name = "input_layer"
 
         # additive model
         if len(layer_sizes) == 0:
@@ -70,7 +70,7 @@ class VanillaGGE(nn.Module):
                 bias = True
 
             # final layer
-            layer_name = f"output_layer"
+            layer_name = "output_layer"
             self.layers.append(layer_name)
             setattr(self, layer_name, nn.Linear(layer_sizes[-1], output_size))
 
@@ -232,7 +232,7 @@ def model_of_string(model_string, data_path, monotonic_sign):
     test_dataset = data.test
     if model_name == "VanillaGGE":
         if len(layers) == 0:
-            click.echo(f"LOG: No layers provided, so I'm creating a linear model.")
+            click.echo("LOG: No layers provided, so I'm creating a linear model.")
         for layer in layers:
             if not isinstance(layer, int):
                 raise TypeError("All layer input must be integers")

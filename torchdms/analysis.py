@@ -47,6 +47,37 @@ class Analysis:
         ]
         self.val_loss_record = sys.float_info.max
 
+    def loss_of_targets_and_prediction(
+        self, loss_fn, targets, predictions, per_target_loss_decay
+    ):
+        """Return loss on the valid predictions, i.e. the ones that are not
+        NaN."""
+        valid_target_indices = torch.isfinite(targets)
+        valid_targets = targets[valid_target_indices].to(self.device)
+        valid_predict = predictions[valid_target_indices].to(self.device)
+        return loss_fn(valid_targets, valid_predict, per_target_loss_decay)
+
+    def complete_loss(self, loss_fn, targets, predictions, loss_decays):
+        """Compute our total (across targets) loss with regularization.
+
+        Here we compute loss separately for each target, before summing
+        the results. This allows for us to take advantage of the samples
+        which may contain missing information for a subset of the
+        targets.
+        """
+        per_target_loss = [
+            self.loss_of_targets_and_prediction(
+                loss_fn,
+                targets[:, target_idx],
+                predictions[:, target_idx],
+                per_target_loss_decay,
+            )
+            for target_idx, per_target_loss_decay in zip(
+                range(targets.shape[1]), loss_decays
+            )
+        ]
+        return sum(per_target_loss) + self.model.regularization_loss()
+
     def train(
         self, epoch_count, loss_fn, patience=10, min_lr=1e-5, loss_weight_span=None
     ):
@@ -92,34 +123,6 @@ class Analysis:
         scheduler = ReduceLROnPlateau(optimizer, patience=patience, verbose=True)
         self.model.to(self.device)
 
-        def loss_of_targets_and_prediction(targets, predictions, per_target_loss_decay):
-            """Return loss on the valid predictions, i.e. the ones that are not
-            NaN."""
-            valid_target_indices = torch.isfinite(targets)
-            valid_targets = targets[valid_target_indices].to(self.device)
-            valid_predict = predictions[valid_target_indices].to(self.device)
-            return loss_fn(valid_targets, valid_predict, per_target_loss_decay)
-
-        def complete_loss(targets, predictions, loss_decays):
-            """Compute our total (across targets) loss with regularization.
-
-            Here we compute loss separately for each target, before
-            summing the results. This allows for us to take advantage of
-            the samples which may contain missing information for a
-            subset of the targets.
-            """
-            per_target_loss = [
-                loss_of_targets_and_prediction(
-                    targets[:, target_idx],
-                    predictions[:, target_idx],
-                    per_target_loss_decay,
-                )
-                for target_idx, per_target_loss_decay in zip(
-                    range(target_count), loss_decays
-                )
-            ]
-            return sum(per_target_loss) + self.model.regularization_loss()
-
         def step_model():
             per_epoch_loss = 0.0
             for _ in range(batch_count):
@@ -133,8 +136,8 @@ class Analysis:
                     samples = batch["samples"].to(self.device)
                     predictions = self.model(samples)
 
-                    loss = complete_loss(
-                        batch["targets"], predictions, per_stratum_loss_decays
+                    loss = self.complete_loss(
+                        loss_fn, batch["targets"], predictions, per_stratum_loss_decays
                     )
                     per_batch_loss += loss.item()
 
@@ -153,8 +156,11 @@ class Analysis:
 
             val_samples = self.val_data.samples.to(self.device)
             val_predictions = self.model(val_samples)
-            val_loss = complete_loss(
-                self.val_data.targets.to(self.device), val_predictions, val_loss_decay
+            val_loss = self.complete_loss(
+                loss_fn,
+                self.val_data.targets.to(self.device),
+                val_predictions,
+                val_loss_decay,
             ).item()
             if val_loss < self.val_loss_record:
                 print(f"\nvalidation loss record: {val_loss}")

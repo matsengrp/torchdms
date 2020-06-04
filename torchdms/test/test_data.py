@@ -19,11 +19,17 @@ def test_partition_is_clean():
     data, _ = from_pickle_file(TEST_DATA_PATH)
     for seed in range(50):
         random.seed(seed)
-        (test, val, partitioned_train) = partition(
+        split_df = partition(
             data,
             per_stratum_variants_for_test=10,
             skip_stratum_if_count_is_smaller_than=30,
+            export_dataframe=None,
+            partition_label=None,
         )
-        train = pd.concat(partitioned_train)
-        assert set(test["aa_substitutions"]).isdisjoint(set(train["aa_substitutions"]))
-        assert set(test["aa_substitutions"]).isdisjoint(set(val["aa_substitutions"]))
+        train = pd.concat(split_df.train)
+        assert set(split_df.test["aa_substitutions"]).isdisjoint(
+            set(train["aa_substitutions"])
+        )
+        assert set(split_df.test["aa_substitutions"]).isdisjoint(
+            set(split_df.val["aa_substitutions"])
+        )

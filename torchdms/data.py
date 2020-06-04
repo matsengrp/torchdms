@@ -82,7 +82,20 @@ class BinaryMapDataset(Dataset):
         return [(np.nanmin(column), np.nanmax(column)) for column in numpy_targets.T]
 
 
-class SplitData:
+class SplitDataframe:
+    """Dataframes for each of test, validation, and train.
+
+    Train is partitioned into a list of dataframes according to the
+    number of mutations.
+    """
+
+    def __init__(self, *, test_data, val_data, train_data_list):
+        self.test = test_data
+        self.val = val_data
+        self.train = train_data_list
+
+
+class SplitDataset:
     """BinaryMapDatasets for each of test, validation, and train.
 
     Train is partitioned into a list of BinaryMapDatasets according to
@@ -94,6 +107,21 @@ class SplitData:
         self.val = val_data
         self.train = train_data_list
         self.description_string = description_string
+
+    @classmethod
+    def of_split_df(cls, split_df, wtseq, targets, description_string):
+        def our_of_raw(df):
+            return BinaryMapDataset.of_raw(df, wtseq=wtseq, targets=targets)
+
+        return cls(
+            test_data=our_of_raw(split_df.test),
+            val_data=our_of_raw(split_df.val),
+            train_data_list=[
+                our_of_raw(train_data_partition)
+                for train_data_partition in split_df.train
+            ],
+            description_string=description_string,
+        )
 
     @property
     def labeled_splits(self):
@@ -107,18 +135,16 @@ class SplitData:
 
 def partition(
     aa_func_scores,
-    per_stratum_variants_for_test=100,
-    skip_stratum_if_count_is_smaller_than=300,
-    export_dataframe=None,
-    split_label=None,
+    per_stratum_variants_for_test,
+    skip_stratum_if_count_is_smaller_than,
+    export_dataframe,
+    partition_label,
 ):
-    """Partition the data into a test partition, and a list of training data
-    partitions.
+    """Partition the data as needed and build a SplitDataframe.
 
-    A "stratum" is a slice of the data with a given number of mutations.
-    We group training data sets into strata based on their number of
-    mutations so that the data is presented the neural network with an
-    even propotion of each.
+    A "stratum" is a slice of the data with a given number of mutations. We group
+    training data sets into strata based on their number of mutations so that the data
+    is presented the neural network with an even proportion of each.
 
     Furthermore, we group data rows by unique variants and then split on those grouped
     items so that we don't have the same variant showing up in train and test.
@@ -134,7 +160,7 @@ def partition(
     ]
     aa_func_scores["in_test"] = False
     aa_func_scores["in_val"] = False
-    partitioned_train_data = []
+    test_split_strata = []
 
     for mutation_count, grouped in aa_func_scores.groupby("n_aa_substitutions"):
         if mutation_count == 0:
@@ -166,7 +192,7 @@ def partition(
 
         assert not (aa_func_scores["in_test"] & aa_func_scores["in_val"]).any()
 
-        partitioned_train_data.append(
+        test_split_strata.append(
             aa_func_scores.loc[
                 (~aa_func_scores["in_test"])
                 & (~aa_func_scores["in_val"])
@@ -174,87 +200,47 @@ def partition(
             ].reset_index(drop=True)
         )
 
-    test_partition = aa_func_scores.loc[aa_func_scores["in_test"],].reset_index(
-        drop=True
-    )
-    val_partition = aa_func_scores.loc[aa_func_scores["in_val"],].reset_index(drop=True)
+    test_split = aa_func_scores.loc[aa_func_scores["in_test"],].reset_index(drop=True)
+    val_split = aa_func_scores.loc[aa_func_scores["in_val"],].reset_index(drop=True)
 
     if export_dataframe is not None:
-        if split_label is not None:
-            split_label_filename = make_legal_filename(split_label)
+        if partition_label is not None:
+            partition_label_filename = make_legal_filename(partition_label)
             to_pickle_file(
-                aa_func_scores, f"{export_dataframe}_{split_label_filename}.pkl"
+                aa_func_scores, f"{export_dataframe}_{partition_label_filename}.pkl"
             )
         else:
             to_pickle_file(aa_func_scores, f"{export_dataframe}.pkl")
 
-    return test_partition, val_partition, partitioned_train_data
-
-
-def prepare(
-    test_partition,
-    val_partition,
-    train_partition_list,
-    wtseq,
-    targets,
-    description_string,
-):
-    """Prepare data for training by splitting into test, val, and train,
-    partitioning by number of substitutions, and making a SplitData object."""
-
-    test_data = BinaryMapDataset.of_raw(test_partition, wtseq=wtseq, targets=targets)
-    val_data = BinaryMapDataset.of_raw(val_partition, wtseq=wtseq, targets=targets)
-    train_data_list = [
-        BinaryMapDataset.of_raw(train_data_partition, wtseq=wtseq, targets=targets)
-        for train_data_partition in train_partition_list
-    ]
-
-    return SplitData(
-        test_data=test_data,
-        val_data=val_data,
-        train_data_list=train_data_list,
-        description_string=description_string,
+    return SplitDataframe(
+        test_data=test_split, val_data=val_split, train_data_list=test_split_strata,
     )
 
 
 def prep_by_stratum_and_export(
-    test_partition,
-    val_partition,
-    partitioned_train_data,
-    wtseq,
-    targets,
-    out_prefix,
-    description_string,
-    split_label,
+    split_df, wtseq, targets, out_prefix, description_string, partition_label,
 ):
     """Print number of training examples per stratum and test samples, run
     prepare(), and export to .pkl file with descriptive filename."""
 
-    for train_part in partitioned_train_data:
+    for train_part in split_df.train:
         num_subs = len(train_part["aa_substitutions"][0].split())
         click.echo(
             f"LOG: There are {len(train_part)} training examples "
             f"for stratum: {num_subs}"
         )
 
-    click.echo(f"LOG: There are {len(test_partition)} test points")
-    click.echo(f"LOG: Successfully partitioned data")
-    click.echo(f"LOG: preparing binary map dataset")
+    click.echo(f"LOG: There are {len(split_df.test)} test points")
+    click.echo("LOG: Successfully partitioned data")
+    click.echo("LOG: preparing binary map dataset")
 
-    if split_label is not None:
-        split_label_filename = make_legal_filename(split_label)
-        out_path = f"{out_prefix}_{split_label_filename}.pkl"
+    if partition_label is not None:
+        partition_label_filename = make_legal_filename(partition_label)
+        out_path = f"{out_prefix}_{partition_label_filename}.pkl"
     else:
         out_path = f"{out_prefix}.pkl"
 
     to_pickle_file(
-        prepare(
-            test_partition,
-            val_partition,
-            partitioned_train_data,
-            wtseq,
-            list(targets),
-            description_string,
-        ),
+        SplitDataset.of_split_df(split_df, wtseq, list(targets), description_string,),
         out_path,
     )

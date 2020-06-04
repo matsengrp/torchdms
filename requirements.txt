@@ -1,0 +1,11 @@
+black
+click
+click-config-file
+dms_variants
+docformatter
+flake8
+matplotlib
+pylint
+pytest
+scipy
+torch==1.4.0

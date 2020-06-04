@@ -108,7 +108,7 @@ def cli(ctx, dry_run):
     "appended in_test column.",
 )
 @click.option(
-    "--split-by",
+    "--partition-by",
     type=str,
     required=False,
     default=None,
@@ -125,7 +125,7 @@ def prep(
     per_stratum_variants_for_test,
     skip_stratum_if_count_is_smaller_than,
     export_dataframe,
-    split_by,
+    partition_by,
 ):
     """Prepare data for training.
 
@@ -139,56 +139,40 @@ def prep(
     click.echo(f"LOG: Targets: {targets}")
     click.echo(f"LOG: Loading substitution data for: {in_path}")
     aa_func_scores, wtseq = from_pickle_file(in_path)
-    click.echo(f"LOG: Successfully loaded data")
+    click.echo("LOG: Successfully loaded data")
 
     total_variants = len(aa_func_scores.iloc[:, 1])
     click.echo(f"LOG: There are {total_variants} total variants in this dataset")
 
-    if split_by is None and "library" in aa_func_scores.columns:
+    if partition_by is None and "library" in aa_func_scores.columns:
         click.echo(
-            f"WARNING: you have a 'library' column but haven't specified a split via '--split-by'"
+            "WARNING: you have a 'library' column but haven't specified a partition "
+            "via '--partition-by'"
         )
 
-    if split_by in aa_func_scores.columns:
-        for split_label, per_split_label_df in aa_func_scores.groupby(split_by):
-            click.echo(f"LOG: Partitioning data via '{split_label}'")
-            test_partition, val_partition, partitioned_train_data = partition(
-                per_split_label_df.copy(),
-                per_stratum_variants_for_test,
-                skip_stratum_if_count_is_smaller_than,
-                export_dataframe,
-                split_label,
-            )
-
-            prep_by_stratum_and_export(
-                test_partition,
-                val_partition,
-                partitioned_train_data,
-                wtseq,
-                targets,
-                out_prefix,
-                str(ctx.params),
-                split_label,
-            )
-
-    else:
-        test_partition, val_partition, partitioned_train_data = partition(
-            aa_func_scores,
+    def prep_by_stratum_and_export_of_partition_label_and_df(partition_label, df):
+        split_df = partition(
+            df,
             per_stratum_variants_for_test,
             skip_stratum_if_count_is_smaller_than,
             export_dataframe,
+            partition_label,
         )
 
         prep_by_stratum_and_export(
-            test_partition,
-            val_partition,
-            partitioned_train_data,
-            wtseq,
-            targets,
-            out_prefix,
-            str(ctx.params),
-            None,
+            split_df, wtseq, targets, out_prefix, str(ctx.params), partition_label,
         )
+
+    if partition_by in aa_func_scores.columns:
+        for partition_label, per_partition_label_df in aa_func_scores.groupby(
+            partition_by
+        ):
+            click.echo(f"LOG: Partitioning data via '{partition_label}'")
+            prep_by_stratum_and_export_of_partition_label_and_df(
+                partition_label, per_partition_label_df.copy()
+            )
+    else:
+        prep_by_stratum_and_export_of_partition_label_and_df(None, aa_func_scores)
 
     click.echo(
         "LOG: Successfully finished prep and dumped BinaryMapDataset "
@@ -357,7 +341,7 @@ def evaluate(ctx, model_path, data_path, out, device):
     click.echo(f"LOG: loading testing data from {data_path}")
     data = from_pickle_file(data_path)
 
-    click.echo(f"LOG: evaluating test data with given model")
+    click.echo("LOG: evaluating test data with given model")
     evaluation = build_evaluation_dict(model, data.test, device)
 
     click.echo(f"LOG: pickle dump evalution data dictionary to {out}")
@@ -417,10 +401,10 @@ def scatter(ctx, model_path, data_path, out, device):
     click.echo(f"LOG: loading testing data from {data_path}")
     data = from_pickle_file(data_path)
 
-    click.echo(f"LOG: evaluating test data with given model")
+    click.echo("LOG: evaluating test data with given model")
     evaluation = build_evaluation_dict(model, data.test, device)
 
-    click.echo(f"LOG: plotting scatter correlation")
+    click.echo("LOG: plotting scatter correlation")
     plot_test_correlation(evaluation, model, out)
 
     click.echo(f"LOG: scatter plot finished and dumped to {out}")
@@ -448,7 +432,7 @@ def contour(ctx, model_path, start, end, nticks, out):
     if not isinstance(model, VanillaGGE):
         raise TypeError("Model must be a VanillaGGE")
 
-    click.echo(f"LOG: plotting contour")
+    click.echo("LOG: plotting contour")
     latent_space_contour_plot_2d(model, out, start, end, nticks)
 
     click.echo(f"LOG: Contour finished and dumped to {out}")
@@ -474,7 +458,7 @@ def beta(ctx, model_path, data_path, out):
         f"LOG: loaded data, evaluating beta coeff for wildtype seq: {data.test.wtseq}"
     )
 
-    click.echo(f"LOG: plotting beta coefficients")
+    click.echo("LOG: plotting beta coefficients")
     beta_coefficients(model, data.test, out)
 
     click.echo(f"LOG: Beta coefficients plotted and dumped to {out}")
