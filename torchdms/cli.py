@@ -5,6 +5,7 @@ import os
 import click
 import click_config_file
 import torch
+import torchdms
 from torchdms.analysis import Analysis
 from torchdms.data import (
     partition,
@@ -63,17 +64,25 @@ def process_dry_run(ctx, method_name, local_variables):
 
 
 # Entry point
-@click.group(context_settings={"help_option_names": ["-h", "--help"]})
+@click.group(
+    context_settings={"help_option_names": ["-h", "--help"]},
+    invoke_without_command=True,
+)
 @click.option(
     "--dry-run",
     is_flag=True,
     help="Only print paths and files to be made, rather than actually making them.",
 )
+@click.option(
+    "-v", "--version", is_flag=True, help="Print version and return.",
+)
 @click.pass_context
-def cli(ctx, dry_run):
+def cli(ctx, dry_run, version):
     """Train and evaluate neural networks on deep mutational scanning data."""
     ctx.ensure_object(dict)
     ctx.obj["dry_run"] = dry_run
+    if version:
+        print(f"torchdms version {torchdms.__version__}")
 
 
 @cli.command()
@@ -518,7 +527,8 @@ def go(ctx):
 @click.argument("choice_json_path", required=True, type=click.Path(exists=True))
 @click.pass_context
 def cartesian(ctx, choice_json_path):
-    """Take the cartesian product of the variable options in a config file."""
+    """Take the cartesian product of the variable options in a config file, and
+    put it all in an _output directory."""
     make_cartesian_product_hierarchy(
         from_json_file(choice_json_path), ctx.obj["dry_run"]
     )
