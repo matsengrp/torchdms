@@ -74,7 +74,11 @@ def process_dry_run(ctx, method_name, local_variables):
     help="Only print paths and files to be made, rather than actually making them.",
 )
 @click.option(
-    "-v", "--version", is_flag=True, help="Print version and return.",
+    "-v",
+    "--version",
+    is_flag=True,
+    help="Print version and exit. Note that as per `git describe`, the SHA is prefixed "
+    "by a `g` as per https://git-scm.com/docs/git-describe.",
 )
 @click.pass_context
 def cli(ctx, dry_run, version):
