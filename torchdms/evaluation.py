@@ -71,18 +71,18 @@ def error_summary_of_error_df(error_df, model):
     return error_summary_df
 
 
-def error_summary_of_data(data, model, partition_label=None):
+def error_summary_of_data(data, model, split_label=None):
     error_df = error_df_of_evaluation_dict(build_evaluation_dict(model, data))
     error_summary_df = error_summary_of_error_df(error_df, model)
-    if partition_label is not None:
-        error_summary_df["partition_label"] = partition_label
+    if split_label is not None:
+        error_summary_df["split_label"] = split_label
     return error_summary_df
 
 
 def complete_error_summary(data: SplitDataset, model):
     return pd.concat(
         [
-            error_summary_of_data(data, model, partition_label)
-            for partition_label, data in data.labeled_splits
+            error_summary_of_data(data, model, split_label)
+            for split_label, data in data.labeled_splits
         ]
     )
