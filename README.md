@@ -1,7 +1,6 @@
 # torchdms
 
-![build and test](https://github.com/matsengrp/torchdms/workflows/build%20and%20test/badge.svg)
-[![Docker Repository on Quay](https://quay.io/repository/matsengrp/torchdms/status "Docker Repository on Quay")](https://quay.io/repository/matsengrp/torchdms)
+[![build and test](https://github.com/matsengrp/torchdms/workflows/build%20and%20test/badge.svg)](https://github.com/matsengrp/torchdms/actions?query=workflow%3A%22build+and+test%22)
 
 
 ## What is this?

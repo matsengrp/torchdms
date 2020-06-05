@@ -135,16 +135,14 @@ def _cartesian_product_aux(list_of_choice_list_and_option_dict_pairs):
 
 
 def make_cartesian_product_hierarchy(dict_of_option_dicts, dry_run=False):
-    """Make a directory hierarchy expanding the option_dict via a cartesian
-    product."""
+    """Make a directory hierarchy, starting with `_output`, expanding the
+    option_dict via a cartesian product."""
     for master_key, option_dict in dict_of_option_dicts.items():
         for choice_list, choice_dict in cartesian_product(option_dict):
             final_dict = {master_key: choice_dict}
-            if choice_list:
-                directory_path = os.path.join(*choice_list)
-                json_path = os.path.join(directory_path, "config.json")
-            else:
-                breakpoint()
+            assert choice_list
+            directory_path = os.path.join("_output", *choice_list)
+            json_path = os.path.join(directory_path, "config.json")
             print(json_path)
             if not dry_run:
                 if not os.path.exists(directory_path):
