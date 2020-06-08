@@ -537,13 +537,10 @@ def go(ctx):
 
 @cli.command()
 @click.argument("choice_json_path", required=True, type=click.Path(exists=True))
-@click.pass_context
-def cartesian(ctx, choice_json_path):
+def cartesian(choice_json_path):
     """Take the cartesian product of the variable options in a config file, and
     put it all in an _output directory."""
-    make_cartesian_product_hierarchy(
-        from_json_file(choice_json_path), ctx.obj["dry_run"]
-    )
+    make_cartesian_product_hierarchy(from_json_file(choice_json_path))
 
 
 if __name__ == "__main__":
