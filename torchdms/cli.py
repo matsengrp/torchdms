@@ -1,7 +1,9 @@
-"""The command line interface."""
+""" Command line interface."""
+
 import pathlib
 import json
 import os
+import random
 import click
 import click_config_file
 import torch
@@ -52,17 +54,18 @@ def json_provider(file_path, cmd_name):
     return None
 
 
-def dry_run_option(command):
-    def callback(ctx, _, value):
-        ctx.ensure_object(dict)
-        ctx.obj["dry_run"] = value
-        return value
+def set_random_seed(seed):
+    if seed is not None:
+        click.echo(f"LOG: Setting random seed to {seed}.")
+        torch.manual_seed(seed)
+        random.seed(seed)
 
+
+def dry_run_option(command):
     return click.option(
         "--dry-run",
         is_flag=True,
         help="Only print paths and files to be made, rather than actually making them.",
-        callback=callback,
     )(command)
 
 
@@ -71,6 +74,15 @@ def process_dry_run(method_name, local_variables):
     if "ctx" in local_variables:
         del local_variables["ctx"]
     print(f"{method_name}{local_variables})")
+
+
+def seed_option(command):
+    return click.option(
+        "--seed",
+        type=int,
+        show_default=True,
+        help="Set random seed. Seed is uninitialized if not set.",
+    )(command)
 
 
 # Entry point
@@ -131,6 +143,7 @@ def cli(version):
     "independent datasets for partitioning; e.g. 'library'.",
 )
 @dry_run_option
+@seed_option
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
 @click.pass_context
 def prep(
@@ -143,6 +156,7 @@ def prep(
     export_dataframe,
     partition_by,
     dry_run,
+    seed,
 ):
     """Prepare data for training.
 
@@ -154,6 +168,7 @@ def prep(
     if dry_run:
         process_dry_run("prep", locals())
         return
+    set_random_seed(seed)
     click.echo(f"LOG: Targets: {targets}")
     click.echo(f"LOG: Loading substitution data for: {in_path}")
     aa_func_scores, wtseq = from_pickle_file(in_path)
@@ -221,12 +236,14 @@ def prep(
     help="Coefficient with which to l1-regularize all beta coefficients except for "
     "those to the first latent dimension.",
 )
+@seed_option
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
-def create(model_string, data_path, out_path, monotonic, beta_l1_coefficient):
+def create(model_string, data_path, out_path, monotonic, beta_l1_coefficient, seed):
     """Create a model.
 
     Model string describes the model, such as 'VanillaGGE(1,10)'.
     """
+    set_random_seed(seed)
     model = model_of_string(model_string, data_path, monotonic)
     model.beta_l1_coefficient = beta_l1_coefficient
 
@@ -280,6 +297,7 @@ def create(model_string, data_path, out_path, monotonic, beta_l1_coefficient):
     help="Number of epochs for full training.",
 )
 @dry_run_option
+@seed_option
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
 def train(
     model_path,
@@ -294,11 +312,13 @@ def train(
     independent_starts,
     epochs,
     dry_run,
+    seed,
 ):
     """Train a model, saving trained model to original location."""
     if dry_run:
         process_dry_run("train", locals())
         return
+    set_random_seed(seed)
 
     model = torch.load(model_path)
     data = from_pickle_file(data_path)

@@ -7,6 +7,7 @@
         "loss_weight_span": 0.01,
         "model_string": "VanillaGGE(1,sigmoid,10,relu)",
         "monotonic": null,
-        "prefix": "_ignore/run"
+        "prefix": "_ignore/run",
+        "seed": 42
     }
 }
