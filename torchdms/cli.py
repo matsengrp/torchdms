@@ -412,7 +412,7 @@ def error(ctx, model_path, data_path, out, show_points, device, include_details)
     error_df.to_csv(prefix + ".csv", index=False)
 
     error_summary_df = complete_error_summary(data, model)
-    if include_details:
+    if include_details and ctx.parent.default_map is not None:
         for key, value in ctx.parent.default_map.items():
             error_summary_df[key] = value
     error_summary_df.to_csv(prefix + "-summary.csv")
