@@ -391,8 +391,12 @@ def evaluate(model_path, data_path, out, device):
     "--show-points", is_flag=True, help="Show points in addition to LOWESS curves.",
 )
 @click.option("--device", type=str, required=False, default="cpu")
+@click.option(
+    "--include-details", is_flag=True, help="Include run details in error summary."
+)
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
-def error(model_path, data_path, out, show_points, device):
+@click.pass_context
+def error(ctx, model_path, data_path, out, show_points, device, include_details):
     """Evaluate and produce plot of error."""
     click.echo(f"LOG: Loading model from {model_path}")
     model = torch.load(model_path)
@@ -408,6 +412,9 @@ def error(model_path, data_path, out, show_points, device):
     error_df.to_csv(prefix + ".csv", index=False)
 
     error_summary_df = complete_error_summary(data, model)
+    if include_details:
+        for key, value in ctx.parent.default_map.items():
+            error_summary_df[key] = value
     error_summary_df.to_csv(prefix + "-summary.csv")
 
     click.echo(f"LOG: error plot finished and dumped to {out}")
