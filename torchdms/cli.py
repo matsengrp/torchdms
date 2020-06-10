@@ -1,4 +1,4 @@
-""" Command line interface."""
+"""Command line interface."""
 
 import pathlib
 import json
@@ -383,6 +383,19 @@ def evaluate(model_path, data_path, out, device):
     click.echo("evaluate finished")
 
 
+def default_map_of_ctx_or_parent(ctx):
+    """Get the default_map from this context or the parent context.
+
+    In our application, the default_map is parsed from the JSON
+    configuration file. The parent context can be useful if we are
+    invoked from another subcommand.
+    """
+    default_map = ctx.default_map
+    if default_map is None:
+        default_map = ctx.parent.default_map
+    return default_map
+
+
 @cli.command()
 @click.argument("model_path", type=click.Path(exists=True))
 @click.argument("data_path", type=click.Path(exists=True))
@@ -392,7 +405,9 @@ def evaluate(model_path, data_path, out, device):
 )
 @click.option("--device", type=str, required=False, default="cpu")
 @click.option(
-    "--include-details", is_flag=True, help="Include run details in error summary."
+    "--include-details",
+    is_flag=True,
+    help="Include details from config file in error summary.",
 )
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
 @click.pass_context
@@ -412,9 +427,11 @@ def error(ctx, model_path, data_path, out, show_points, device, include_details)
     error_df.to_csv(prefix + ".csv", index=False)
 
     error_summary_df = complete_error_summary(data, model)
-    if include_details and ctx.parent.default_map is not None:
-        for key, value in ctx.parent.default_map.items():
-            error_summary_df[key] = value
+    if include_details:
+        default_map = default_map_of_ctx_or_parent(ctx)
+        if default_map is not None:
+            for key, value in default_map.items():
+                error_summary_df[key] = value
     error_summary_df.to_csv(prefix + "-summary.csv")
 
     click.echo(f"LOG: error plot finished and dumped to {out}")
