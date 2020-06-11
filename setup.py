@@ -17,4 +17,15 @@ setup(
     entry_points={"console_scripts": ["tdms=torchdms.cli:cli"]},
     version=versioneer.get_version(),
     cmdclass=versioneer.get_cmdclass(),
+    install_requires=[
+        "click",
+        "click-config-file",
+        "dms_variants",
+        "matplotlib",
+        "plotnine==0.6.0",
+        "pytest",
+        "scipy",
+        "torch==1.4.0",
+        "versioneer",
+    ],
 )
