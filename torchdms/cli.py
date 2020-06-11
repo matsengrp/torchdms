@@ -288,11 +288,17 @@ def create(model_string, data_path, out_path, monotonic, beta_l1_coefficient, se
     default=5,
     show_default=True,
     help="Number of independent training starts to use. Each training start gets trained "
-    "10% of the full number of epochs and the best start is used for full training.",
+    "independently and the best start is used for full training.",
+)
+@click.option(
+    "--independent-start-epochs",
+    type=int,
+    help="How long to train each independent start. If not set, 10% of the full number "
+    "of epochs is used.",
 )
 @click.option(
     "--epochs",
-    default=5,
+    default=100,
     show_default=True,
     help="Number of epochs for full training.",
 )
@@ -310,6 +316,7 @@ def train(
     patience,
     device,
     independent_starts,
+    independent_start_epochs,
     epochs,
     dry_run,
     seed,
@@ -346,6 +353,7 @@ def train(
 
     training_params = {
         "independent_start_count": independent_starts,
+        "independent_start_epoch_count": independent_start_epochs,
         "epoch_count": epochs,
         "loss_fn": known_loss_fn[loss_fn],
         "patience": patience,
