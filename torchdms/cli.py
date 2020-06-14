@@ -69,8 +69,8 @@ def dry_run_option(command):
     )(command)
 
 
-def process_dry_run(method_name, local_variables):
-    """Return whether ctx tells us we are doing a dry run; print the call."""
+def print_method_name_and_locals(method_name, local_variables):
+    """Print method name and local variables."""
     if "ctx" in local_variables:
         del local_variables["ctx"]
     print(f"{method_name}{local_variables})")
@@ -166,7 +166,7 @@ def prep(
     another pickle file.
     """
     if dry_run:
-        process_dry_run("prep", locals())
+        print_method_name_and_locals("prep", locals())
         return
     set_random_seed(seed)
     click.echo(f"LOG: Targets: {targets}")
@@ -323,7 +323,7 @@ def train(
 ):
     """Train a model, saving trained model to original location."""
     if dry_run:
-        process_dry_run("train", locals())
+        print_method_name_and_locals("train", locals())
         return
     set_random_seed(seed)
 
