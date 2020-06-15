@@ -27,7 +27,7 @@ class Analysis:
         val_data,
         train_data_list,
         batch_size=500,
-        learning_rate=1e-3,
+        learning_rate=5e-3,
         device="cpu",
     ):
         self.batch_size = batch_size
