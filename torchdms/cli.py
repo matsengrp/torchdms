@@ -1,7 +1,9 @@
-"""The command line interface."""
+"""Command line interface."""
+
 import pathlib
 import json
 import os
+import random
 import click
 import click_config_file
 import torch
@@ -52,15 +54,35 @@ def json_provider(file_path, cmd_name):
     return None
 
 
-def process_dry_run(ctx, method_name, local_variables):
-    """Return whether ctx tells us we are doing a dry run; print the call."""
+def set_random_seed(seed):
+    if seed is not None:
+        click.echo(f"LOG: Setting random seed to {seed}.")
+        torch.manual_seed(seed)
+        random.seed(seed)
+
+
+def dry_run_option(command):
+    return click.option(
+        "--dry-run",
+        is_flag=True,
+        help="Only print paths and files to be made, rather than actually making them.",
+    )(command)
+
+
+def print_method_name_and_locals(method_name, local_variables):
+    """Print method name and local variables."""
     if "ctx" in local_variables:
         del local_variables["ctx"]
-    if ctx.obj["dry_run"]:
-        print(f"{method_name}{local_variables})")
-        return True
-    # else:
-    return False
+    print(f"{method_name}{local_variables})")
+
+
+def seed_option(command):
+    return click.option(
+        "--seed",
+        type=int,
+        show_default=True,
+        help="Set random seed. Seed is uninitialized if not set.",
+    )(command)
 
 
 # Entry point
@@ -69,22 +91,14 @@ def process_dry_run(ctx, method_name, local_variables):
     invoke_without_command=True,
 )
 @click.option(
-    "--dry-run",
-    is_flag=True,
-    help="Only print paths and files to be made, rather than actually making them.",
-)
-@click.option(
     "-v",
     "--version",
     is_flag=True,
     help="Print version and exit. Note that as per `git describe`, the SHA is prefixed "
-    "by a `g` as per https://git-scm.com/docs/git-describe.",
+    "by a `g`.",
 )
-@click.pass_context
-def cli(ctx, dry_run, version):
+def cli(version):
     """Train and evaluate neural networks on deep mutational scanning data."""
-    ctx.ensure_object(dict)
-    ctx.obj["dry_run"] = dry_run
     if version:
         print(f"torchdms version {torchdms.__version__}")
 
@@ -128,6 +142,8 @@ def cli(ctx, dry_run, version):
     help="Column name containing a feature by which the data should be split into "
     "independent datasets for partitioning; e.g. 'library'.",
 )
+@dry_run_option
+@seed_option
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
 @click.pass_context
 def prep(
@@ -139,6 +155,8 @@ def prep(
     skip_stratum_if_count_is_smaller_than,
     export_dataframe,
     partition_by,
+    dry_run,
+    seed,
 ):
     """Prepare data for training.
 
@@ -147,8 +165,10 @@ def prep(
     you specify. OUT_PREFIX is the location to dump the prepped data to
     another pickle file.
     """
-    if process_dry_run(ctx, "prep", locals()):
+    if dry_run:
+        print_method_name_and_locals("prep", locals())
         return
+    set_random_seed(seed)
     click.echo(f"LOG: Targets: {targets}")
     click.echo(f"LOG: Loading substitution data for: {in_path}")
     aa_func_scores, wtseq = from_pickle_file(in_path)
@@ -216,16 +236,14 @@ def prep(
     help="Coefficient with which to l1-regularize all beta coefficients except for "
     "those to the first latent dimension.",
 )
+@seed_option
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
-@click.pass_context
-def create(ctx, model_string, data_path, out_path, monotonic, beta_l1_coefficient):
+def create(model_string, data_path, out_path, monotonic, beta_l1_coefficient, seed):
     """Create a model.
 
     Model string describes the model, such as 'VanillaGGE(1,10)'.
     """
-    if process_dry_run(ctx, "create", locals()):
-        return
-
+    set_random_seed(seed)
     model = model_of_string(model_string, data_path, monotonic)
     model.beta_l1_coefficient = beta_l1_coefficient
 
@@ -270,18 +288,24 @@ def create(ctx, model_string, data_path, out_path, monotonic, beta_l1_coefficien
     default=5,
     show_default=True,
     help="Number of independent training starts to use. Each training start gets trained "
-    "10% of the full number of epochs and the best start is used for full training.",
+    "independently and the best start is used for full training.",
+)
+@click.option(
+    "--independent-start-epochs",
+    type=int,
+    help="How long to train each independent start. If not set, 10% of the full number "
+    "of epochs is used.",
 )
 @click.option(
     "--epochs",
-    default=5,
+    default=100,
     show_default=True,
     help="Number of epochs for full training.",
 )
+@dry_run_option
+@seed_option
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
-@click.pass_context
 def train(
-    ctx,
     model_path,
     data_path,
     loss_fn,
@@ -292,11 +316,17 @@ def train(
     patience,
     device,
     independent_starts,
+    independent_start_epochs,
     epochs,
+    dry_run,
+    seed,
 ):
     """Train a model, saving trained model to original location."""
-    if process_dry_run(ctx, "train", locals()):
+    if dry_run:
+        print_method_name_and_locals("train", locals())
         return
+    set_random_seed(seed)
+
     model = torch.load(model_path)
     data = from_pickle_file(data_path)
 
@@ -323,6 +353,7 @@ def train(
 
     training_params = {
         "independent_start_count": independent_starts,
+        "independent_start_epoch_count": independent_start_epochs,
         "epoch_count": epochs,
         "loss_fn": known_loss_fn[loss_fn],
         "patience": patience,
@@ -340,14 +371,11 @@ def train(
 @click.option("--out", required=True, type=click.Path())
 @click.option("--device", type=str, required=False, default="cpu")
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
-@click.pass_context
-def evaluate(ctx, model_path, data_path, out, device):
+def evaluate(model_path, data_path, out, device):
     """Evaluate the performance of a model.
 
     Dump to a dictionary containing the results.
     """
-    if process_dry_run(ctx, "evaluate", locals()):
-        return
     click.echo(f"LOG: Loading model from {model_path}")
     model = torch.load(model_path)
 
@@ -363,6 +391,19 @@ def evaluate(ctx, model_path, data_path, out, device):
     click.echo("evaluate finished")
 
 
+def default_map_of_ctx_or_parent(ctx):
+    """Get the default_map from this context or the parent context.
+
+    In our application, the default_map is parsed from the JSON
+    configuration file. The parent context can be useful if we are
+    invoked from another subcommand.
+    """
+    default_map = ctx.default_map
+    if default_map is None:
+        default_map = ctx.parent.default_map
+    return default_map
+
+
 @cli.command()
 @click.argument("model_path", type=click.Path(exists=True))
 @click.argument("data_path", type=click.Path(exists=True))
@@ -371,12 +412,15 @@ def evaluate(ctx, model_path, data_path, out, device):
     "--show-points", is_flag=True, help="Show points in addition to LOWESS curves.",
 )
 @click.option("--device", type=str, required=False, default="cpu")
+@click.option(
+    "--include-details",
+    is_flag=True,
+    help="Include details from config file in error summary.",
+)
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
 @click.pass_context
-def error(ctx, model_path, data_path, out, show_points, device):
+def error(ctx, model_path, data_path, out, show_points, device, include_details):
     """Evaluate and produce plot of error."""
-    if process_dry_run(ctx, "error", locals()):
-        return
     click.echo(f"LOG: Loading model from {model_path}")
     model = torch.load(model_path)
     prefix = os.path.splitext(out)[0]
@@ -391,6 +435,11 @@ def error(ctx, model_path, data_path, out, show_points, device):
     error_df.to_csv(prefix + ".csv", index=False)
 
     error_summary_df = complete_error_summary(data, model)
+    if include_details:
+        default_map = default_map_of_ctx_or_parent(ctx)
+        if default_map is not None:
+            for key, value in default_map.items():
+                error_summary_df[key] = value
     error_summary_df.to_csv(prefix + "-summary.csv")
 
     click.echo(f"LOG: error plot finished and dumped to {out}")
@@ -402,12 +451,9 @@ def error(ctx, model_path, data_path, out, show_points, device):
 @click.option("--out", required=True, type=click.Path())
 @click.option("--device", type=str, required=False, default="cpu")
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
-@click.pass_context
-def scatter(ctx, model_path, data_path, out, device):
+def scatter(model_path, data_path, out, device):
     """Evaluate and produce scatter plot of observed vs predicted targets on
     the test set provided."""
-    if process_dry_run(ctx, "scatter", locals()):
-        return
     click.echo(f"LOG: Loading model from {model_path}")
     model = torch.load(model_path)
 
@@ -430,15 +476,12 @@ def scatter(ctx, model_path, data_path, out, device):
 @click.option("--nticks", required=False, type=int, default=100, show_default=True)
 @click.option("--out", required=True, type=click.Path())
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
-@click.pass_context
-def contour(ctx, model_path, start, end, nticks, out):
+def contour(model_path, start, end, nticks, out):
     """Visualize the the latent space of a model.
 
     Make a contour plot with a two dimensional latent space by
     predicting across grid of values.
     """
-    if process_dry_run(ctx, "contour", locals()):
-        return
     click.echo(f"LOG: Loading model from {model_path}")
     model = torch.load(model_path)
 
@@ -456,11 +499,8 @@ def contour(ctx, model_path, start, end, nticks, out):
 @click.argument("data_path", type=click.Path(exists=True))
 @click.option("--out", required=True, type=click.Path())
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
-@click.pass_context
-def beta(ctx, model_path, data_path, out):
+def beta(model_path, data_path, out):
     """Plot beta coefficients as a heatmap."""
-    if process_dry_run(ctx, "beta", locals()):
-        return
     click.echo(f"LOG: Loading model from {model_path}")
     model = torch.load(model_path)
 
@@ -529,13 +569,10 @@ def go(ctx):
 
 @cli.command()
 @click.argument("choice_json_path", required=True, type=click.Path(exists=True))
-@click.pass_context
-def cartesian(ctx, choice_json_path):
+def cartesian(choice_json_path):
     """Take the cartesian product of the variable options in a config file, and
     put it all in an _output directory."""
-    make_cartesian_product_hierarchy(
-        from_json_file(choice_json_path), ctx.obj["dry_run"]
-    )
+    make_cartesian_product_hierarchy(from_json_file(choice_json_path))
 
 
 if __name__ == "__main__":

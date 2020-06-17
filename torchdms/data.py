@@ -183,7 +183,12 @@ def partition(
         to_put_in_test = cat_list_values(unique_variants, test_variants)
         aa_func_scores.loc[to_put_in_test, "in_test"] = True
 
-        variants_still_available = set(unique_variants.keys()).difference(test_variants)
+        # We convert this set difference into a sorted list, because sets have an
+        # unspecified order in Python. This is important to get deterministic behavior
+        # when we set the seed.
+        variants_still_available = sorted(
+            set(unique_variants.keys()).difference(test_variants)
+        )
         val_variants = random.sample(
             variants_still_available, per_stratum_variants_for_test
         )

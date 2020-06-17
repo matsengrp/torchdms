@@ -27,7 +27,7 @@ class Analysis:
         val_data,
         train_data_list,
         batch_size=500,
-        learning_rate=1e-3,
+        learning_rate=5e-3,
         device="cpu",
     ):
         self.batch_size = batch_size
@@ -179,6 +179,7 @@ class Analysis:
     def multi_train(
         self,
         independent_start_count,
+        independent_start_epoch_count,
         epoch_count,
         loss_fn,
         patience=10,
@@ -188,15 +189,19 @@ class Analysis:
         """Do pre-training on self.model using the specified number of
         independent starts, writing the best pre-trained model to the model
         path, then fully training it."""
-        pre_training_epoch_fraction = 0.1
-        pre_taining_epoch_count = int(pre_training_epoch_fraction * epoch_count)
+        if independent_start_epoch_count is None:
+            independent_start_epoch_count = math.ceil(0.1 * epoch_count)
         for independent_start_idx in range(1, independent_start_count + 1):
             click.echo(
                 f"LOG: Independent start {independent_start_idx}/{independent_start_count}"
             )
             self.model.randomize_parameters()
             self.train(
-                pre_taining_epoch_count, loss_fn, patience, min_lr, loss_weight_span
+                independent_start_epoch_count,
+                loss_fn,
+                patience,
+                min_lr,
+                loss_weight_span,
             )
         click.echo("LOG: Beginning full training.")
         self.model = torch.load(self.model_path)
