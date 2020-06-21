@@ -8,7 +8,7 @@ QUALITY_CUTOFFS = [-3.0, -1.0]
 
 
 def build_evaluation_dict(model, test_data, device="cpu"):
-    """Evaluate & Organize all testing data paired with metadata.
+    """Evaluate & organize all testing data paired with metadata.
 
     A function which takes a trained model, matching test
     dataset (BinaryMapDataset w/ the same input dimensions.)
@@ -23,6 +23,7 @@ def build_evaluation_dict(model, test_data, device="cpu"):
 
     assert test_data.feature_count() == model.input_size
     assert test_data.target_count() == model.output_size
+    model.eval()
     return {
         "samples": test_data.samples.detach().numpy(),
         "predictions": model(test_data.samples.to(device)).detach().numpy(),

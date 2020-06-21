@@ -133,3 +133,29 @@ def beta_coefficients(model, test_data, out):
         ax[latent_dim].set_yticklabels(alphabet)
     plt.tight_layout()
     fig.savefig(f"{out}")
+
+
+def df_with_named_columns_of_np_array(x, column_prefix):
+    return pd.DataFrame(
+        x, columns=[f"{column_prefix}_{col_idx}" for col_idx in range(x.shape[1])]
+    )
+
+
+def build_geplot_df(model, data, device="cpu"):
+    """Build data frame for making a global epistasis plot."""
+
+    assert data.feature_count() == model.input_size
+    assert data.target_count() == model.output_size
+    model.eval()
+    return pd.concat(
+        [
+            df_with_named_columns_of_np_array(
+                model.to_latent(data.samples.to(device)).detach().numpy(), "latent"
+            ),
+            df_with_named_columns_of_np_array(
+                model(data.samples.to(device)).detach().numpy(), "predictions"
+            ),
+            df_with_named_columns_of_np_array(data.targets.detach().numpy(), "targets"),
+        ],
+        axis=1,
+    )
