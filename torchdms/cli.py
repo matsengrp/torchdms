@@ -525,7 +525,8 @@ def beta(model_path, data_path, out):
 @click.option("--device", type=str, required=False, default="cpu")
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
 def geplot(model_path, data_path, out, device):
-    """Make a "global epistasis" plot showing the fit to the nonlinearity."""
+    """Make a "global epistasis" plot showing the fit to the nonlinearity for
+    the first latent dimension and the first output."""
     click.echo(f"LOG: Loading model from {model_path}")
     model = torch.load(model_path)
 
@@ -533,7 +534,6 @@ def geplot(model_path, data_path, out, device):
     data = from_pickle_file(data_path)
 
     df = build_geplot_df(model, data.test, device)
-    # df.to_csv(out, index=False)
     plot_geplot(df, out, model.str_summary())
 
 
