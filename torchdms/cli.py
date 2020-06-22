@@ -573,7 +573,7 @@ def go(ctx):
         out=scatter_path,
         **restrict_dict_to_params(ctx.default_map, scatter),
     )
-    ge_path = prefix + ".ge.pdf"
+    ge_path = prefix + ".ge.csv"
     ctx.invoke(
         geplot,
         model_path=model_path,
