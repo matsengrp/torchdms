@@ -28,6 +28,7 @@ from torchdms.plot import (
     build_geplot_df,
     latent_space_contour_plot_2d,
     plot_error,
+    plot_geplot,
     plot_test_correlation,
 )
 from torchdms.utils import (
@@ -532,7 +533,8 @@ def geplot(model_path, data_path, out, device):
     data = from_pickle_file(data_path)
 
     df = build_geplot_df(model, data.test, device)
-    df.to_csv(out, index=False)
+    # df.to_csv(out, index=False)
+    plot_geplot(df, out)
 
 
 def restrict_dict_to_params(d_to_restrict, cmd):
@@ -573,7 +575,7 @@ def go(ctx):
         out=scatter_path,
         **restrict_dict_to_params(ctx.default_map, scatter),
     )
-    ge_path = prefix + ".ge.csv"
+    ge_path = prefix + ".ge.pdf"
     ctx.invoke(
         geplot,
         model_path=model_path,

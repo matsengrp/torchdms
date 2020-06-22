@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 from plotnine import (
     aes,
+    geom_line,
     geom_point,
     geom_smooth,
     ggplot,
@@ -159,3 +160,12 @@ def build_geplot_df(model, data, device="cpu"):
         ],
         axis=1,
     )
+
+
+def plot_geplot(geplot_df, path):
+    theme_set(theme_seaborn(style="ticks", context="paper"))
+    (
+        ggplot(geplot_df)
+        + geom_point(aes("latent_0", "targets_0"), alpha=0.3)
+        + geom_line(aes("latent_0", "predictions_0"), color="red")
+    ).save(path)
