@@ -162,10 +162,11 @@ def build_geplot_df(model, data, device="cpu"):
     )
 
 
-def plot_geplot(geplot_df, path):
+def plot_geplot(geplot_df, path, title):
     theme_set(theme_seaborn(style="ticks", context="paper"))
     (
         ggplot(geplot_df)
         + geom_point(aes("latent_0", "targets_0"), alpha=0.3)
         + geom_line(aes("latent_0", "predictions_0"), color="red")
+        + ggtitle(title)
     ).save(path)

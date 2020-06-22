@@ -534,7 +534,7 @@ def geplot(model_path, data_path, out, device):
 
     df = build_geplot_df(model, data.test, device)
     # df.to_csv(out, index=False)
-    plot_geplot(df, out)
+    plot_geplot(df, out, model.str_summary())
 
 
 def restrict_dict_to_params(d_to_restrict, cmd):
