@@ -34,6 +34,21 @@ def to_json_file(obj, path):
         file.write("\n")
 
 
+def count_variants_with_a_mutation_towards_an_aa(series_of_aa_substitutions, aa):
+    """Count mutations towards a given amino acid.
+
+    If an amino acid appears multiple times at different positions, we
+    only count it once.
+    """
+    count = 0
+    for substitution_string in series_of_aa_substitutions:
+        for substitution in substitution_string.split():
+            if substitution[-1] == aa:
+                count += 1
+                break
+    return count
+
+
 def make_legal_filename(label):
     """Remove spaces and non-alphanumeric characters from a given string."""
     legal_filename = label.replace(" ", "_")

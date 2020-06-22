@@ -5,18 +5,22 @@ install:
 
 test: torchdms/data/_ignore/test_df.prepped.pkl
 	cd torchdms/data; tdms go --config test_config.json
-	rm torchdms/data/_ignore/test_df.prepped.pkl
 	pytest
+	rm torchdms/data/_ignore/test_df.prepped.pkl
+
+datatest: torchdms/data/_ignore/test_df.prepped.pkl
+	tdms validate torchdms/data/_ignore/test_df.prepped.pkl
+	tdms summarize --out-prefix torchdms/data/_ignore/test_df.summary torchdms/data/_ignore/test_df.prepped.pkl
 
 format:
 	black torchdms
 	docformatter --in-place torchdms/*py
 
 lint:
-	pylint torchdms && echo "LINTING PASS"
+	pylint **/[^_]*.py && echo "LINTING PASS"
 
 torchdms/data/_ignore/test_df.prepped.pkl: torchdms/data/test_df.pkl
 	mkdir -p torchdms/data/_ignore
 	tdms prep --per-stratum-variants-for-test 10 --skip-stratum-if-count-is-smaller-than 30 torchdms/data/test_df.pkl torchdms/data/_ignore/test_df.prepped affinity_score
 
-.PHONY: install test format lint
+.PHONY: install test datatest format lint

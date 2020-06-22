@@ -6,12 +6,16 @@ import os
 import random
 import click
 import click_config_file
+import pandas as pd
 import torch
 import torchdms
 from torchdms.analysis import Analysis
 from torchdms.data import (
+    check_onehot_encoding,
     partition,
     prep_by_stratum_and_export,
+    SplitDataset,
+    summarize_dms_variants_dataframe,
 )
 from torchdms.evaluation import (
     build_evaluation_dict,
@@ -19,16 +23,15 @@ from torchdms.evaluation import (
     error_df_of_evaluation_dict,
 )
 from torchdms.loss import l1, mse, rmse
-from torchdms.model import (
-    model_of_string,
-    VanillaGGE,
-)
+from torchdms.model import model_of_string
 from torchdms.plot import (
     beta_coefficients,
     build_geplot_df,
-    latent_space_contour_plot_2d,
+    build_2d_nonlinearity_df,
     plot_error,
     plot_geplot,
+    plot_2d_geplot,
+    plot_heatmap,
     plot_test_correlation,
 )
 from torchdms.utils import (
@@ -129,6 +132,9 @@ def cli(version):
     "number, we throw out the stratum completely.",
 )
 @click.option(
+    "--drop-nans", is_flag=True, help="Drop all rows that contain a nan.",
+)
+@click.option(
     "--export-dataframe",
     type=str,
     required=False,
@@ -155,6 +161,7 @@ def prep(
     targets,
     per_stratum_variants_for_test,
     skip_stratum_if_count_is_smaller_than,
+    drop_nans,
     export_dataframe,
     partition_by,
     dry_run,
@@ -172,9 +179,11 @@ def prep(
         return
     set_random_seed(seed)
     click.echo(f"LOG: Targets: {targets}")
-    click.echo(f"LOG: Loading substitution data for: {in_path}")
     aa_func_scores, wtseq = from_pickle_file(in_path)
-    click.echo("LOG: Successfully loaded data")
+
+    if drop_nans:
+        click.echo("LOG: dropping NaNs as requested.")
+        aa_func_scores.dropna(inplace=True)
 
     total_variants = len(aa_func_scores.iloc[:, 1])
     click.echo(f"LOG: There are {total_variants} total variants in this dataset")
@@ -210,9 +219,40 @@ def prep(
         prep_by_stratum_and_export_of_partition_label_and_df(None, aa_func_scores)
 
     click.echo(
-        "LOG: Successfully finished prep and dumped BinaryMapDataset "
+        "LOG: Successfully finished prep and dumped SplitDataset "
         f"object to {out_prefix}"
     )
+
+
+@cli.command()
+@click.argument("data_path", type=click.Path(exists=True))
+@click.option(
+    "--out-prefix",
+    type=click.Path(),
+    help="If this flag is set, make pdf plots summarizing the data.",
+)
+@click_config_file.configuration_option(implicit=False, provider=json_provider)
+def summarize(data_path, out_prefix):
+    """Report various summaries of the data."""
+    data = from_pickle_file(data_path)
+    if isinstance(data, list):
+        summarize_dms_variants_dataframe(data[0], out_prefix)
+    if isinstance(data, pd.DataFrame):
+        summarize_dms_variants_dataframe(data, out_prefix)
+    elif isinstance(data, SplitDataset):
+        data.summarize(out_prefix)
+    else:
+        raise NotImplementedError(f"Summary of {type(data).__name__}")
+
+
+@cli.command()
+@click.argument("data_path", type=click.Path(exists=True))
+def validate(data_path):
+    """Validate that a given data set is sane."""
+    splitdata = from_pickle_file(data_path)
+    for _, data in splitdata.labeled_splits:
+        check_onehot_encoding(data)
+    click.echo(f"Validated {data_path}")
 
 
 @cli.command()
@@ -299,6 +339,12 @@ def create(model_string, data_path, out_path, monotonic, beta_l1_coefficient, se
     "of epochs is used.",
 )
 @click.option(
+    "--simple-training",
+    is_flag=True,
+    help="Ignore all fancy training options: do bare-bones training for a fixed number "
+    "of epochs. Fail if data contains nans.",
+)
+@click.option(
     "--epochs",
     default=100,
     show_default=True,
@@ -319,6 +365,7 @@ def train(
     device,
     independent_starts,
     independent_start_epochs,
+    simple_training,
     epochs,
     dry_run,
     seed,
@@ -345,8 +392,14 @@ def train(
     analysis = Analysis(**analysis_params)
     known_loss_fn = {"l1": l1, "mse": mse, "rmse": rmse}
     if loss_fn not in known_loss_fn:
-        raise IOError(loss_fn + " not known")
+        raise IOError(f"Loss function '{loss_fn}' not known.")
+    loss_fn = known_loss_fn[loss_fn]
 
+    if simple_training:
+        click.echo(f"Starting simple training for {epochs} epochs.")
+        analysis.simple_train(epochs, loss_fn)
+        return
+    # else:
     if loss_weight_span is not None:
         click.echo(
             "NOTE: you are using loss decays, which assumes that you want to up-weight "
@@ -357,7 +410,7 @@ def train(
         "independent_start_count": independent_starts,
         "independent_start_epoch_count": independent_start_epochs,
         "epoch_count": epochs,
-        "loss_fn": known_loss_fn[loss_fn],
+        "loss_fn": loss_fn,
         "patience": patience,
         "min_lr": min_lr,
         "loss_weight_span": loss_weight_span,
@@ -378,19 +431,11 @@ def evaluate(model_path, data_path, out, device):
 
     Dump to a dictionary containing the results.
     """
-    click.echo(f"LOG: Loading model from {model_path}")
     model = torch.load(model_path)
-
-    click.echo(f"LOG: loading testing data from {data_path}")
     data = from_pickle_file(data_path)
-
-    click.echo("LOG: evaluating test data with given model")
     evaluation = build_evaluation_dict(model, data.test, device)
-
     click.echo(f"LOG: pickle dump evalution data dictionary to {out}")
     to_pickle_file(evaluation, out)
-
-    click.echo("evaluate finished")
 
 
 def default_map_of_ctx_or_parent(ctx):
@@ -423,17 +468,15 @@ def default_map_of_ctx_or_parent(ctx):
 @click.pass_context
 def error(ctx, model_path, data_path, out, show_points, device, include_details):
     """Evaluate and produce plot of error."""
-    click.echo(f"LOG: Loading model from {model_path}")
     model = torch.load(model_path)
     prefix = os.path.splitext(out)[0]
 
-    click.echo(f"LOG: loading testing data from {data_path}")
     data = from_pickle_file(data_path)
 
     evaluation = build_evaluation_dict(model, data.test, device)
     error_df = error_df_of_evaluation_dict(evaluation)
 
-    plot_error(error_df, out, show_points)
+    plot_error(error_df, out, model.str_summary(), show_points)
     error_df.to_csv(prefix + ".csv", index=False)
 
     error_summary_df = complete_error_summary(data, model)
@@ -456,44 +499,11 @@ def error(ctx, model_path, data_path, out, show_points, device, include_details)
 def scatter(model_path, data_path, out, device):
     """Evaluate and produce scatter plot of observed vs predicted targets on
     the test set provided."""
-    click.echo(f"LOG: Loading model from {model_path}")
     model = torch.load(model_path)
-
-    click.echo(f"LOG: loading data from {data_path}")
     data = from_pickle_file(data_path)
-
-    click.echo("LOG: evaluating test data with given model")
     evaluation = build_evaluation_dict(model, data.test, device)
-
-    click.echo("LOG: plotting scatter correlation")
     plot_test_correlation(evaluation, model, out)
-
     click.echo(f"LOG: scatter plot finished and dumped to {out}")
-
-
-@cli.command()
-@click.argument("model_path", type=click.Path(exists=True))
-@click.option("--start", required=False, type=int, default=0, show_default=True)
-@click.option("--end", required=False, type=int, default=1000, show_default=True)
-@click.option("--nticks", required=False, type=int, default=100, show_default=True)
-@click.option("--out", required=True, type=click.Path())
-@click_config_file.configuration_option(implicit=False, provider=json_provider)
-def contour(model_path, start, end, nticks, out):
-    """Visualize the the latent space of a model.
-
-    Make a contour plot with a two dimensional latent space by
-    predicting across grid of values.
-    """
-    click.echo(f"LOG: Loading model from {model_path}")
-    model = torch.load(model_path)
-
-    if not isinstance(model, VanillaGGE):
-        raise TypeError("Model must be a VanillaGGE")
-
-    click.echo("LOG: plotting contour")
-    latent_space_contour_plot_2d(model, out, start, end, nticks)
-
-    click.echo(f"LOG: Contour finished and dumped to {out}")
 
 
 @cli.command()
@@ -503,38 +513,47 @@ def contour(model_path, start, end, nticks, out):
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
 def beta(model_path, data_path, out):
     """Plot beta coefficients as a heatmap."""
-    click.echo(f"LOG: Loading model from {model_path}")
     model = torch.load(model_path)
-
-    click.echo(f"LOG: loading data from {data_path}")
     data = from_pickle_file(data_path)
     click.echo(
         f"LOG: loaded data, evaluating beta coeff for wildtype seq: {data.test.wtseq}"
     )
-
-    click.echo("LOG: plotting beta coefficients")
     beta_coefficients(model, data.test, out)
-
     click.echo(f"LOG: Beta coefficients plotted and dumped to {out}")
 
 
 @cli.command()
 @click.argument("model_path", type=click.Path(exists=True))
+@click.option("--out", required=True, type=click.Path())
+@click_config_file.configuration_option(implicit=False, provider=json_provider)
+def heatmap(model_path, out):
+    """Plot single mutant predictions as a heatmap."""
+    model = torch.load(model_path)
+    plot_heatmap(model, out)
+
+
+@cli.command()
+@click.argument("model_path", type=click.Path(exists=True))
 @click.argument("data_path", type=click.Path(exists=True))
+@click.option("--steps", required=False, type=int, default=100, show_default=True)
 @click.option("--out", required=True, type=click.Path())
 @click.option("--device", type=str, required=False, default="cpu")
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
-def geplot(model_path, data_path, out, device):
-    """Make a "global epistasis" plot showing the fit to the nonlinearity for
-    the first latent dimension and the first output."""
-    click.echo(f"LOG: Loading model from {model_path}")
+def geplot(model_path, data_path, steps, out, device):
+    """Make a "global epistasis" plot showing the fit to the nonlinearity."""
     model = torch.load(model_path)
-
-    click.echo(f"LOG: loading testing data from {data_path}")
     data = from_pickle_file(data_path)
-
-    df = build_geplot_df(model, data.test, device)
-    plot_geplot(df, out, model.str_summary())
+    geplot_df = build_geplot_df(model, data.test, device)
+    if model.latent_dim == 1:
+        plot_geplot(geplot_df, out, model.str_summary())
+    elif model.latent_dim == 2:
+        nonlinearity_df = build_2d_nonlinearity_df(model, geplot_df, steps)
+        plot_2d_geplot(model, geplot_df, nonlinearity_df, out)
+    else:
+        click.echo(
+            "WARNING: I don't know how to make a GE plot for any other dims other than 1 "
+            "and 2."
+        )
 
 
 def restrict_dict_to_params(d_to_restrict, cmd):
@@ -588,6 +607,13 @@ def go(ctx):
         model_path=model_path,
         out=beta_path,
         **restrict_dict_to_params(ctx.default_map, beta),
+    )
+    heatmap_path = prefix + ".heat.pdf"
+    ctx.invoke(
+        heatmap,
+        model_path=model_path,
+        out=heatmap_path,
+        **restrict_dict_to_params(ctx.default_map, heatmap),
     )
     sentinel_path = prefix + ".sentinel"
     click.echo(f"LOG: `tdms go` completed; touching {sentinel_path}")

@@ -6,6 +6,7 @@ import click
 import torch
 from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import ReduceLROnPlateau
+from torchdms.data import BinaryMapDataset
 from torchdms.model import monotonic_params_from_latent_space
 
 
@@ -81,7 +82,7 @@ class Analysis:
     def train(
         self, epoch_count, loss_fn, patience=10, min_lr=1e-5, loss_weight_span=None
     ):
-        """Train self.model."""
+        """Train self.model using all the bells and whistles."""
         assert len(self.train_datasets) > 0
         target_count = self.train_datasets[0].target_count()
         assert self.model.output_size == target_count
@@ -124,7 +125,6 @@ class Analysis:
         self.model.to(self.device)
 
         def step_model():
-            per_epoch_loss = 0.0
             for _ in range(batch_count):
                 optimizer.zero_grad()
                 per_batch_loss = 0.0
@@ -151,7 +151,6 @@ class Analysis:
                     if self.model.monotonic_sign:
                         for param in monotonic_params_from_latent_space(self.model):
                             param.data.clamp_(0)
-                per_epoch_loss += per_batch_loss
                 optimizer.step()
 
             val_samples = self.val_data.samples.to(self.device)
@@ -206,3 +205,60 @@ class Analysis:
         click.echo("LOG: Beginning full training.")
         self.model = torch.load(self.model_path)
         self.train(epoch_count, loss_fn, patience, min_lr, loss_weight_span)
+
+    def simple_train(self, epoch_count, loss_fn):
+        """Bare-bones training of self.model.
+
+        This traning doesn't even handle nans. If you want that behavior, just use
+        self.loss_of_targets_and_prediction rather than loss_fn directly.
+
+        We also cat together all of the data rather than getting gradients on a
+        per-stratum basis. If you don't want this behavior use
+        self.train_infinite_loaders rather than the train_infinite_loaders defined
+        below.
+        """
+        assert len(self.train_datasets) > 0
+        target_count = self.train_datasets[0].target_count()
+        assert self.model.output_size == target_count
+
+        batch_count = 1 + max(map(len, self.train_datasets)) // self.batch_size
+        self.model.train()  # Sets model to training mode.
+        optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
+        self.model.to(self.device)
+
+        train_infinite_loaders = [
+            make_data_loader_infinite(
+                DataLoader(
+                    BinaryMapDataset.cat(self.train_datasets),
+                    batch_size=self.batch_size,
+                    shuffle=True,
+                )
+            )
+        ]
+
+        def step_model():
+            for _ in range(batch_count):
+                optimizer.zero_grad()
+                for train_infinite_loader in train_infinite_loaders:
+                    batch = next(train_infinite_loader)
+                    samples = batch["samples"].to(self.device)
+                    predictions = self.model(samples)
+                    loss = loss_fn(batch["targets"], predictions)
+
+                    # Note that here we are using gradient accumulation: calling
+                    # backward for each loader before clearing the gradient via
+                    # zero_grad. See, e.g. https://link.medium.com/wem03OhPH5
+                    loss.backward()
+
+                    # if the model is monotonic, we clamp all negative parameters
+                    # after the latent space ecluding all bias parameters.
+                    if self.model.monotonic_sign:
+                        for param in monotonic_params_from_latent_space(self.model):
+                            param.data.clamp_(0)
+                optimizer.step()
+
+        with click.progressbar(range(epoch_count)) as progress_bar:
+            for _ in progress_bar:
+                step_model()
+
+        torch.save(self.model, self.model_path)

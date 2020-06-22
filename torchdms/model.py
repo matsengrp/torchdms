@@ -1,6 +1,9 @@
 """Our models."""
+from abc import abstractmethod
 import re
 import click
+import numpy as np
+import pandas as pd
 import torch
 import torch.nn as nn
 from torchdms.utils import from_pickle_file
@@ -11,7 +14,127 @@ def identity(x):
     return x
 
 
-class VanillaGGE(nn.Module):
+class TorchdmsModel(nn.Module):
+    """A superclass for our models to combine shared behavior."""
+
+    def __init__(
+        self, input_size, target_names, alphabet,
+    ):
+        super(TorchdmsModel, self).__init__()
+        self.input_size = input_size
+        self.target_names = target_names
+        self.output_size = len(target_names)
+        self.alphabet = alphabet
+
+    def __str__(self):
+        return (
+            super(TorchdmsModel, self).__str__() + "\n" + self.characteristics.__str__()
+        )
+
+    @property
+    @abstractmethod
+    def characteristics(self):
+        pass
+
+    @abstractmethod
+    def forward(self, x):  # pylint: disable=arguments-differ
+        pass
+
+    @abstractmethod
+    def regularization_loss(self):
+        pass
+
+    @abstractmethod
+    def str_summary(self):
+        pass
+
+    @abstractmethod
+    def to_latent(self, x):
+        pass
+
+    @property
+    def sequence_length(self):
+        alphabet_length = len(self.alphabet)
+        assert self.input_size % alphabet_length == 0
+        return self.input_size // alphabet_length
+
+    def numpy_single_mutant_predictions(self):
+        """Return the single mutant predictions as a numpy array of shape (AAs,
+        sites, outputs)."""
+        input_tensor = torch.zeros([self.input_size])
+
+        def forward_on_ith_basis_vector(i):
+            input_tensor[i] = 1.0
+            return_value = self.forward(input_tensor).detach().numpy()
+            input_tensor[i] = 0.0
+            return return_value
+
+        # flat_results first indexes through the outputs, then the alphabet, then the
+        # sites.
+        flat_results = np.concatenate(
+            [forward_on_ith_basis_vector(i) for i in range(input_tensor.shape[0])]
+        )
+
+        # Reshape takes its arguments from right to left. So in this case:
+        # - take entries until we have output_size of them
+        # - take those until we have len(alphabet) of them
+        # ... and we will have sequence_length of those.
+        # This is the transpose of what we want, so we transpose the first two items.
+        return flat_results.reshape(
+            (self.sequence_length, len(self.alphabet), self.output_size)
+        ).transpose(1, 0, 2)
+
+    def single_mutant_predictions(self):
+        """Return the single mutant predictions as a list (across outputs) of
+        Pandas dataframes."""
+        numpy_predictions = self.numpy_single_mutant_predictions()
+        return [
+            pd.DataFrame(
+                numpy_predictions[:, :, output_idx],
+                index=pd.Index(self.alphabet, name="AA"),
+                columns=pd.Index(range(self.sequence_length), name="site"),
+            )
+            for output_idx in range(numpy_predictions.shape[-1])
+        ]
+
+    def randomize_parameters(self):
+        """Randomize model parameters."""
+        for layer_name in self.layers:
+            getattr(self, layer_name).reset_parameters()
+        if self.monotonic_sign is not None:
+            self.reflect_monotonic_params()
+
+
+class LinearModel(TorchdmsModel):
+    """The simplest model."""
+
+    def __init__(
+        self, input_size, target_names, alphabet,
+    ):
+        super(LinearModel, self).__init__(input_size, target_names, alphabet)
+        self.layer = nn.Linear(self.input_size, self.output_size)
+        self.layers = ["layer"]
+        self.monotonic_sign = None
+        self.latent_dim = None
+
+    @property
+    def characteristics(self):
+        return {}
+
+    def forward(self, x):  # pylint: disable=arguments-differ
+        return self.layer(x)
+
+    def regularization_loss(self):
+        return 0.0
+
+    def str_summary(self):
+        return "Linear"
+
+    def to_latent(self, x):
+        return self.forward(x)
+
+
+class VanillaGGE(TorchdmsModel):
     """Make it just how you like it.
 
     input size can be inferred for the train/test datasets
@@ -37,14 +160,13 @@ class VanillaGGE(nn.Module):
         input_size,
         layer_sizes,
         activations,
-        output_size,
+        target_names,
+        alphabet,
         monotonic_sign=None,
         beta_l1_coefficient=0.0,
     ):
-        super(VanillaGGE, self).__init__()
+        super(VanillaGGE, self).__init__(input_size, target_names, alphabet)
         self.monotonic_sign = monotonic_sign
-        self.input_size = input_size
-        self.output_size = output_size
         self.layers = []
         self.activations = activations
         self.beta_l1_coefficient = beta_l1_coefficient
@@ -56,7 +178,7 @@ class VanillaGGE(nn.Module):
         # additive model
         if len(layer_sizes) == 0:
             self.layers.append(layer_name)
-            setattr(self, layer_name, nn.Linear(input_size, output_size))
+            setattr(self, layer_name, nn.Linear(input_size, self.output_size))
 
         # all other models
         else:
@@ -72,7 +194,7 @@ class VanillaGGE(nn.Module):
             # final layer
             layer_name = "output_layer"
             self.layers.append(layer_name)
-            setattr(self, layer_name, nn.Linear(layer_sizes[-1], output_size))
+            setattr(self, layer_name, nn.Linear(layer_sizes[-1], self.output_size))
 
         if self.monotonic_sign is not None:
             # If monotonic, we want to initialize all parameters
@@ -103,6 +225,14 @@ class VanillaGGE(nn.Module):
     def is_linear(self):
         return len(self.internal_layer_dimensions) == 0
 
+    @property
+    def latent_dim(self):
+        dims = self.internal_layer_dimensions
+        if len(dims) == 0:
+            return 0
+        # else:
+        return dims[0]
+
     def str_summary(self):
         """A one-line summary of the model."""
         if self.is_linear:
@@ -120,9 +250,6 @@ class VanillaGGE(nn.Module):
             ]
         )
 
-    def __str__(self):
-        return super(VanillaGGE, self).__str__() + "\n" + self.characteristics.__str__()
-
     def forward_of_layers_and_activations(self, layers, activations, x):
         out = x
         for layer_name, activation in zip(layers[:-1], activations):
@@ -137,7 +264,7 @@ class VanillaGGE(nn.Module):
     def forward(self, x):  # pylint: disable=arguments-differ
         return self.forward_of_layers_and_activations(self.layers, self.activations, x)
 
-    def from_latent(self, x):
+    def from_latent_to_output(self, x):
         """Evaluate the mapping from the latent space to output."""
         if self.is_linear:
             return x
@@ -184,13 +311,6 @@ class VanillaGGE(nn.Module):
             # counterpart
             param.data[param.data < 0] *= -1
 
-    def randomize_parameters(self):
-        """Randomize model parameters."""
-        for layer_name in self.layers:
-            getattr(self, layer_name).reset_parameters()
-        if self.monotonic_sign is not None:
-            self.reflect_monotonic_params()
-
 
 def monotonic_params_from_latent_space(model: VanillaGGE):
     """following the hueristic that the input layer of a network is named
@@ -213,6 +333,7 @@ def monotonic_params_from_latent_space(model: VanillaGGE):
 
 
 KNOWN_MODELS = {
+    "Linear": LinearModel,
     "VanillaGGE": VanillaGGE,
 }
 
@@ -264,9 +385,16 @@ def model_of_string(model_string, data_path, monotonic_sign):
             test_dataset.feature_count(),
             layers,
             activations,
-            test_dataset.targets.shape[1],
+            test_dataset.target_names,
+            alphabet=test_dataset.alphabet,
             monotonic_sign=monotonic_sign,
         )
+    elif model_name == "Linear":
+        model = LinearModel(
+            test_dataset.feature_count(),
+            test_dataset.target_names,
+            alphabet=test_dataset.alphabet,
+        )
     else:
-        model = KNOWN_MODELS[model_name](test_dataset.feature_count())
+        raise NotImplementedError(model_name)
     return model
