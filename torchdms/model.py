@@ -225,7 +225,7 @@ def activation_of_string(string):
         return getattr(torch, string)
     # else:
     if hasattr(torch.nn.functional, string):
-        return getattr(torch, string)
+        return getattr(torch.nn.functional, string)
     # else:
     raise IOError(f"Don't know activation named {string}.")
 
