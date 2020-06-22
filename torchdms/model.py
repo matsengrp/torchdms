@@ -99,9 +99,13 @@ class VanillaGGE(nn.Module):
             if "input" not in layer
         ]
 
+    @property
+    def is_linear(self):
+        return len(self.internal_layer_dimensions) == 0
+
     def str_summary(self):
         """A one-line summary of the model."""
-        if len(self.internal_layer_dimensions) == 0:
+        if self.is_linear:
             return "linear"
         # else:
         activation_names = [activation.__name__ for activation in self.activations]
@@ -119,16 +123,33 @@ class VanillaGGE(nn.Module):
     def __str__(self):
         return super(VanillaGGE, self).__str__() + "\n" + self.characteristics.__str__()
 
-    def forward(self, x):  # pylint: disable=arguments-differ
+    def forward_of_layers_and_activations(self, layers, activations, x):
         out = x
-        for layer_name, activation in zip(self.layers[:-1], self.activations):
+        for layer_name, activation in zip(layers[:-1], activations):
             out = activation(getattr(self, layer_name)(out))
         # The last layer acts without an activation, which is on purpose because we
         # don't want to be limited to the range of the activation.
-        out = getattr(self, self.layers[-1])(out)
+        out = getattr(self, layers[-1])(out)
         if self.monotonic_sign:
             out *= self.monotonic_sign
         return out
+
+    def forward(self, x):  # pylint: disable=arguments-differ
+        return self.forward_of_layers_and_activations(self.layers, self.activations, x)
+
+    def from_latent(self, x):
+        """Evaluate the mapping from the latent space to output."""
+        if self.is_linear:
+            return x
+        # else:
+        out = self.activations[0](x)
+        return self.forward_of_layers_and_activations(
+            self.layers[1:], self.activations[1:], out
+        )
+
+    def to_latent(self, x):
+        """Map input into latent space."""
+        return getattr(self, self.layers[0])(x)
 
     def regularization_loss(self):
         """L1-penalize betas for all latent space dimensions except for the
@@ -202,6 +223,9 @@ def activation_of_string(string):
     # else:
     if hasattr(torch, string):
         return getattr(torch, string)
+    # else:
+    if hasattr(torch.nn.functional, string):
+        return getattr(torch.nn.functional, string)
     # else:
     raise IOError(f"Don't know activation named {string}.")
 

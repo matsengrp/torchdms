@@ -18,22 +18,24 @@ from torchdms.evaluation import (
     complete_error_summary,
     error_df_of_evaluation_dict,
 )
+from torchdms.loss import l1, mse, rmse
 from torchdms.model import (
     model_of_string,
     VanillaGGE,
 )
-from torchdms.loss import l1, mse, rmse
+from torchdms.plot import (
+    beta_coefficients,
+    build_geplot_df,
+    latent_space_contour_plot_2d,
+    plot_error,
+    plot_geplot,
+    plot_test_correlation,
+)
 from torchdms.utils import (
     from_pickle_file,
     from_json_file,
     make_cartesian_product_hierarchy,
     to_pickle_file,
-)
-from torchdms.plot import (
-    beta_coefficients,
-    latent_space_contour_plot_2d,
-    plot_error,
-    plot_test_correlation,
 )
 
 
@@ -457,7 +459,7 @@ def scatter(model_path, data_path, out, device):
     click.echo(f"LOG: Loading model from {model_path}")
     model = torch.load(model_path)
 
-    click.echo(f"LOG: loading testing data from {data_path}")
+    click.echo(f"LOG: loading data from {data_path}")
     data = from_pickle_file(data_path)
 
     click.echo("LOG: evaluating test data with given model")
@@ -504,8 +506,7 @@ def beta(model_path, data_path, out):
     click.echo(f"LOG: Loading model from {model_path}")
     model = torch.load(model_path)
 
-    # the test data holds some metadata
-    click.echo(f"LOG: loading testing data from {data_path}")
+    click.echo(f"LOG: loading data from {data_path}")
     data = from_pickle_file(data_path)
     click.echo(
         f"LOG: loaded data, evaluating beta coeff for wildtype seq: {data.test.wtseq}"
@@ -515,6 +516,25 @@ def beta(model_path, data_path, out):
     beta_coefficients(model, data.test, out)
 
     click.echo(f"LOG: Beta coefficients plotted and dumped to {out}")
+
+
+@cli.command()
+@click.argument("model_path", type=click.Path(exists=True))
+@click.argument("data_path", type=click.Path(exists=True))
+@click.option("--out", required=True, type=click.Path())
+@click.option("--device", type=str, required=False, default="cpu")
+@click_config_file.configuration_option(implicit=False, provider=json_provider)
+def geplot(model_path, data_path, out, device):
+    """Make a "global epistasis" plot showing the fit to the nonlinearity for
+    the first latent dimension and the first output."""
+    click.echo(f"LOG: Loading model from {model_path}")
+    model = torch.load(model_path)
+
+    click.echo(f"LOG: loading testing data from {data_path}")
+    data = from_pickle_file(data_path)
+
+    df = build_geplot_df(model, data.test, device)
+    plot_geplot(df, out, model.str_summary())
 
 
 def restrict_dict_to_params(d_to_restrict, cmd):
@@ -554,6 +574,13 @@ def go(ctx):
         model_path=model_path,
         out=scatter_path,
         **restrict_dict_to_params(ctx.default_map, scatter),
+    )
+    ge_path = prefix + ".ge.pdf"
+    ctx.invoke(
+        geplot,
+        model_path=model_path,
+        out=ge_path,
+        **restrict_dict_to_params(ctx.default_map, geplot),
     )
     beta_path = prefix + ".beta.pdf"
     ctx.invoke(
