@@ -1,26 +1,58 @@
 """Plotting functions."""
 
+import math
 import os.path
 import warnings
 import dms_variants as dms
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import torch
 from plotnine import (
     aes,
+    facet_grid,
+    geom_bar,
     geom_line,
     geom_point,
+    geom_density,
     geom_smooth,
+    geom_tile,
     ggplot,
     ggtitle,
     save_as_pdf_pages,
+    scale_x_discrete,
+    scale_y_discrete,
+    theme,
     theme_seaborn,
     theme_set,
+    theme_void,
 )
 import scipy.stats as stats
 
 
-def plot_error(error_df, out_path, show_points=False):
+def plot_exploded_dms_variants_dataframe_summary(exploded_df, out_path):
+    plots = [
+        (
+            ggplot(exploded_df, aes("site"))
+            + geom_bar()
+            + facet_grid("mut_AA~")
+            + theme_void()
+            + theme(figure_size=(10, 8))
+            + ggtitle("distribution of mutant positions")
+        ),
+        (
+            ggplot(exploded_df, aes("affinity_score"))
+            + geom_density(fill="steelblue")
+            + facet_grid("mut_AA~", scales="free_y")
+            + theme_void()
+            + theme(figure_size=(10, 8))
+            + ggtitle("distribution of affinity score")
+        ),
+    ]
+    save_as_pdf_pages(plots, filename=out_path, verbose=False)
+
+
+def plot_error(error_df, out_path, title_prefix, show_points=False):
     theme_set(theme_seaborn(style="whitegrid", context="paper"))
     base_plot = [
         aes(x="observed", y="abs_error", color="n_aa_substitutions"),
@@ -30,7 +62,7 @@ def plot_error(error_df, out_path, show_points=False):
         base_plot.append(geom_point(alpha=0.1))
     warnings.filterwarnings("ignore")
     plots = [
-        ggplot(per_target_error_df) + base_plot + ggtitle(target)
+        ggplot(per_target_error_df) + base_plot + ggtitle(f"{target}: {title_prefix}")
         for target, per_target_error_df in error_df.groupby("target")
     ]
     save_as_pdf_pages(plots, filename=out_path, verbose=False)
@@ -56,7 +88,9 @@ def plot_test_correlation(evaluation_dict, model, out, cmap="plasma"):
         ax[target].set_xlabel("Predicted")
         ax[target].set_ylabel("Observed")
         target_name = evaluation_dict["target_names"][target]
-        plot_title = f"Test Data for {target_name}\npearsonr = {round(corr[0],3)}"
+        plot_title = (
+            f"{target_name}: {model.str_summary()}\npearsonr = {round(corr[0],3)}"
+        )
         ax[target].set_title(plot_title)
         print(plot_title)
 
@@ -81,17 +115,54 @@ def plot_test_correlation(evaluation_dict, model, out, cmap="plasma"):
     fig.savefig(out)
 
 
-def latent_space_contour_plot_2d(model, out, start=0, end=1000, nticks=100):
-    """This function takes in an Object of type torch.model.VanillaGGE.
+def pretty_breaks(break_count):
+    def make_pretty_breaks(passed_breaks):
+        return passed_breaks[:: math.ceil(len(passed_breaks) / break_count)]
 
-    It uses the `from_latent()` Method to produce a matrix X of
-    predictions given combinations or parameters (X_{i}_{j}) fed into
-    the latent space of the model.
+    return make_pretty_breaks
+
+
+def plot_heatmap(model, path):
+    """This function takes in a model and plots the single mutant predictions.
+
+    We plot this as a heatmap where the rows are substitutions
+    nucleotides, and the columns are the sequence positions for each
+    mutation.
     """
+    theme_set(theme_seaborn(style="whitegrid", context="paper"))
+    predictions = model.single_mutant_predictions()
 
-    raise NotImplementedError(
-        "This is currently broken, with the idea of reimplementing "
-        "it like https://github.com/matsengrp/torchdms/issues/26"
+    # This code does put nans where they should go. However, plotnine doesn't display
+    # these as gray or anything useful. Punting.
+    # for prediction in predictions:
+    #     for column_position, aa in enumerate(test_data.wtseq):
+    #         prediction.loc[aa, column_position] = np.nan
+
+    def make_plot_for(output_idx, prediction):
+        molten = prediction.reset_index().melt(id_vars=["AA"])
+        return [
+            (
+                ggplot(molten, aes("site", "AA", fill="value"))
+                + geom_tile()
+                + scale_x_discrete(breaks=pretty_breaks(5))
+                + scale_y_discrete(limits=list(reversed(model.alphabet)))
+                + ggtitle(f"{model.target_names[output_idx]}: {model.str_summary()}")
+            ),
+            (
+                ggplot(molten, aes("value"))
+                + geom_density(fill="steelblue")
+                + facet_grid("AA~", scales="free_y")
+                + theme_void()
+                + ggtitle(f"{model.target_names[output_idx]}: {model.str_summary()}")
+            ),
+        ]
+
+    plots = []
+    for output_idx, prediction in enumerate(predictions):
+        plots += make_plot_for(output_idx, prediction)
+
+    save_as_pdf_pages(
+        plots, filename=path, verbose=False,
     )
 
 
@@ -125,7 +196,8 @@ def beta_coefficients(model, test_data, out):
         ax = [ax]
     for latent_dim in range(num_latent_dims):
         latent = beta_coefficient_data[latent_dim].numpy()
-        beta_map = latent.reshape(len(bmap.alphabet), len(test_data.wtseq))
+        # See model.numpy_single_mutant_predictions for why this transpose is here.
+        beta_map = latent.reshape(len(test_data.wtseq), len(bmap.alphabet)).transpose()
         beta_map[wtmask] = np.nan
         mapp = ax[latent_dim].imshow(beta_map, aspect="auto")
         fig.colorbar(mapp, ax=ax[latent_dim], orientation="horizontal")
@@ -133,6 +205,7 @@ def beta_coefficients(model, test_data, out):
         ax[latent_dim].set_yticks(ticks=range(0, 21))
         ax[latent_dim].set_yticklabels(alphabet)
     plt.tight_layout()
+    fig.suptitle(f"{model.str_summary()}")
     fig.savefig(f"{out}")
 
 
@@ -144,7 +217,6 @@ def df_with_named_columns_of_np_array(x, column_prefix):
 
 def build_geplot_df(model, data, device="cpu"):
     """Build data frame for making a global epistasis plot."""
-
     assert data.feature_count() == model.input_size
     assert data.target_count() == model.output_size
     model.eval()
@@ -154,9 +226,9 @@ def build_geplot_df(model, data, device="cpu"):
                 model.to_latent(data.samples.to(device)).detach().numpy(), "latent"
             ),
             df_with_named_columns_of_np_array(
-                model(data.samples.to(device)).detach().numpy(), "predictions"
+                model(data.samples.to(device)).detach().numpy(), "prediction"
             ),
-            df_with_named_columns_of_np_array(data.targets.detach().numpy(), "targets"),
+            df_with_named_columns_of_np_array(data.targets.detach().numpy(), "target"),
         ],
         axis=1,
     )
@@ -164,9 +236,55 @@ def build_geplot_df(model, data, device="cpu"):
 
 def plot_geplot(geplot_df, path, title):
     theme_set(theme_seaborn(style="ticks", context="paper"))
+    alpha = 0.3
     (
         ggplot(geplot_df)
-        + geom_point(aes("latent_0", "targets_0"), alpha=0.3)
-        + geom_line(aes("latent_0", "predictions_0"), color="red")
+        + geom_point(aes("latent_0", "target_0"), alpha=alpha)
+        + geom_line(aes("latent_0", "prediction_0"), color="red")
         + ggtitle(title)
     ).save(path)
+
+
+def series_min_max(series):
+    return series.min(), series.max()
+
+
+def build_2d_nonlinearity_df(model, geplot_df, steps):
+    """Build a dataframe that contains the value of the nonlinearity for the
+    domain of the range of values seen in the geplot_df."""
+    latent_keys = ["latent_0", "latent_1"]
+    latent_domains = [series_min_max(geplot_df[key]) for key in latent_keys]
+    inputs = torch.cartesian_prod(
+        torch.linspace(*latent_domains[0], steps=steps),
+        torch.linspace(*latent_domains[1], steps=steps),
+    )
+    predictions = df_with_named_columns_of_np_array(
+        model.from_latent_to_output(inputs).detach().numpy(), "prediction"
+    )
+    return pd.concat(
+        [pd.DataFrame(inputs.detach().numpy(), columns=latent_keys), predictions],
+        axis=1,
+    )
+
+
+def plot_2d_geplot(model, geplot_df, nonlinearity_df, path):
+    def make_plot_for(output_idx):
+        return (
+            ggplot()
+            + geom_tile(
+                aes("latent_0", "latent_1", fill=f"prediction_{output_idx}"),
+                nonlinearity_df,
+            )
+            + geom_point(
+                aes("latent_0", "latent_1", fill=f"target_{output_idx}"),
+                geplot_df,
+                stroke=0.05,
+            )
+            + ggtitle(f"{model.target_names[output_idx]}: {model.str_summary()}")
+        )
+
+    save_as_pdf_pages(
+        [make_plot_for(output_idx) for output_idx in range(len(model.target_names))],
+        filename=path,
+        verbose=False,
+    )

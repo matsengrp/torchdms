@@ -6,7 +6,10 @@ import random
 import pandas as pd
 import pkg_resources
 from torchdms.data import partition
-from torchdms.utils import from_pickle_file
+from torchdms.utils import (
+    count_variants_with_a_mutation_towards_an_aa,
+    from_pickle_file,
+)
 
 TEST_DATA_PATH = pkg_resources.resource_filename("torchdms", "data/test_df.pkl")
 
@@ -33,3 +36,24 @@ def test_partition_is_clean():
         assert set(split_df.test["aa_substitutions"]).isdisjoint(
             set(split_df.val["aa_substitutions"])
         )
+
+
+def test_summarize():
+    """
+    Make sure we are calculating summaries correctly.
+    """
+    data, _ = from_pickle_file(TEST_DATA_PATH)
+    aa_substitutions = data["aa_substitutions"]
+
+    def contains_a_mutation_towards_a_k(variant_string):
+        for variant in variant_string.split():
+            if variant[-1] == "K":
+                return True
+        return False
+
+    alt_count = sum(
+        [contains_a_mutation_towards_a_k(variant) for variant in aa_substitutions]
+    )
+    assert alt_count == count_variants_with_a_mutation_towards_an_aa(
+        aa_substitutions, "K"
+    )

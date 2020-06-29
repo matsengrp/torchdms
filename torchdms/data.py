@@ -1,14 +1,17 @@
 """Tools for handling data."""
 from collections import defaultdict
 import random
+import re
 import click
 import numpy as np
 import pandas as pd
 import torch
 from torch.utils.data import Dataset
 from dms_variants.binarymap import BinaryMap
+from torchdms.plot import plot_exploded_dms_variants_dataframe_summary
 from torchdms.utils import (
     cat_list_values,
+    count_variants_with_a_mutation_towards_an_aa,
     get_only_entry_from_constant_list,
     make_legal_filename,
     to_pickle_file,
@@ -27,7 +30,7 @@ class BinaryMapDataset(Dataset):
     drop redundant columns that are already attributes.
     """
 
-    def __init__(self, samples, targets, original_df, wtseq, target_names):
+    def __init__(self, samples, targets, original_df, wtseq, target_names, alphabet):
         row_count = len(samples)
         assert row_count == len(targets)
         assert row_count == len(original_df)
@@ -37,18 +40,18 @@ class BinaryMapDataset(Dataset):
         self.original_df = original_df
         self.wtseq = wtseq
         self.target_names = target_names
+        self.alphabet = alphabet
 
     @classmethod
     def of_raw(cls, pd_dataset, wtseq, targets):
-        bmap = BinaryMap(
-            pd_dataset.loc[:, ["aa_substitutions"]], expand=True, wtseq=wtseq
-        )
+        bmap = BinaryMap(pd_dataset, expand=True, wtseq=wtseq)
         return cls(
             torch.from_numpy(bmap.binary_variants.toarray()).float(),
             torch.from_numpy(pd_dataset[targets].to_numpy()).float(),
-            pd_dataset.drop(targets, axis=1),
+            pd_dataset,
             wtseq,
             targets,
+            bmap.alphabet,
         )
 
     @classmethod
@@ -57,10 +60,13 @@ class BinaryMapDataset(Dataset):
         return cls(
             torch.cat([dataset.samples for dataset in datasets], dim=0),
             torch.cat([dataset.targets for dataset in datasets], dim=0),
-            pd.concat([dataset.original_df for dataset in datasets]),
+            pd.concat([dataset.original_df for dataset in datasets], ignore_index=True),
             get_only_entry_from_constant_list([dataset.wtseq for dataset in datasets]),
             get_only_entry_from_constant_list(
                 [dataset.target_names for dataset in datasets]
+            ),
+            get_only_entry_from_constant_list(
+                [dataset.alphabet for dataset in datasets]
             ),
         )
 
@@ -131,6 +137,97 @@ class SplitDataset:
             "val": self.val,
             "train": BinaryMapDataset.cat(self.train),
         }.items()
+
+    def summarize(self, plot_prefix):
+        for label, split in self.labeled_splits:
+            if plot_prefix is not None:
+                expanded_plot_prefix = f"{plot_prefix}_{label}"
+            else:
+                expanded_plot_prefix = None
+            print(f"summary of the {label} split:")
+            summarize_dms_variants_dataframe(split.original_df, expanded_plot_prefix)
+
+
+def summarize_dms_variants_dataframe(df, plot_prefix):
+    print(f"    {len(df)} variants")
+
+    def count_variants(aa):
+        return count_variants_with_a_mutation_towards_an_aa(df["aa_substitutions"], aa)
+
+    for aa in "*NP":
+        print(f"    {count_variants(aa)} variants with a mutation to '{aa}'")
+
+    if plot_prefix is not None:
+        plot_exploded_dms_variants_dataframe_summary(
+            explode_dms_variants_dataframe(df), plot_prefix + ".pdf"
+        )
+
+
+def expand_substitutions_into_df(substitution_series):
+    """Expand a Series of substitutions into a dataframe showing the wt_AA, the
+    site, and the mut_AA."""
+    pattern = re.compile(r"([^\d]+)(\d+)([^\d]+)")
+    return pd.DataFrame(
+        substitution_series.apply(lambda s: list(pattern.match(s).groups())).tolist(),
+        columns=["wt_AA", "site", "mut_AA"],
+    )
+
+
+def explode_dms_variants_dataframe(in_df):
+    """Make a dataframe that has one row for each mutation of every mutated
+    variant, showing the wt_AA, the site, and the mut_AA.
+
+    Other information is duplicated as needed.
+    """
+    df = in_df.copy()
+    df["aa_substitutions"] = df["aa_substitutions"].apply(lambda s: s.split())
+    df = df.explode("aa_substitutions")
+    df.index.name = "variant_index"
+    df.reset_index(inplace=True)
+    df = df.loc[
+        df["n_aa_substitutions"] > 0,
+    ]
+    df.reset_index(inplace=True, drop=True)
+    return pd.concat([expand_substitutions_into_df(df["aa_substitutions"]), df], axis=1)
+
+
+def check_onehot_encoding(dataset):
+    """Asserts that the tensor onehot encoding we have in the Datasets is the
+    same as one that we make ourselves from the strings."""
+    alphabet_dict = {letter: idx for idx, letter in enumerate(dataset.alphabet)}
+    wt_idxs = [alphabet_dict[aa] for aa in dataset.wtseq]
+    site_count = len(dataset.wtseq)
+    alphabet_length = len(dataset.alphabet)
+
+    idx_arr_from_onehot = np.array(
+        [
+            row.reshape(site_count, alphabet_length).nonzero()[1]
+            for row in dataset.samples.numpy()
+        ]
+    )
+
+    def variant_idxs_from_exploded_variant(variant):
+        """Makes an array with the amino acid indices for each site."""
+        idxs = wt_idxs.copy()
+        for mut_idx in variant.index:
+            idxs[variant.loc[mut_idx, "site"] - 1] = variant.loc[mut_idx, "mut_AA_idx"]
+        return idxs
+
+    exploded = explode_dms_variants_dataframe(dataset.original_df)
+    exploded["wt_AA_idx"] = exploded["wt_AA"].apply(alphabet_dict.get)
+    exploded["mut_AA_idx"] = exploded["mut_AA"].apply(alphabet_dict.get)
+    exploded["site"] = exploded["site"].astype("int")
+    idx_arr_from_strings = np.array(
+        [
+            variant_idxs_from_exploded_variant(variant)
+            for _, variant in exploded.groupby("variant_index")
+        ]
+    )
+
+    sorted_idx_arr_from_strings = np.sort(idx_arr_from_strings, axis=0)
+    sorted_idx_arr_from_onehot = np.sort(idx_arr_from_onehot, axis=0)
+    if not np.array_equal(sorted_idx_arr_from_strings, sorted_idx_arr_from_onehot):
+        raise AssertionError("check_onehot_encoding failed!")
 
 
 def partition(
@@ -231,11 +328,12 @@ def prep_by_stratum_and_export(
     for train_part in split_df.train:
         num_subs = len(train_part["aa_substitutions"][0].split())
         click.echo(
-            f"LOG: There are {len(train_part)} training examples "
+            f"LOG: There are {len(train_part)} training samples "
             f"for stratum: {num_subs}"
         )
 
-    click.echo(f"LOG: There are {len(split_df.test)} test points")
+    click.echo(f"LOG: There are {len(split_df.val)} validation samples")
+    click.echo(f"LOG: There are {len(split_df.test)} test samples")
     click.echo("LOG: Successfully partitioned data")
     click.echo("LOG: preparing binary map dataset")
 
