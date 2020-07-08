@@ -11,19 +11,28 @@ We use the binary encoding of variants using [BinaryMap Object](https://jbloomla
 
 ## How do I install it?
 
-    git clone git@github.com:matsengrp/torchdms.git
-    cd torchdms
-    pip install -r requirements.txt
-    pip install .
-    make test
+<!-- NOTE: revise after publishing to pypi -->
+```bash
+pip install git+https://github.com/matsengrp/torchdms.git
+```
 
+## Developer install
+
+```bash
+git clone git@github.com:matsengrp/torchdms.git
+cd torchdms
+pip install -r requirements.txt
+pip install -e .
+make test
+```
 
 ## CLI
 
 The command line interface is called `tdms`, and has nested subcommands.
 Run
-
-    $ tdms -h
+```bash
+$ tdms -h
+```
 
 to get started.
 
@@ -32,7 +41,9 @@ to get started.
 
 Synopsis:
 
-    tdms prep tstarr_dms_full.pkl NIH_PREP.pkl affinity_score expr_score
-    tdms create NIH_PREP.pkl my.model VanillaGGE(10,sigmoid,10,relu)
-    tdms train my.model NIH_PREP.pkl --epochs 100
-    tdms evaluate my.model NIH_prep.pkl --scatter-plot-out NIH_Scatter_out.pdf
+```bash
+tdms prep tstarr_dms_full.pkl NIH_PREP.pkl affinity_score expr_score
+tdms create NIH_PREP.pkl my.model VanillaGGE(10,sigmoid,10,relu)
+tdms train my.model NIH_PREP.pkl --epochs 100
+tdms evaluate my.model NIH_prep.pkl --scatter-plot-out NIH_Scatter_out.pdf
+```
