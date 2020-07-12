@@ -25,6 +25,7 @@ setup(
         "plotnine==0.6.0",
         "pytest",
         "scipy",
+        "statsmodels==0.11.0",
         "torch==1.4.0",
         "versioneer",
     ],

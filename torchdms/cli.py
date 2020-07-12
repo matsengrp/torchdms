@@ -563,15 +563,18 @@ def restrict_dict_to_params(d_to_restrict, cmd):
 
 
 @cli.command()
-@click_config_file.configuration_option(
-    implicit=False, required=True, provider=json_provider
-)
+@click_config_file.configuration_option(implicit=False, provider=json_provider)
 @click.pass_context
 def go(ctx):
     """Run a common sequence of commands: create, train, scatter, and beta.
 
     Then touch a `.sentinel` file to signal successful completion.
     """
+    if not ctx.default_map:
+        click.echo(
+            "Please supply a non-empty JSON configuration file via the --config option."
+        )
+        return
     prefix = ctx.default_map["prefix"]
     model_path = prefix + ".model"
     ctx.invoke(
