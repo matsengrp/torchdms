@@ -631,11 +631,9 @@ def cartesian(choice_json_path):
     make_cartesian_product_hierarchy(from_json_file(choice_json_path))
 
 
-## # TODO: transfer command
 @cli.command()
 @click.argument("source_path", type=click.Path(exists=True))
 @click.argument("model_path", type=click.Path(exists=True))
-@click_config_file.configuration_option(implicit=False, provider=json_provider)
 def transfer(source_path, model_path):
     """ Train linear model and transfer coefficients to a VanillaGGE betas."""
     linear_model = torch.load(source_path)
