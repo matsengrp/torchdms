@@ -642,9 +642,12 @@ def transfer(source_path, model_path, data_path):
     linear_model = torch.load(source_path)
     model = torch.load(model_path)
 
-    # Transfer weights
     innit_weights = linear_model.state_dict()
     model.first_layer.weight.data = innit_weights[0]
+    click.echo(f"LOG: Beta coefficients copied from {source_path} to {model_path}")
+
+    torch.save(model, model_path)
+    click.echo(f"LOG: Saved updated model to {model_path}")
 
 if __name__ == "__main__":
     cli()  # pylint: disable=no-value-for-parameter
