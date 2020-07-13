@@ -489,6 +489,19 @@ def error(ctx, model_path, data_path, out, show_points, device, include_details)
 
     click.echo(f"LOG: error plot finished and dumped to {out}")
 
+## # TODO: transfer command
+@cli.command()
+@click.argument("source_path", type=click.Path(exists=True))
+@click.argument("model_path", type=click.Path(exists=True))
+@click.argument("data_path", type=click.Path(exists=True))
+@click_config_file.configuration_option(implicit=False, provider=json_provider)
+def transfer(source_path, model_path, data_path):
+    """ Train linear model and transfer coefficients to a VanillaGGE betas."""
+    linear_model = torch.load(source_path)
+    model = torch.load(model_path)
+
+    # Transfer weights
+    innit_weights = linear_model.state_dict()
 
 @cli.command()
 @click.argument("model_path", type=click.Path(exists=True))
