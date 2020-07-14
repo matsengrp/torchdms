@@ -639,12 +639,33 @@ def transfer(source_path, model_path):
     linear_model = torch.load(source_path)
     model = torch.load(model_path)
 
-    innit_weights = linear_model.state_dict()
-    model.first_layer.weight.data = innit_weights[0]
-    click.echo(f"LOG: Beta coefficients copied from {source_path} to {model_path}")
+    innit_weights = linear_model.state_dict()['input_layer.weight']
+
+    for name, param in model.named_parameters():
+        if param.requires_grad and name == 'input_layer.weight':
+            param.data = innit_weights
+            break
 
     torch.save(model, model_path)
-    click.echo(f"LOG: Saved updated model to {model_path}")
+    click.echo(f"LOG: Beta coefficients copied from {source_path} to {model_path}")
 
+@cli.command()
+@click_config_file.configuration_option(
+    implicit=False, required=True, provider=json_provider
+)
+@click.pass_context
+def transfergo (ctx):
+    """Run `tdms go` after initializing betas from a trained linear model. """
+    # Create models
+
+    # Train linear model
+
+    # Transfer linear model to model
+
+    # Train model
+
+    # Evaluate model: scatter and beta
+
+    
 if __name__ == "__main__":
     cli()  # pylint: disable=no-value-for-parameter
