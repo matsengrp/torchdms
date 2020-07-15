@@ -649,23 +649,6 @@ def transfer(source_path, model_path):
     torch.save(model, model_path)
     click.echo(f"LOG: Beta coefficients copied from {source_path} to {model_path}")
 
-@cli.command()
-@click_config_file.configuration_option(
-    implicit=False, required=True, provider=json_provider
-)
-@click.pass_context
-def transfergo (ctx):
-    """Run `tdms go` after initializing betas from a trained linear model. """
-    # Create models
 
-    # Train linear model
-
-    # Transfer linear model to model
-
-    # Train model
-
-    # Evaluate model: scatter and beta
-
-    
 if __name__ == "__main__":
     cli()  # pylint: disable=no-value-for-parameter
