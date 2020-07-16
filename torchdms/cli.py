@@ -639,6 +639,9 @@ def transfer(source_path, model_path):
     source_model = torch.load(source_path)
     dest_model = torch.load(model_path)
 
+    source_model.freeze_betas = True
+    print(source_model.freeze_betas)
+    print(dest_model.freeze_betas)
     innit_weights = source_model.state_dict()['input_layer.weight']
 
 
