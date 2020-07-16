@@ -639,16 +639,13 @@ def transfer(source_path, model_path):
     source_model = torch.load(source_path)
     dest_model = torch.load(model_path)
 
-    source_model.freeze_betas = True
-    print(source_model.freeze_betas)
-    print(dest_model.freeze_betas)
     innit_weights = source_model.state_dict()['input_layer.weight']
-
 
     for name, param in dest_model.named_parameters():
         if param.requires_grad and name == 'input_layer.weight':
             if len(param.data[0]) == len(innit_weights[0]):
                 param.data = innit_weights
+                dest_model.freeze_betas = True 
                 break
             else:
                 click.echo(
