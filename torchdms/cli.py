@@ -635,18 +635,25 @@ def cartesian(choice_json_path):
 @click.argument("source_path", type=click.Path(exists=True))
 @click.argument("model_path", type=click.Path(exists=True))
 def transfer(source_path, model_path):
-    """ Train linear model and transfer coefficients to a VanillaGGE betas."""
-    linear_model = torch.load(source_path)
-    model = torch.load(model_path)
+    """ Transfer beta coefficients from one tdms model to another."""
+    source_model = torch.load(source_path)
+    dest_model = torch.load(model_path)
 
-    innit_weights = linear_model.state_dict()['input_layer.weight']
+    innit_weights = source_model.state_dict()['input_layer.weight']
 
-    for name, param in model.named_parameters():
+
+    for name, param in dest_model.named_parameters():
         if param.requires_grad and name == 'input_layer.weight':
-            param.data = innit_weights
-            break
+            if len(param.data[0]) == len(innit_weights[0]):
+                param.data = innit_weights
+                break
+            else:
+                click.echo(
+                    "WARNING: source model and destination model have different beta dimensions."
+                )
+                break
 
-    torch.save(model, model_path)
+    torch.save(dest_model, model_path)
     click.echo(f"LOG: Beta coefficients copied from {source_path} to {model_path}")
 
 
