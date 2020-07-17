@@ -178,7 +178,9 @@ def beta_coefficients(model, test_data, out):
     # below gives us the first transformation matrix of the model
     # going from inputs -> latent space, thus
     # a tensor of shape (n latent space dims, n input nodes)
-    beta_coefficient_data = next(model.parameters()).data
+    beta_coefficient_data = torch.cat(tuple(params.data
+                                            for name, params in model.named_parameters()
+                                            if 'input_layer' in name.split('.')))
     bmap = dms.binarymap.BinaryMap(test_data.original_df,)
 
     # To represent the wtseq in the heatmap, create a mask
