@@ -17,9 +17,7 @@ def identity(x):
 class TorchdmsModel(nn.Module):
     """A superclass for our models to combine shared behavior."""
 
-    def __init__(
-        self, input_size, target_names, alphabet, freeze_betas=False
-    ):
+    def __init__(self, input_size, target_names, alphabet, freeze_betas=False):
         super(TorchdmsModel, self).__init__()
         self.input_size = input_size
         self.target_names = target_names
@@ -101,7 +99,7 @@ class TorchdmsModel(nn.Module):
     def randomize_parameters(self):
         """Randomize model parameters."""
         for layer_name in self.layers:
-            if layer_name != 'input_layer' or not self.freeze_betas:
+            if layer_name != "input_layer" or not self.freeze_betas:
                 getattr(self, layer_name).reset_parameters()
 
         if self.monotonic_sign is not None:
@@ -167,7 +165,7 @@ class VanillaGGE(TorchdmsModel):
         alphabet,
         monotonic_sign=None,
         beta_l1_coefficient=0.0,
-        freeze_betas=False
+        freeze_betas=False,
     ):
         super(VanillaGGE, self).__init__(input_size, target_names, alphabet)
         self.monotonic_sign = monotonic_sign

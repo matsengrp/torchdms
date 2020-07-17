@@ -639,10 +639,10 @@ def transfer(source_path, dest_path):
     source_model = torch.load(source_path)
     dest_model = torch.load(dest_path)
 
-    init_weights = source_model.state_dict()['input_layer.weight']
+    init_weights = source_model.state_dict()["input_layer.weight"]
 
     for name, param in dest_model.named_parameters():
-        if name == 'input_layer.weight':
+        if name == "input_layer.weight":
             if len(param.data[0]) != len(init_weights[0]):
                 raise ValueError("source & dest have mismatching beta lengths.")
             param.data = init_weights
