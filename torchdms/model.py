@@ -215,13 +215,12 @@ class VanillaGGE(TorchdmsModel):
 
         # all other models
         else:
-            in_size = input_size
             bias = False
             for layer_index, num_nodes in enumerate(layer_sizes):
                 self.layers.append(layer_name)
-                setattr(self, layer_name, nn.Linear(in_size, num_nodes, bias=bias))
+                setattr(self, layer_name, nn.Linear(input_size, num_nodes, bias=bias))
                 layer_name = f"internal_layer_{layer_index}"
-                in_size = layer_sizes[layer_index]
+                input_size = layer_sizes[layer_index]
                 bias = True
 
             # final layer
