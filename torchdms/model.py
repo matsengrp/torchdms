@@ -333,14 +333,94 @@ class VanillaGGE(TorchdmsModel):
         )
 
 
+class Sparse2D(TorchdmsModel):
+    """a lot like VanillaGGE, but parallel forks for each output dimension, and
+    sparse connections between them"""
 
+    def __init__(
+        self,
+        input_size,
+        layer_sizes,
+        activations,
+        target_names,
+        alphabet,
+        monotonic_sign=None,
+        beta_l1_coefficient=0.0,
+    ):
+        super(Sparse2D, self).__init__(input_size, target_names, alphabet)
 
+        assert len(layer_sizes) == len(activations)
+        assert len(layer_sizes) > 0
+        assert self.output_size == 2
 
+        for i, model in enumerate(("bind", "stab")):
+            self.add_module(f"model_{model}",
+                            VanillaGGE(input_size, layer_sizes,
+                                       activations,
+                                       [target_names[i]],
+                                       alphabet,
+                                       monotonic_sign,
+                                       beta_l1_coefficient))
+            for layer_name in getattr(self, f"model_{model}").layers:
+                layer_name_revised = f"{layer_name}_{model}"
+                setattr(self, layer_name_revised,
+                        getattr(getattr(self, f"model_{model}"), layer_name))
+                self.layers.append(layer_name_revised)
+
+        # meta output layer maps bind and stab output to a new bind output
+        self.output_layer = nn.Linear(2, 1)
+        self.layers.append('output_layer')
+
+    @property
+    def characteristics(self):
+        return self.model_bind.characteristics
+
+    @property
+    def internal_layer_dimensions(self):
+        return self.model_bind.internal_layer_dimensions
+
+    @property
+    def is_linear(self):
+        return self.internal_layer_dimensions.is_linear
+
+    @property
+    def latent_dim(self):
+        return self.model_bind.latent_dim + self.model_stab.latent_dim
+
+    def str_summary(self):
+        return f"2D: ({self.model_bind.str_summary()}, {self.model_stab.str_summary()})"
+
+    def forward(self, x):  # pylint: disable=arguments-differ
+        y_bind = self.model_bind.forward(x)
+        y_stab = self.model_stab.forward(x)
+
+        # final layer interaction from g_stab to g_bind
+        y_bind = self.output_layer(torch.cat((y_bind, y_stab), 1))
+        if self.model_bind.monotonic_sign:
+            y_bind *= self.model_bind.monotonic_sign
+
+        return torch.cat((y_bind, y_stab), 1)
+
+    def from_latent_to_output(self, x):
+        return torch.cat((self.model_bind.from_latent_to_output(x[:, 0, None]),
+                          self.model_stab.from_latent_to_output(x[:, 1, None])), 1)
+
+    def to_latent(self, x):
+        return torch.cat((self.model_bind.to_latent(x),
+                          self.model_stab.to_latent(x)), 1)
+
+    def regularization_loss(self):
+        """L1-penalize betas for all latent space dimensions"""
+        if self.beta_l1_coefficient == 0.0:
+            return 0.0
+        # else:
+        raise NotImplementedError('beta_l1_coefficient must be zero')
 
 
 KNOWN_MODELS = {
     "Linear": LinearModel,
     "VanillaGGE": VanillaGGE,
+    "Sparse2D": Sparse2D,
 }
 
 
@@ -400,6 +480,18 @@ def model_of_string(model_string, data_path, monotonic_sign):
             test_dataset.feature_count(),
             test_dataset.target_names,
             alphabet=test_dataset.alphabet,
+        )
+    elif model_name == "Sparse2D":
+        for layer in layers:
+            if not isinstance(layer, int):
+                raise TypeError("All layer input must be integers")
+        model = Sparse2D(
+            test_dataset.feature_count(),
+            layers,
+            activations,
+            test_dataset.target_names,
+            alphabet=test_dataset.alphabet,
+            monotonic_sign=monotonic_sign,
         )
     else:
         raise NotImplementedError(model_name)
