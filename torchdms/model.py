@@ -105,6 +105,8 @@ class TorchdmsModel(nn.Module):
         layer_name.weight
         layer_name.bias.
 
+        Note: layers from nested module will be prefixed
+
         this function returns all the parameters
         to be floored to zero in a monotonic model.
         this is every parameter after the latent space
@@ -112,8 +114,9 @@ class TorchdmsModel(nn.Module):
         """
         for name, param in self.named_parameters():
             parse_name = name.split(".")
-            is_input_layer = parse_name[0].startswith("input_layer")
-            is_bias = parse_name[1] == "bias"
+            # NOTE: minus indices allow for prefixes from nested module params
+            is_input_layer = parse_name[-2] == "input_layer"
+            is_bias = parse_name[-1] == "bias"
             if not is_input_layer and not is_bias:
                 yield param
 
