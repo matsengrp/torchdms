@@ -144,10 +144,8 @@ class LinearModel(TorchdmsModel):
         self, input_size, target_names, alphabet,
     ):
         super(LinearModel, self).__init__(input_size, target_names, alphabet)
-        self.layer = nn.Linear(self.input_size, self.output_size)
-        self.layers = ["layer"]
-        self.monotonic_sign = None
-        self.latent_dim = None
+        self.input_layer = nn.Linear(self.input_size, self.output_size)
+        self.layers = ["input_layer"]
 
     @property
     def characteristics(self):
