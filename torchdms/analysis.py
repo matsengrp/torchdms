@@ -7,7 +7,6 @@ import torch
 from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torchdms.data import BinaryMapDataset
-from torchdms.model import monotonic_params_from_latent_space
 
 
 def make_data_loader_infinite(data_loader):
@@ -149,7 +148,7 @@ class Analysis:
                     # if the model is monotonic, we clamp all negative parameters
                     # after the latent space ecluding all bias parameters.
                     if self.model.monotonic_sign:
-                        for param in monotonic_params_from_latent_space(self.model):
+                        for param in self.model.monotonic_params_from_latent_space():
                             param.data.clamp_(0)
                 optimizer.step()
 
@@ -251,9 +250,9 @@ class Analysis:
                     loss.backward()
 
                     # if the model is monotonic, we clamp all negative parameters
-                    # after the latent space ecluding all bias parameters.
+                    # after the latent space excluding all bias parameters.
                     if self.model.monotonic_sign:
-                        for param in monotonic_params_from_latent_space(self.model):
+                        for param in self.model.monotonic_params_from_latent_space():
                             param.data.clamp_(0)
                 optimizer.step()
 
