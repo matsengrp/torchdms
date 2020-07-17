@@ -633,28 +633,24 @@ def cartesian(choice_json_path):
 
 @cli.command()
 @click.argument("source_path", type=click.Path(exists=True))
-@click.argument("model_path", type=click.Path(exists=True))
+@click.argument("dest_path", type=click.Path(exists=True))
 def transfer(source_path, model_path):
     """ Transfer beta coefficients from one tdms model to another."""
     source_model = torch.load(source_path)
-    dest_model = torch.load(model_path)
+    dest_model = torch.load(dest_path)
 
-    innit_weights = source_model.state_dict()['input_layer.weight']
+    init_weights = source_model.state_dict()['input_layer.weight']
 
     for name, param in dest_model.named_parameters():
-        if param.requires_grad and name == 'input_layer.weight':
-            if len(param.data[0]) == len(innit_weights[0]):
-                param.data = innit_weights
-                dest_model.freeze_betas = True 
-                break
+        if name == 'input_layer.weight':
+            if len(param.data[0]) != len(init_weights[0]):
+                raise ValueError("source model and destination model have different beta dimensions.")
             else:
-                click.echo(
-                    "WARNING: source model and destination model have different beta dimensions."
-                )
-                break
+                param.data = init_weights
+                dest_model.freeze_betas = True
 
-    torch.save(dest_model, model_path)
-    click.echo(f"LOG: Beta coefficients copied from {source_path} to {model_path}")
+    torch.save(dest_model, dest_path)
+    click.echo(f"LOG: Beta coefficients copied from {source_path} to {dest_path}")
 
 
 if __name__ == "__main__":
