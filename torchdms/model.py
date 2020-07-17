@@ -24,6 +24,8 @@ class TorchdmsModel(nn.Module):
         self.output_size = len(target_names)
         self.alphabet = alphabet
         self.freeze_betas = freeze_betas
+        self.monotonic_sign = None
+        self.layers = []
 
     def __str__(self):
         return (
@@ -60,18 +62,18 @@ class TorchdmsModel(nn.Module):
     def numpy_single_mutant_predictions(self):
         """Return the single mutant predictions as a numpy array of shape (AAs,
         sites, outputs)."""
-        input_tensor = torch.zeros([self.input_size])
+        input_tensor = torch.zeros((1, self.input_size))
 
         def forward_on_ith_basis_vector(i):
-            input_tensor[i] = 1.0
+            input_tensor[0, i] = 1.0
             return_value = self.forward(input_tensor).detach().numpy()
-            input_tensor[i] = 0.0
+            input_tensor[0, i] = 0.0
             return return_value
 
         # flat_results first indexes through the outputs, then the alphabet, then the
         # sites.
         flat_results = np.concatenate(
-            [forward_on_ith_basis_vector(i) for i in range(input_tensor.shape[0])]
+            [forward_on_ith_basis_vector(i) for i in range(input_tensor.shape[1])]
         )
 
         # Reshape takes its arguments from right to left. So in this case:
@@ -95,6 +97,36 @@ class TorchdmsModel(nn.Module):
             )
             for output_idx in range(numpy_predictions.shape[-1])
         ]
+
+    def monotonic_params_from_latent_space(self):
+        """following the hueristic that the input layers of a network are named
+        'input_layer*' and the weight bias are denoted:
+
+        layer_name.weight
+        layer_name.bias.
+
+        this function returns all the parameters
+        to be floored to zero in a monotonic model.
+        this is every parameter after the latent space
+        excluding bias parameters.
+        """
+        for name, param in self.named_parameters():
+            parse_name = name.split(".")
+            is_input_layer = parse_name[0].startswith("input_layer")
+            is_bias = parse_name[1] == "bias"
+            if not is_input_layer and not is_bias:
+                yield param
+
+    def reflect_monotonic_params(self):
+        """Ensure that monotonic parameters are non-negative by flipping their
+        sign."""
+        for param in self.monotonic_params_from_latent_space():
+            # https://pytorch.org/docs/stable/nn.html#linear
+            # because the original distribution is
+            # uniform between (-k, k) where k = 1/input_features,
+            # we can simply transform all weights < 0 to their positive
+            # counterpart
+            param.data[param.data < 0] *= -1
 
     def randomize_parameters(self):
         """Randomize model parameters."""
@@ -303,36 +335,10 @@ class VanillaGGE(TorchdmsModel):
             )
         )
 
-    def reflect_monotonic_params(self):
-        """Ensure that monotonic parameters are non-negative by flipping their
-        sign."""
-        for param in monotonic_params_from_latent_space(self):
-            # https://pytorch.org/docs/stable/nn.html#linear
-            # because the original distribution is
-            # uniform between (-k, k) where k = 1/input_features,
-            # we can simply transform all weights < 0 to their positive
-            # counterpart
-            param.data[param.data < 0] *= -1
 
 
-def monotonic_params_from_latent_space(model: VanillaGGE):
-    """following the hueristic that the input layer of a network is named
-    'input_layer' and the weight bias are denoted:
 
-    layer_name.weight
-    layer_name.bias.
 
-    this function returns all the parameters
-    to be floored to zero in a monotonic model.
-    this is every parameter after the latent space
-    excluding bias parameters.
-    """
-    for name, param in model.named_parameters():
-        parse_name = name.split(".")
-        is_input_layer = parse_name[0] == "input_layer"
-        is_bias = parse_name[1] == "bias"
-        if not is_input_layer and not is_bias:
-            yield param
 
 
 KNOWN_MODELS = {
