@@ -101,7 +101,7 @@ class TorchdmsModel(nn.Module):
     def randomize_parameters(self):
         """Randomize model parameters."""
         for layer_name in self.layers:
-            if layer_name != 'input_layer' or self.freeze_betas == False:
+            if layer_name != 'input_layer' or !self.freeze_betas:
                 getattr(self, layer_name).reset_parameters()
 
         if self.monotonic_sign is not None:

@@ -644,10 +644,9 @@ def transfer(source_path, dest_path):
     for name, param in dest_model.named_parameters():
         if name == 'input_layer.weight':
             if len(param.data[0]) != len(init_weights[0]):
-                raise ValueError("source model and destination model have different beta dimensions.")
-            else:
-                param.data = init_weights
-                dest_model.freeze_betas = True
+                raise ValueError("source & dest have mismatching beta lengths.")
+            param.data = init_weights
+            dest_model.freeze_betas = True
     torch.save(dest_model, dest_path)
     click.echo(f"LOG: Beta coefficients copied from {source_path} to {dest_path}")
 
