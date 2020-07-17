@@ -648,7 +648,6 @@ def transfer(source_path, model_path):
             else:
                 param.data = init_weights
                 dest_model.freeze_betas = True
-
     torch.save(dest_model, dest_path)
     click.echo(f"LOG: Beta coefficients copied from {source_path} to {dest_path}")
 
