@@ -17,14 +17,13 @@ def identity(x):
 class TorchdmsModel(nn.Module):
     """A superclass for our models to combine shared behavior."""
 
-    def __init__(
-        self, input_size, target_names, alphabet,
-    ):
+    def __init__(self, input_size, target_names, alphabet, freeze_betas=False):
         super(TorchdmsModel, self).__init__()
         self.input_size = input_size
         self.target_names = target_names
         self.output_size = len(target_names)
         self.alphabet = alphabet
+        self.freeze_betas = freeze_betas
 
     def __str__(self):
         return (
@@ -100,7 +99,9 @@ class TorchdmsModel(nn.Module):
     def randomize_parameters(self):
         """Randomize model parameters."""
         for layer_name in self.layers:
-            getattr(self, layer_name).reset_parameters()
+            if layer_name != "input_layer" or not self.freeze_betas:
+                getattr(self, layer_name).reset_parameters()
+
         if self.monotonic_sign is not None:
             self.reflect_monotonic_params()
 
@@ -164,12 +165,14 @@ class VanillaGGE(TorchdmsModel):
         alphabet,
         monotonic_sign=None,
         beta_l1_coefficient=0.0,
+        freeze_betas=False,
     ):
         super(VanillaGGE, self).__init__(input_size, target_names, alphabet)
         self.monotonic_sign = monotonic_sign
         self.layers = []
         self.activations = activations
         self.beta_l1_coefficient = beta_l1_coefficient
+        self.freeze_betas = freeze_betas
 
         assert len(layer_sizes) == len(activations)
 

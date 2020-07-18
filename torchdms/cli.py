@@ -631,5 +631,23 @@ def cartesian(choice_json_path):
     make_cartesian_product_hierarchy(from_json_file(choice_json_path))
 
 
+@cli.command()
+@click.argument("source_path", type=click.Path(exists=True))
+@click.argument("dest_path", type=click.Path(exists=True))
+def transfer(source_path, dest_path):
+    """ Transfer beta coefficients from one tdms model to another."""
+    source_model = torch.load(source_path)
+    dest_model = torch.load(dest_path)
+
+    init_weights = source_model.state_dict()["input_layer.weight"]
+    if len(dest_model.input_layer.weight[0]) != len(init_weights[0]):
+        raise ValueError("source & dest beta dimensions do not match.")
+    dest_model.input_layer.weight[0] = init_weights[0]
+    dest_model.freeze_betas = True
+
+    torch.save(dest_model, dest_path)
+    click.echo(f"LOG: Beta coefficients copied from {source_path} to {dest_path}")
+
+
 if __name__ == "__main__":
     cli()  # pylint: disable=no-value-for-parameter
