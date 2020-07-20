@@ -635,7 +635,7 @@ def cartesian(choice_json_path):
 @click.argument("source_path", type=click.Path(exists=True))
 @click.argument("dest_path", type=click.Path(exists=True))
 def transfer(source_path, dest_path):
-    """ Transfer beta coefficients from one tdms model to another."""
+    """Transfer beta coefficients from one tdms model to another."""
     source_model = torch.load(source_path)
     dest_model = torch.load(dest_path)
 

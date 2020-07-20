@@ -338,7 +338,7 @@ class VanillaGGE(TorchdmsModel):
 
 class Sparse2D(TorchdmsModel):
     """a lot like VanillaGGE, but parallel forks for each output dimension, and
-    sparse connections between them"""
+    sparse connections between them."""
 
     def __init__(
         self,
@@ -357,22 +357,30 @@ class Sparse2D(TorchdmsModel):
         assert self.output_size == 2
 
         for i, model in enumerate(("bind", "stab")):
-            self.add_module(f"model_{model}",
-                            VanillaGGE(input_size, layer_sizes,
-                                       activations,
-                                       [target_names[i]],
-                                       alphabet,
-                                       monotonic_sign,
-                                       beta_l1_coefficient))
+            self.add_module(
+                f"model_{model}",
+                VanillaGGE(
+                    input_size,
+                    layer_sizes,
+                    activations,
+                    [target_names[i]],
+                    alphabet,
+                    monotonic_sign,
+                    beta_l1_coefficient,
+                ),
+            )
             for layer_name in getattr(self, f"model_{model}").layers:
                 layer_name_revised = f"{layer_name}_{model}"
-                setattr(self, layer_name_revised,
-                        getattr(getattr(self, f"model_{model}"), layer_name))
+                setattr(
+                    self,
+                    layer_name_revised,
+                    getattr(getattr(self, f"model_{model}"), layer_name),
+                )
                 self.layers.append(layer_name_revised)
 
         # meta output layer maps bind and stab output to a new bind output
         self.output_layer = nn.Linear(2, 1)
-        self.layers.append('output_layer')
+        self.layers.append("output_layer")
 
     @property
     def characteristics(self):
@@ -405,19 +413,25 @@ class Sparse2D(TorchdmsModel):
         return torch.cat((y_bind, y_stab), 1)
 
     def from_latent_to_output(self, x):
-        return torch.cat((self.model_bind.from_latent_to_output(x[:, 0, None]),
-                          self.model_stab.from_latent_to_output(x[:, 1, None])), 1)
+        return torch.cat(
+            (
+                self.model_bind.from_latent_to_output(x[:, 0, None]),
+                self.model_stab.from_latent_to_output(x[:, 1, None]),
+            ),
+            1,
+        )
 
     def to_latent(self, x):
-        return torch.cat((self.model_bind.to_latent(x),
-                          self.model_stab.to_latent(x)), 1)
+        return torch.cat(
+            (self.model_bind.to_latent(x), self.model_stab.to_latent(x)), 1
+        )
 
     def regularization_loss(self):
-        """L1-penalize betas for all latent space dimensions"""
+        """L1-penalize betas for all latent space dimensions."""
         if self.beta_l1_coefficient == 0.0:
             return 0.0
         # else:
-        raise NotImplementedError('beta_l1_coefficient must be zero')
+        raise NotImplementedError("beta_l1_coefficient must be zero")
 
 
 KNOWN_MODELS = {
