@@ -207,7 +207,10 @@ class VanillaGGE(TorchdmsModel):
         self.beta_l1_coefficient = beta_l1_coefficient
         self.freeze_betas = freeze_betas
 
-        assert len(layer_sizes) == len(activations)
+        if not len(layer_sizes) == len(activations):
+            raise ValueError(
+                f"{len(layer_sizes)} layer sizes inconsistent with {len(activations)} activations"
+            )
 
         layer_name = "input_layer"
 
@@ -352,9 +355,16 @@ class Sparse2D(TorchdmsModel):
     ):
         super(Sparse2D, self).__init__(input_size, target_names, alphabet)
 
-        assert len(layer_sizes) == len(activations)
-        assert len(layer_sizes) > 0
-        assert self.output_size == 2
+        if not len(layer_sizes) == len(activations):
+            raise ValueError(
+                f"{len(layer_sizes)} layer sizes inconsistent with {len(activations)} activations"
+            )
+        if not len(layer_sizes) > 0:
+            raise ValueError("must specify at least one layer")
+        if not self.output_size == 2:
+            raise ValueError(
+                f"2D target data required for this model, got {self.output_size}D"
+            )
 
         for i, model in enumerate(("bind", "stab")):
             self.add_module(
