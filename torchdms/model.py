@@ -380,13 +380,13 @@ class Sparse2D(TorchdmsModel):
                 ),
             )
             for layer_name in getattr(self, f"model_{model}").layers:
-                layer_name_revised = f"{layer_name}_{model}"
+                layer_name_expanded = f"{layer_name}_{model}"
                 setattr(
                     self,
-                    layer_name_revised,
+                    layer_name_expanded,
                     getattr(getattr(self, f"model_{model}"), layer_name),
                 )
-                self.layers.append(layer_name_revised)
+                self.layers.append(layer_name_expanded)
 
         # meta output layer maps bind and stab output to a new bind output
         self.output_layer = nn.Linear(2, 1)
@@ -412,6 +412,8 @@ class Sparse2D(TorchdmsModel):
         return f"2D: ({self.model_bind.str_summary()}, {self.model_stab.str_summary()})"
 
     def forward(self, x):  # pylint: disable=arguments-differ
+        """generate independent bind and stab values, then combine them in the
+        final layer to revise the bind value."""
         y_bind = self.model_bind.forward(x)
         y_stab = self.model_stab.forward(x)
 
@@ -491,9 +493,6 @@ def model_of_string(model_string, data_path, monotonic_sign):
     if model_name == "VanillaGGE":
         if len(layers) == 0:
             click.echo("LOG: No layers provided, so I'm creating a linear model.")
-        for layer in layers:
-            if not isinstance(layer, int):
-                raise TypeError("All layer input must be integers")
         model = VanillaGGE(
             test_dataset.feature_count(),
             layers,
@@ -509,9 +508,6 @@ def model_of_string(model_string, data_path, monotonic_sign):
             alphabet=test_dataset.alphabet,
         )
     elif model_name == "Sparse2D":
-        for layer in layers:
-            if not isinstance(layer, int):
-                raise TypeError("All layer input must be integers")
         model = Sparse2D(
             test_dataset.feature_count(),
             layers,
