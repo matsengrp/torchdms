@@ -439,13 +439,19 @@ class Sparse2D(Independent2D):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # meta output layer maps bind and stab output to a new bind output
-        self.output_layer = nn.Linear(2, 1)
+        # map bind and stab output to a new bind output
+        mix_dim = args[1][-1]
+        self.mix_layer = nn.Linear(2, mix_dim)
+        self.layers.append("mix_layer")
+        self.mix_activation = args[2][-1]
+
+        self.output_layer = nn.Linear(mix_dim, 1)
         self.layers.append("output_layer")
 
     def post_stab_interaction(self, y):
         """final layer interaction from g_stab to g_bind."""
-        y_bind = self.output_layer(y)
+        y_bind = self.output_layer(self.mix_activation(self.mix_layer(y)))
+
         if self.model_bind.monotonic_sign:
             y_bind *= self.model_bind.monotonic_sign
 
