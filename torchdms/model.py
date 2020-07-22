@@ -18,7 +18,7 @@ class TorchdmsModel(nn.Module):
     """A superclass for our models to combine shared behavior."""
 
     def __init__(self, input_size, target_names, alphabet, freeze_betas=False):
-        super(TorchdmsModel, self).__init__()
+        super().__init__()
         self.input_size = input_size
         self.target_names = target_names
         self.output_size = len(target_names)
@@ -28,9 +28,7 @@ class TorchdmsModel(nn.Module):
         self.layers = []
 
     def __str__(self):
-        return (
-            super(TorchdmsModel, self).__str__() + "\n" + self.characteristics.__str__()
-        )
+        return super().__str__() + "\n" + self.characteristics.__str__()
 
     @property
     @abstractmethod
@@ -147,7 +145,7 @@ class LinearModel(TorchdmsModel):
     def __init__(
         self, input_size, target_names, alphabet,
     ):
-        super(LinearModel, self).__init__(input_size, target_names, alphabet)
+        super().__init__(input_size, target_names, alphabet)
         self.input_layer = nn.Linear(self.input_size, self.output_size)
         self.layers = ["input_layer"]
 
@@ -200,7 +198,7 @@ class VanillaGGE(TorchdmsModel):
         beta_l1_coefficient=0.0,
         freeze_betas=False,
     ):
-        super(VanillaGGE, self).__init__(input_size, target_names, alphabet)
+        super().__init__(input_size, target_names, alphabet)
         self.monotonic_sign = monotonic_sign
         self.layers = []
         self.activations = activations
