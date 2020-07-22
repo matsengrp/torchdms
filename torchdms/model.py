@@ -337,9 +337,8 @@ class VanillaGGE(TorchdmsModel):
         )
 
 
-class Sparse2D(TorchdmsModel):
-    """a lot like VanillaGGE, but parallel forks for each output dimension, and
-    sparse connections between them."""
+class Independent2D(TorchdmsModel):
+    """a lot like VanillaGGE, but parallel forks for each output dimension."""
 
     def __init__(
         self,
@@ -351,7 +350,7 @@ class Sparse2D(TorchdmsModel):
         monotonic_sign=None,
         beta_l1_coefficient=0.0,
     ):
-        super(Sparse2D, self).__init__(input_size, target_names, alphabet)
+        super().__init__(input_size, target_names, alphabet)
 
         if not len(layer_sizes) == len(activations):
             raise ValueError(
@@ -386,10 +385,6 @@ class Sparse2D(TorchdmsModel):
                 )
                 self.layers.append(layer_name_expanded)
 
-        # meta output layer maps bind and stab output to a new bind output
-        self.output_layer = nn.Linear(2, 1)
-        self.layers.append("output_layer")
-
     @property
     def characteristics(self):
         return self.model_bind.characteristics
@@ -407,18 +402,12 @@ class Sparse2D(TorchdmsModel):
         return self.model_bind.latent_dim + self.model_stab.latent_dim
 
     def str_summary(self):
-        return f"2D: ({self.model_bind.str_summary()}, {self.model_stab.str_summary()})"
+        return f"{self.__class__.__name__}: ({self.model_bind.str_summary()}, {self.model_stab.str_summary()})"
 
     def forward(self, x):  # pylint: disable=arguments-differ
-        """generate independent bind and stab values, then combine them in the
-        final layer to revise the bind value."""
+        """generate independent bind and stab values."""
         y_bind = self.model_bind.forward(x)
         y_stab = self.model_stab.forward(x)
-
-        # final layer interaction from g_stab to g_bind
-        y_bind = self.output_layer(torch.cat((y_bind, y_stab), 1))
-        if self.model_bind.monotonic_sign:
-            y_bind *= self.model_bind.monotonic_sign
 
         return torch.cat((y_bind, y_stab), 1)
 
@@ -444,9 +433,35 @@ class Sparse2D(TorchdmsModel):
         raise NotImplementedError("beta_l1_coefficient must be zero")
 
 
+class Sparse2D(Independent2D):
+    """a lot like Independent2D, adds sparse connections between dimensions."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # meta output layer maps bind and stab output to a new bind output
+        self.output_layer = nn.Linear(2, 1)
+        self.layers.append("output_layer")
+
+    def post_stab_interaction(self, y):
+        """final layer interaction from g_stab to g_bind."""
+        y_bind = self.output_layer(y)
+        if self.model_bind.monotonic_sign:
+            y_bind *= self.model_bind.monotonic_sign
+
+        return torch.cat((y_bind, y[:, 1, None]), 1)
+
+    def forward(self, x):  # pylint: disable=arguments-differ
+        return self.post_stab_interaction(super().forward(x))
+
+    def from_latent_to_output(self, x):
+        return self.post_stab_interaction(super().from_latent_to_output(x))
+
+
 KNOWN_MODELS = {
     "Linear": LinearModel,
     "VanillaGGE": VanillaGGE,
+    "Independent2D": Independent2D,
     "Sparse2D": Sparse2D,
 }
 
@@ -505,8 +520,8 @@ def model_of_string(model_string, data_path, monotonic_sign):
             test_dataset.target_names,
             alphabet=test_dataset.alphabet,
         )
-    elif model_name == "Sparse2D":
-        model = Sparse2D(
+    elif model_name in ("Independent2D", "Sparse2D"):
+        model = KNOWN_MODELS[model_name](
             test_dataset.feature_count(),
             layers,
             activations,
