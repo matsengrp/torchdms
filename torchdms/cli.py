@@ -639,10 +639,10 @@ def transfer(source_path, dest_path):
     source_model = torch.load(source_path)
     dest_model = torch.load(dest_path)
 
-    init_weights = source_model.state_dict()["input_layer.weight"]
-    if len(dest_model.input_layer.weight[0]) != len(init_weights[0]):
+    init_weights = source_model.state_dict()["latent_layer.weight"]
+    if len(dest_model.latent_layer.weight[0]) != len(init_weights[0]):
         raise ValueError("source & dest beta dimensions do not match.")
-    dest_model.input_layer.weight[0] = init_weights[0]
+    dest_model.latent_layer.weight[0] = init_weights[0]
     dest_model.freeze_betas = True
 
     torch.save(dest_model, dest_path)

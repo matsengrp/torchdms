@@ -97,11 +97,11 @@ class TorchdmsModel(nn.Module):
         ]
 
     def monotonic_params_from_latent_space(self):
-        """following the hueristic that the input layers of a network are named
-        'input_layer*' and the weight bias are denoted:
+        """following the hueristic that the latent layers of a network are
+        named 'latent_layer*' and the weight bias are denoted:
 
-        layer_name.weight
-        layer_name.bias.
+        layer_name*.weight
+        layer_name*.bias.
 
         Note: layers from nested module will be prefixed
 
@@ -113,9 +113,9 @@ class TorchdmsModel(nn.Module):
         for name, param in self.named_parameters():
             parse_name = name.split(".")
             # NOTE: minus indices allow for prefixes from nested module params
-            is_input_layer = parse_name[-2] == "input_layer"
+            is_latent_layer = parse_name[-2] == "latent_layer"
             is_bias = parse_name[-1] == "bias"
-            if not is_input_layer and not is_bias:
+            if not is_latent_layer and not is_bias:
                 yield param
 
     def reflect_monotonic_params(self):
@@ -132,7 +132,7 @@ class TorchdmsModel(nn.Module):
     def randomize_parameters(self):
         """Randomize model parameters."""
         for layer_name in self.layers:
-            if layer_name != "input_layer" or not self.freeze_betas:
+            if layer_name != "latent_layer" or not self.freeze_betas:
                 getattr(self, layer_name).reset_parameters()
 
         if self.monotonic_sign is not None:
@@ -146,8 +146,8 @@ class LinearModel(TorchdmsModel):
         self, input_size, target_names, alphabet,
     ):
         super().__init__(input_size, target_names, alphabet)
-        self.input_layer = nn.Linear(self.input_size, self.output_size)
-        self.layers = ["input_layer"]
+        self.latent_layer = nn.Linear(self.input_size, self.output_size)
+        self.layers = ["latent_layer"]
 
     @property
     def characteristics(self):
@@ -195,7 +195,7 @@ class VanillaGGE(TorchdmsModel):
         target_names,
         alphabet,
         monotonic_sign=None,
-        beta_l1_coefficient=0.0,
+        beta_l1_coefficient=0.0,  # NOTE: rename this, since isn't applied to betas that we identify as skip layer
         freeze_betas=False,
     ):
         super().__init__(input_size, target_names, alphabet)
@@ -210,22 +210,35 @@ class VanillaGGE(TorchdmsModel):
                 f"{len(layer_sizes)} layer sizes inconsistent with {len(activations)} activations"
             )
 
-        layer_name = "input_layer"
+        try:
+            self.latent_idx = self.activations.index(identity)
+        except ValueError:
+            self.latent_idx = 0
 
         # additive model
         if len(layer_sizes) == 0:
+            layer_name = "latent_layer"
             self.layers.append(layer_name)
             setattr(self, layer_name, nn.Linear(input_size, self.output_size))
 
         # all other models
         else:
-            bias = False
+            prefix = "interaction"
             for layer_index, num_nodes in enumerate(layer_sizes):
+                if layer_index == self.latent_idx:
+                    layer_name = "latent_layer"
+                    bias = False
+                    if layer_index > 0:
+                        # skip connection
+                        input_size += self.input_size
+                    prefix = "nonlinearity"
+                else:
+                    layer_name = f"{prefix}_{layer_index}"
+                    bias = True
+
                 self.layers.append(layer_name)
                 setattr(self, layer_name, nn.Linear(input_size, num_nodes, bias=bias))
-                layer_name = f"internal_layer_{layer_index}"
                 input_size = layer_sizes[layer_index]
-                bias = True
 
             # final layer
             layer_name = "output_layer"
@@ -251,11 +264,7 @@ class VanillaGGE(TorchdmsModel):
 
     @property
     def internal_layer_dimensions(self):
-        return [
-            getattr(self, layer).in_features
-            for layer in self.layers
-            if "input" not in layer
-        ]
+        return [getattr(self, layer).out_features for layer in self.layers[:-1]]
 
     @property
     def is_linear(self):
@@ -267,7 +276,7 @@ class VanillaGGE(TorchdmsModel):
         if len(dims) == 0:
             return 0
         # else:
-        return dims[0]
+        return dims[self.latent_idx]
 
     def str_summary(self):
         """A one-line summary of the model."""
@@ -286,55 +295,54 @@ class VanillaGGE(TorchdmsModel):
             ]
         )
 
-    def forward_of_layers_and_activations(self, layers, activations, x):
+    def to_latent(self, x):
+        """Map input into latent space."""
         out = x
-        for layer_name, activation in zip(layers[:-1], activations):
-            out = activation(getattr(self, layer_name)(out))
-        # The last layer acts without an activation, which is on purpose because we
-        # don't want to be limited to the range of the activation.
-        out = getattr(self, layers[-1])(out)
-        if self.monotonic_sign:
-            out *= self.monotonic_sign
-        return out
+        if self.latent_idx > 0:
+            for layer_name, activation in zip(
+                self.layers[: self.latent_idx], self.activations[: self.latent_idx]
+            ):
+                out = activation(getattr(self, layer_name)(out))
+            out = torch.cat((x, out), 1)
 
-    def forward(self, x):  # pylint: disable=arguments-differ
-        return self.forward_of_layers_and_activations(self.layers, self.activations, x)
+        return self.activations[self.latent_idx](
+            getattr(self, self.layers[self.latent_idx])(out)
+        )
 
     def from_latent_to_output(self, x):
         """Evaluate the mapping from the latent space to output."""
         if self.is_linear:
             return x
         # else:
-        out = self.activations[0](x)
-        return self.forward_of_layers_and_activations(
-            self.layers[1:], self.activations[1:], out
-        )
+        out = x
+        for layer_name, activation in zip(
+            self.layers[self.latent_idx + 1 : -1],
+            self.activations[self.latent_idx + 1 :],
+        ):
+            out = activation(getattr(self, layer_name)(out))
+        # The last layer acts without an activation, which is on purpose because we
+        # don't want to be limited to the range of the activation.
+        out = getattr(self, self.layers[-1])(out)
+        if self.monotonic_sign:
+            out *= self.monotonic_sign
+        return out
 
-    def to_latent(self, x):
-        """Map input into latent space."""
-        return getattr(self, self.layers[0])(x)
+    def forward(self, x):  # pylint: disable=arguments-differ
+        return self.from_latent_to_output(self.to_latent(x))
+
+    def beta_coefficients(self):
+        """beta coefficients, skip coefficients only if interaction module."""
+        return self.latent_layer.weight.data[:, : self.input_size]
 
     def regularization_loss(self):
-        """L1-penalize betas for all latent space dimensions except for the
-        first one."""
+        """L1-penalize weights in interaction layers."""
         if self.beta_l1_coefficient == 0.0:
             return 0.0
-        beta_parameters = next(self.parameters())
-        # The dimensions of the latent space are laid out as rows of the parameter
-        # matrix.
-        latent_space_dim = beta_parameters.shape[0]
-        if latent_space_dim == 1:
-            return 0.0
-        # else:
-        return self.beta_l1_coefficient * torch.sum(
-            torch.abs(
-                beta_parameters.narrow(
-                    0,  # Slice along the 0th dimension.
-                    1,  # Start penalizing after the first dimension.
-                    latent_space_dim - 1,  # Penalize all subsequent dimensions.
-                )
-            )
-        )
+        penalty = 0.0
+        for interaction_layer in self.layers[: self.latent_idx]:
+            penalty += getattr(self, interaction_layer).weight.norm(1)
+        penalty += self.latent_layer.weight[:, self.input_size :].norm(1)
+        return self.beta_l1_coefficient * penalty
 
 
 class Independent2D(TorchdmsModel):
@@ -425,12 +433,22 @@ class Independent2D(TorchdmsModel):
             (self.model_bind.to_latent(x), self.model_stab.to_latent(x)), 1
         )
 
+    def beta_coefficients(self):
+        """beta coefficients, skip coefficients only if interaction module."""
+        beta_coefficient_data = torch.cat(
+            (
+                self.model_bind.latent_layer.weight.data,
+                self.model_stab.latent_layer.weight.data,
+            )
+        )
+        return beta_coefficient_data[:, : self.input_size]
+
     def regularization_loss(self):
-        """L1-penalize betas for all latent space dimensions."""
-        if self.beta_l1_coefficient == 0.0:
-            return 0.0
-        # else:
-        raise NotImplementedError("beta_l1_coefficient must be zero")
+        """L1-penalize weights."""
+        return (
+            self.model_bind.regularization_loss()
+            + self.model_stab.regularization_loss()
+        )
 
 
 class Sparse2D(Independent2D):
@@ -442,23 +460,23 @@ class Sparse2D(Independent2D):
         # map bind and stab output to a new bind output
         previous_dim = 2
         self.mix_layers = []
-        for i, mix_dim in enumerate(args[1][1:]):
+        for i, mix_dim in enumerate(args[1][self.model_bind.latent_idx + 1 :]):
             layer_name = f"mix_layer_{i}"
             setattr(self, layer_name, nn.Linear(previous_dim, mix_dim))
             self.layers.append(layer_name)
             self.mix_layers.append(layer_name)
             previous_dim = mix_dim
-        self.mix_activations = args[2][1:]
+        self.mix_activations = args[2][self.model_bind.latent_idx + 1 :]
 
         self.output_layer = nn.Linear(mix_dim, 1)
         self.layers.append("output_layer")
 
     def post_stab_interaction(self, y):
         """final layer interaction from g_stab to g_bind."""
-        z = y
+        out = y
         for layer_name, activation in zip(self.mix_layers, self.mix_activations):
-            z = activation(getattr(self, layer_name)(z))
-        y_bind = self.output_layer(z)
+            out = activation(getattr(self, layer_name)(out))
+        y_bind = self.output_layer(out)
 
         if self.model_bind.monotonic_sign:
             y_bind *= self.model_bind.monotonic_sign
