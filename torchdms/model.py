@@ -195,7 +195,7 @@ class VanillaGGE(TorchdmsModel):
         target_names,
         alphabet,
         monotonic_sign=None,
-        beta_l1_coefficient=0.0,  # NOTE: rename this, since isn't applied to betas that we identify as skip layer
+        beta_l1_coefficient=0.0,
         freeze_betas=False,
     ):
         super().__init__(input_size, target_names, alphabet)
@@ -335,7 +335,8 @@ class VanillaGGE(TorchdmsModel):
         return self.latent_layer.weight.data[:, : self.input_size]
 
     def regularization_loss(self):
-        """L1-penalize weights in interaction layers."""
+        """L1-penalize weights in interaction layers (not single mutant
+        effects)."""
         if self.beta_l1_coefficient == 0.0:
             return 0.0
         penalty = 0.0
@@ -410,7 +411,10 @@ class Independent2D(TorchdmsModel):
         return self.model_bind.latent_dim + self.model_stab.latent_dim
 
     def str_summary(self):
-        return f"{self.__class__.__name__}: ({self.model_bind.str_summary()}, {self.model_stab.str_summary()})"
+        return (
+            f"{self.__class__.__name__}: ({self.model_bind.str_summary()}, "
+            f"{self.model_stab.str_summary()})"
+        )
 
     def forward(self, x):  # pylint: disable=arguments-differ
         """generate independent bind and stab values."""
@@ -468,7 +472,7 @@ class Sparse2D(Independent2D):
             previous_dim = mix_dim
         self.mix_activations = args[2][self.model_bind.latent_idx + 1 :]
 
-        self.output_layer = nn.Linear(mix_dim, 1)
+        self.output_layer = nn.Linear(self.output_size, 1)
         self.layers.append("output_layer")
 
     def post_stab_interaction(self, y):
