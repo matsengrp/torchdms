@@ -224,17 +224,20 @@ class VanillaGGE(TorchdmsModel):
         # all other models
         else:
             prefix = "interaction"
+            # the pre-latent interaction network should have zero bias
+            bias = False
             for layer_index, num_nodes in enumerate(layer_sizes):
                 if layer_index == self.latent_idx:
                     layer_name = "latent_layer"
-                    bias = False
+                    # The latent layer has a bias representing wild type latent phenotype
+                    # And post-latent layer has bias, since data may not be normalized to wild type
+                    bias = True
                     if layer_index > 0:
                         # skip connection
                         input_size += self.input_size
                     prefix = "nonlinearity"
                 else:
                     layer_name = f"{prefix}_{layer_index}"
-                    bias = True
 
                 self.layers.append(layer_name)
                 setattr(self, layer_name, nn.Linear(input_size, num_nodes, bias=bias))
