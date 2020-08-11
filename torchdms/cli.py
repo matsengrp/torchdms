@@ -297,11 +297,22 @@ def create(
     Model string describes the model, such as 'VanillaGGE(1,10)'.
     """
     set_random_seed(seed)
-    model = model_of_string(model_string, data_path, monotonic)
-    model.beta_l1_coefficient = [float(x) for x in beta_l1_coefficient.split(",")]
-    model.interaction_l1_coefficient = [
+    beta_l1_coefficient = [float(x) for x in beta_l1_coefficient.split(",")]
+    if len(beta_l1_coefficient) == 1:
+        beta_l1_coefficient = beta_l1_coefficient[0]
+    interaction_l1_coefficient = [
         float(x) for x in interaction_l1_coefficient.split(",")
     ]
+    if len(interaction_l1_coefficient) == 1:
+        interaction_l1_coefficient = interaction_l1_coefficient[0]
+
+    model = model_of_string(
+        model_string,
+        data_path,
+        monotonic_sign=monotonic,
+        beta_l1_coefficient=beta_l1_coefficient,
+        interaction_l1_coefficient=interaction_l1_coefficient,
+    )
 
     torch.save(model, out_path)
     click.echo(f"LOG: Model defined as: {model}")

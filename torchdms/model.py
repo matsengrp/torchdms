@@ -356,7 +356,7 @@ class VanillaGGE(TorchdmsModel):
         penalty = 0.0
         if self.beta_l1_coefficient > 0.0:
             penalty += self.beta_l1_coefficient * self.latent_layer.weight[
-                latent_idx, : self.input_size
+                :, : self.input_size
             ].norm(1)
         if self.interaction_l1_coefficient > 0.0:
             for interaction_layer in self.layers[: self.latent_idx]:
@@ -531,7 +531,7 @@ def activation_of_string(string):
     raise IOError(f"Don't know activation named {string}.")
 
 
-def model_of_string(model_string, data_path, monotonic_sign):
+def model_of_string(model_string, data_path, **kwargs):
     """Build a model out of a string specification."""
     try:
         model_regex = re.compile(r"(.*)\((.*)\)")
@@ -564,7 +564,7 @@ def model_of_string(model_string, data_path, monotonic_sign):
             activations,
             test_dataset.target_names,
             alphabet=test_dataset.alphabet,
-            monotonic_sign=monotonic_sign,
+            **kwargs,
         )
     elif model_name == "Linear":
         model = LinearModel(
@@ -579,7 +579,7 @@ def model_of_string(model_string, data_path, monotonic_sign):
             activations,
             test_dataset.target_names,
             alphabet=test_dataset.alphabet,
-            monotonic_sign=monotonic_sign,
+            **kwargs,
         )
     else:
         raise NotImplementedError(model_name)
