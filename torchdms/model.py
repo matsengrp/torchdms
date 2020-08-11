@@ -174,10 +174,14 @@ class VanillaGGE(TorchdmsModel):
     specified. the rest should simply be fed in as a list
     like:
 
-    layer_sizes = [2, 10, 10]
+    layer_sizes = [10, 2, 10, 10]
+    activations = [relu, identity, relu, relu]
 
     means we have a 'latent' space of 2 nodes, connected to
     two more dense layers, each with 10 nodes, before the output.
+    The first layer that corresponds to an `identity` activation is the latent
+    space.
+    Layers before the latent layer are a nonlinear module for site-wise interactions
 
     `activations` is a list of torch activations, which can be identity for no
     activation. Activations just happen between the hidden layers, and not at the output
@@ -196,6 +200,7 @@ class VanillaGGE(TorchdmsModel):
         alphabet,
         monotonic_sign=None,
         beta_l1_coefficient=0.0,
+        interaction_l1_coefficient=0.0,
         freeze_betas=False,
     ):
         super().__init__(input_size, target_names, alphabet)
@@ -203,6 +208,7 @@ class VanillaGGE(TorchdmsModel):
         self.layers = []
         self.activations = activations
         self.beta_l1_coefficient = beta_l1_coefficient
+        self.interaction_l1_coefficient = interaction_l1_coefficient
         self.freeze_betas = freeze_betas
 
         if not len(layer_sizes) == len(activations):
@@ -263,6 +269,7 @@ class VanillaGGE(TorchdmsModel):
             ),
             "monotonic": self.monotonic_sign,
             "beta_l1_coefficient": self.beta_l1_coefficient,
+            "interaction_l1_coefficient": self.interaction_l1_coefficient,
         }
 
     @property
@@ -302,10 +309,13 @@ class VanillaGGE(TorchdmsModel):
         """Map input into latent space."""
         out = x
         if self.latent_idx > 0:
+            # loop over pre-latent interaction layers
             for layer_name, activation in zip(
                 self.layers[: self.latent_idx], self.activations[: self.latent_idx]
             ):
                 out = activation(getattr(self, layer_name)(out))
+            # skip connection concatenates single-mutant effects and interaction
+            # features for the latent layer
             out = torch.cat((x, out), 1)
 
         return self.activations[self.latent_idx](
@@ -331,26 +341,36 @@ class VanillaGGE(TorchdmsModel):
         return out
 
     def forward(self, x):  # pylint: disable=arguments-differ
+        """Compose data --> latent --> output."""
         return self.from_latent_to_output(self.to_latent(x))
 
     def beta_coefficients(self):
-        """beta coefficients, skip coefficients only if interaction module."""
+        """Beta coefficients (single mutant effects only, no interaction
+        terms)"""
+        # This implementation assumes the single mutant terms are indexed first
         return self.latent_layer.weight.data[:, : self.input_size]
 
     def regularization_loss(self):
-        """L1-penalize weights in interaction layers (not single mutant
-        effects)."""
-        if self.beta_l1_coefficient == 0.0:
-            return 0.0
+        """L1 penalize single mutant effects, and pre-latent interaction
+        weights."""
         penalty = 0.0
-        for interaction_layer in self.layers[: self.latent_idx]:
-            penalty += getattr(self, interaction_layer).weight.norm(1)
-        penalty += self.latent_layer.weight[:, self.input_size :].norm(1)
-        return self.beta_l1_coefficient * penalty
+        if self.beta_l1_coefficient > 0.0:
+            penalty += self.beta_l1_coefficient * self.latent_layer.weight[
+                latent_idx, : self.input_size
+            ].norm(1)
+        if self.interaction_l1_coefficient > 0.0:
+            for interaction_layer in self.layers[: self.latent_idx]:
+                penalty += self.interaction_l1_coefficient * getattr(
+                    self, interaction_layer
+                ).weight.norm(1)
+        return penalty
 
 
 class Independent2D(TorchdmsModel):
-    """a lot like VanillaGGE, but parallel forks for each output dimension."""
+    """Parallel and independent VanillaGGE for each of two output dimensions.
+
+    beta_l1_coefficient and interaction_l1_coefficient are each lists with two elements, a penalty parameter for each of the parallel models
+    """
 
     def __init__(
         self,
@@ -360,7 +380,8 @@ class Independent2D(TorchdmsModel):
         target_names,
         alphabet,
         monotonic_sign=None,
-        beta_l1_coefficient=0.0,
+        beta_l1_coefficient=[0.0, 0.0],
+        interaction_l1_coefficient=[0.0, 0.0],
     ):
         super().__init__(input_size, target_names, alphabet)
 
@@ -385,7 +406,8 @@ class Independent2D(TorchdmsModel):
                     [target_names[i]],
                     alphabet,
                     monotonic_sign,
-                    beta_l1_coefficient,
+                    beta_l1_coefficient[i],
+                    interaction_l1_coefficient[i],
                 ),
             )
             for layer_name in getattr(self, f"model_{model}").layers:
@@ -419,13 +441,6 @@ class Independent2D(TorchdmsModel):
             f"{self.model_stab.str_summary()})"
         )
 
-    def forward(self, x):  # pylint: disable=arguments-differ
-        """generate independent bind and stab values."""
-        y_bind = self.model_bind.forward(x)
-        y_stab = self.model_stab.forward(x)
-
-        return torch.cat((y_bind, y_stab), 1)
-
     def from_latent_to_output(self, x):
         return torch.cat(
             (
@@ -439,6 +454,9 @@ class Independent2D(TorchdmsModel):
         return torch.cat(
             (self.model_bind.to_latent(x), self.model_stab.to_latent(x)), 1
         )
+
+    def forward(self, x):  # pylint: disable=arguments-differ
+        return self.from_latent_to_output(self.to_latent(x))
 
     def beta_coefficients(self):
         """beta coefficients, skip coefficients only if interaction module."""
@@ -459,42 +477,23 @@ class Independent2D(TorchdmsModel):
 
 
 class Sparse2D(Independent2D):
-    """a lot like Independent2D, adds sparse connections between dimensions."""
-
+    """Allows the latent space for the second output feature (i.e. stability) to feed forward into the network for the first output feature (i.e. binding)
+    """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # map bind and stab output to a new bind output
-        previous_dim = 2
-        self.mix_layers = []
-        for i, mix_dim in enumerate(args[1][self.model_bind.latent_idx + 1 :]):
-            layer_name = f"mix_layer_{i}"
-            setattr(self, layer_name, nn.Linear(previous_dim, mix_dim))
-            self.layers.append(layer_name)
-            self.mix_layers.append(layer_name)
-            previous_dim = mix_dim
-        self.mix_activations = args[2][self.model_bind.latent_idx + 1 :]
-
-        self.output_layer = nn.Linear(self.output_size, 1)
-        self.layers.append("output_layer")
-
-    def post_stab_interaction(self, y):
-        """final layer interaction from g_stab to g_bind."""
-        out = y
-        for layer_name, activation in zip(self.mix_layers, self.mix_activations):
-            out = activation(getattr(self, layer_name)(out))
-        y_bind = self.output_layer(out)
-
-        if self.model_bind.monotonic_sign:
-            y_bind *= self.model_bind.monotonic_sign
-
-        return torch.cat((y_bind, y[:, 1, None]), 1)
-
-    def forward(self, x):  # pylint: disable=arguments-differ
-        return self.post_stab_interaction(super().forward(x))
+        # expand input dimension of first post-latent layer in bind network to accommodate stab-->bind interaction
+        layer_name = self.model_bind.layers[self.model_bind.latent_idx + 1]
+        setattr(self.model_bind, layer_name, nn.Linear(self.latent_dim, self.model_bind.internal_layer_dimensions[self.model_bind.latent_idx + 1], bias=True))
 
     def from_latent_to_output(self, x):
-        return self.post_stab_interaction(super().from_latent_to_output(x))
+        return torch.cat(
+            (
+                self.model_bind.from_latent_to_output(x),
+                self.model_stab.from_latent_to_output(x[:, 1, None]),
+            ),
+            1,
+        )
 
 
 KNOWN_MODELS = {

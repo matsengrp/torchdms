@@ -272,22 +272,26 @@ def validate(data_path):
 )
 @click.option(
     "--beta-l1-coefficient",
-    type=float,
-    default=0.0,
-    show_default=True,
-    help="Coefficient with which to l1-regularize all beta coefficients except for "
+    type=str,
+    help="Coefficient with which to l1-regularize beta coefficients, a comma-seperated list for each latent dimension.",
+)
+@click.option(
+    "--interaction-l1-coefficient",
+    type=str,
+    help="Coefficient with which to l1-regularize site interaction weights, a comma-seperated list for each latent dimension"
     "those to the first latent dimension.",
 )
 @seed_option
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
-def create(model_string, data_path, out_path, monotonic, beta_l1_coefficient, seed):
+def create(model_string, data_path, out_path, monotonic, beta_l1_coefficient, interaction_l1_coefficient, seed):
     """Create a model.
 
     Model string describes the model, such as 'VanillaGGE(1,10)'.
     """
     set_random_seed(seed)
     model = model_of_string(model_string, data_path, monotonic)
-    model.beta_l1_coefficient = beta_l1_coefficient
+    model.beta_l1_coefficient = [float(x) for x in beta_l1_coefficient.split(",")]
+    model.interaction_l1_coefficient = [float(x) for x in interaction_l1_coefficient.split(",")]
 
     torch.save(model, out_path)
     click.echo(f"LOG: Model defined as: {model}")
