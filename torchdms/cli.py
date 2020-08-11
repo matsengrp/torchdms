@@ -283,7 +283,15 @@ def validate(data_path):
 )
 @seed_option
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
-def create(model_string, data_path, out_path, monotonic, beta_l1_coefficient, interaction_l1_coefficient, seed):
+def create(
+    model_string,
+    data_path,
+    out_path,
+    monotonic,
+    beta_l1_coefficient,
+    interaction_l1_coefficient,
+    seed,
+):
     """Create a model.
 
     Model string describes the model, such as 'VanillaGGE(1,10)'.
@@ -291,7 +299,9 @@ def create(model_string, data_path, out_path, monotonic, beta_l1_coefficient, in
     set_random_seed(seed)
     model = model_of_string(model_string, data_path, monotonic)
     model.beta_l1_coefficient = [float(x) for x in beta_l1_coefficient.split(",")]
-    model.interaction_l1_coefficient = [float(x) for x in interaction_l1_coefficient.split(",")]
+    model.interaction_l1_coefficient = [
+        float(x) for x in interaction_l1_coefficient.split(",")
+    ]
 
     torch.save(model, out_path)
     click.echo(f"LOG: Model defined as: {model}")

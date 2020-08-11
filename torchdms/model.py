@@ -177,11 +177,11 @@ class VanillaGGE(TorchdmsModel):
     layer_sizes = [10, 2, 10, 10]
     activations = [relu, identity, relu, relu]
 
-    means we have a 'latent' space of 2 nodes, connected to
+    means we have a 'latent' space of 2 nodes, feeding into
     two more dense layers, each with 10 nodes, before the output.
     The first layer that corresponds to an `identity` activation is the latent
     space.
-    Layers before the latent layer are a nonlinear module for site-wise interactions
+    Layers before the latent layer are a nonlinear module for site-wise interactions, in this case one layer of 10 nodes.
 
     `activations` is a list of torch activations, which can be identity for no
     activation. Activations just happen between the hidden layers, and not at the output
@@ -369,7 +369,9 @@ class VanillaGGE(TorchdmsModel):
 class Independent2D(TorchdmsModel):
     """Parallel and independent VanillaGGE for each of two output dimensions.
 
-    beta_l1_coefficient and interaction_l1_coefficient are each lists with two elements, a penalty parameter for each of the parallel models
+    beta_l1_coefficient and interaction_l1_coefficient are each lists
+    with two elements, a penalty parameter for each of the parallel
+    models
     """
 
     def __init__(
@@ -477,14 +479,26 @@ class Independent2D(TorchdmsModel):
 
 
 class Sparse2D(Independent2D):
-    """Allows the latent space for the second output feature (i.e. stability) to feed forward into the network for the first output feature (i.e. binding)
-    """
+    """Allows the latent space for the second output feature (i.e. stability)
+    to feed forward into the network for the first output feature (i.e.
+    binding)"""
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         # expand input dimension of first post-latent layer in bind network to accommodate stab-->bind interaction
         layer_name = self.model_bind.layers[self.model_bind.latent_idx + 1]
-        setattr(self.model_bind, layer_name, nn.Linear(self.latent_dim, self.model_bind.internal_layer_dimensions[self.model_bind.latent_idx + 1], bias=True))
+        setattr(
+            self.model_bind,
+            layer_name,
+            nn.Linear(
+                self.latent_dim,
+                self.model_bind.internal_layer_dimensions[
+                    self.model_bind.latent_idx + 1
+                ],
+                bias=True,
+            ),
+        )
 
     def from_latent_to_output(self, x):
         return torch.cat(
