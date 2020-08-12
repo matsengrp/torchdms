@@ -273,12 +273,14 @@ def validate(data_path):
 @click.option(
     "--beta-l1-coefficient",
     type=str,
-    help="Coefficient with which to l1-regularize beta coefficients, a comma-seperated list for each latent dimension.",
+    help="Coefficient with which to l1-regularize beta coefficients, "
+    "a comma-seperated list for each latent dimension.",
 )
 @click.option(
     "--interaction-l1-coefficient",
     type=str,
-    help="Coefficient with which to l1-regularize site interaction weights, a comma-seperated list for each latent dimension"
+    help="Coefficient with which to l1-regularize site interaction weights, "
+    "a comma-seperated list for each latent dimension"
     "those to the first latent dimension.",
 )
 @seed_option

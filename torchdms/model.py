@@ -181,7 +181,8 @@ class VanillaGGE(TorchdmsModel):
     two more dense layers, each with 10 nodes, before the output.
     The first layer that corresponds to an `identity` activation is the latent
     space.
-    Layers before the latent layer are a nonlinear module for site-wise interactions, in this case one layer of 10 nodes.
+    Layers before the latent layer are a nonlinear module for site-wise
+    interactions, in this case one layer of 10 nodes.
 
     `activations` is a list of torch activations, which can be identity for no
     activation. Activations just happen between the hidden layers, and not at the output
@@ -382,8 +383,8 @@ class Independent2D(TorchdmsModel):
         target_names,
         alphabet,
         monotonic_sign=None,
-        beta_l1_coefficient=[0.0, 0.0],
-        interaction_l1_coefficient=[0.0, 0.0],
+        beta_l1_coefficient=None,
+        interaction_l1_coefficient=None,
     ):
         super().__init__(input_size, target_names, alphabet)
 
@@ -397,6 +398,11 @@ class Independent2D(TorchdmsModel):
             raise ValueError(
                 f"2D target data required for this model, got {self.output_size}D"
             )
+
+        if beta_l1_coefficient is None:
+            beta_l1_coefficient = [0.0, 0.0]
+        if interaction_l1_coefficient is None:
+            interaction_l1_coefficient = [0.0, 0.0]
 
         for i, model in enumerate(("bind", "stab")):
             self.add_module(
@@ -486,7 +492,8 @@ class Sparse2D(Independent2D):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # expand input dimension of first post-latent layer in bind network to accommodate stab-->bind interaction
+        # expand input dimension of first post-latent layer in bind network
+        # to accommodate stab-->bind interaction
         layer_name = self.model_bind.layers[self.model_bind.latent_idx + 1]
         setattr(
             self.model_bind,
