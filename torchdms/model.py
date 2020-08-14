@@ -97,18 +97,17 @@ class TorchdmsModel(nn.Module):
         ]
 
     def monotonic_params_from_latent_space(self):
-        """following the hueristic that the latent layers of a network are
+        """Returns all the parameters to be floored to zero in a monotonic
+        model. This is every parameter after the latent space excluding bias
+        parameters.
+
+        We follow the hueristic that the latent layers of a network are
         named 'latent_layer*' and the weight bias are denoted:
 
         layer_name*.weight
         layer_name*.bias.
 
-        Note: layers from nested module will be prefixed
-
-        this function returns all the parameters
-        to be floored to zero in a monotonic model.
-        this is every parameter after the latent space
-        excluding bias parameters.
+        Layers from nested modules will be prefixed (e.g. with Independent2D).
         """
         for name, param in self.named_parameters():
             parse_name = name.split(".")
@@ -370,7 +369,7 @@ class VanillaGGE(TorchdmsModel):
 class Independent2D(TorchdmsModel):
     """Parallel and independent VanillaGGE for each of two output dimensions.
 
-    beta_l1_coefficient and interaction_l1_coefficient are each lists
+    beta_l1_coefficients and interaction_l1_coefficients are each lists
     with two elements, a penalty parameter for each of the parallel
     models
     """
@@ -383,8 +382,8 @@ class Independent2D(TorchdmsModel):
         target_names,
         alphabet,
         monotonic_sign=None,
-        beta_l1_coefficient=None,
-        interaction_l1_coefficient=None,
+        beta_l1_coefficients=None,
+        interaction_l1_coefficients=None,
     ):
         super().__init__(input_size, target_names, alphabet)
 
@@ -399,10 +398,10 @@ class Independent2D(TorchdmsModel):
                 f"2D target data required for this model, got {self.output_size}D"
             )
 
-        if beta_l1_coefficient is None:
-            beta_l1_coefficient = [0.0, 0.0]
-        if interaction_l1_coefficient is None:
-            interaction_l1_coefficient = [0.0, 0.0]
+        if beta_l1_coefficients is None:
+            beta_l1_coefficients = [0.0, 0.0]
+        if interaction_l1_coefficients is None:
+            interaction_l1_coefficients = [0.0, 0.0]
 
         for i, model in enumerate(("bind", "stab")):
             self.add_module(
@@ -414,8 +413,8 @@ class Independent2D(TorchdmsModel):
                     [target_names[i]],
                     alphabet,
                     monotonic_sign,
-                    beta_l1_coefficient[i],
-                    interaction_l1_coefficient[i],
+                    beta_l1_coefficients[i],
+                    interaction_l1_coefficients[i],
                 ),
             )
             for layer_name in getattr(self, f"model_{model}").layers:
@@ -468,13 +467,13 @@ class Independent2D(TorchdmsModel):
 
     def beta_coefficients(self):
         """beta coefficients, skip coefficients only if interaction module."""
-        beta_coefficient_data = torch.cat(
+        beta_coefficients_data = torch.cat(
             (
                 self.model_bind.latent_layer.weight.data,
                 self.model_stab.latent_layer.weight.data,
             )
         )
-        return beta_coefficient_data[:, : self.input_size]
+        return beta_coefficients_data[:, : self.input_size]
 
     def regularization_loss(self):
         """L1-penalize weights."""

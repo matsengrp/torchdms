@@ -271,17 +271,16 @@ def validate(data_path):
     "monotonically decreasing, or 1.0 if you want it to be increasing.",
 )
 @click.option(
-    "--beta-l1-coefficient",
+    "--beta-l1-coefficients",
     type=str,
-    help="Coefficient with which to l1-regularize beta coefficients, "
-    "a comma-seperated list for each latent dimension.",
+    help="Coefficients with which to l1-regularize beta coefficients, "
+    "a comma-seperated list of coefficients for each latent dimension.",
 )
 @click.option(
-    "--interaction-l1-coefficient",
+    "--interaction-l1-coefficients",
     type=str,
-    help="Coefficient with which to l1-regularize site interaction weights, "
-    "a comma-seperated list for each latent dimension"
-    "those to the first latent dimension.",
+    help="Coefficients with which to l1-regularize site interaction weights, "
+    "a comma-seperated list of coefficients for each latent dimension",
 )
 @seed_option
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
@@ -290,8 +289,8 @@ def create(
     data_path,
     out_path,
     monotonic,
-    beta_l1_coefficient,
-    interaction_l1_coefficient,
+    beta_l1_coefficients,
+    interaction_l1_coefficients,
     seed,
 ):
     """Create a model.
@@ -299,22 +298,21 @@ def create(
     Model string describes the model, such as 'VanillaGGE(1,10)'.
     """
     set_random_seed(seed)
-    beta_l1_coefficient = [float(x) for x in beta_l1_coefficient.split(",")]
-    if len(beta_l1_coefficient) == 1:
-        beta_l1_coefficient = beta_l1_coefficient[0]
-    interaction_l1_coefficient = [
-        float(x) for x in interaction_l1_coefficient.split(",")
+    beta_l1_coefficients = [float(x) for x in beta_l1_coefficients.split(",")]
+    kwargs = dict(monotonic_sign=monotonic)
+    if len(beta_l1_coefficients) == 1:
+        kwargs["beta_l1_coefficient"] = beta_l1_coefficients[0]
+    else:
+        kwargs["beta_l1_coefficients"] = beta_l1_coefficients
+    interaction_l1_coefficients = [
+        float(x) for x in interaction_l1_coefficients.split(",")
     ]
-    if len(interaction_l1_coefficient) == 1:
-        interaction_l1_coefficient = interaction_l1_coefficient[0]
+    if len(interaction_l1_coefficients) == 1:
+        kwargs["interaction_l1_coefficient"] = interaction_l1_coefficients[0]
+    else:
+        kwargs["interaction_l1_coefficients"] = interaction_l1_coefficients
 
-    model = model_of_string(
-        model_string,
-        data_path,
-        monotonic_sign=monotonic,
-        beta_l1_coefficient=beta_l1_coefficient,
-        interaction_l1_coefficient=interaction_l1_coefficient,
-    )
+    model = model_of_string(model_string, data_path, **kwargs,)
 
     torch.save(model, out_path)
     click.echo(f"LOG: Model defined as: {model}")
