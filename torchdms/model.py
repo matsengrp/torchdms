@@ -487,7 +487,7 @@ class Sparse2D(Independent2D):
     """Allows the latent space for the second output feature (i.e. stability)
     to feed forward into the network for the first output feature (i.e.
     binding).
-    
+
     Diagram:
     https://user-images.githubusercontent.com/1173298/89943302-d4524d00-dbd2-11ea-827d-6ad6c238ff52.png"""
 
