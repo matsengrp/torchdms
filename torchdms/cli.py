@@ -271,23 +271,48 @@ def validate(data_path):
     "monotonically decreasing, or 1.0 if you want it to be increasing.",
 )
 @click.option(
-    "--beta-l1-coefficient",
-    type=float,
-    default=0.0,
-    show_default=True,
-    help="Coefficient with which to l1-regularize all beta coefficients except for "
-    "those to the first latent dimension.",
+    "--beta-l1-coefficients",
+    type=str,
+    help="Coefficients with which to l1-regularize beta coefficients, "
+    "a comma-seperated list of coefficients for each latent dimension.",
+)
+@click.option(
+    "--interaction-l1-coefficients",
+    type=str,
+    help="Coefficients with which to l1-regularize site interaction weights, "
+    "a comma-seperated list of coefficients for each latent dimension",
 )
 @seed_option
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
-def create(model_string, data_path, out_path, monotonic, beta_l1_coefficient, seed):
+def create(
+    model_string,
+    data_path,
+    out_path,
+    monotonic,
+    beta_l1_coefficients,
+    interaction_l1_coefficients,
+    seed,
+):
     """Create a model.
 
-    Model string describes the model, such as 'VanillaGGE(1,10)'.
+    Model string describes the model, such as 'Planifolia(1,10)'.
     """
     set_random_seed(seed)
-    model = model_of_string(model_string, data_path, monotonic)
-    model.beta_l1_coefficient = beta_l1_coefficient
+    beta_l1_coefficients = [float(x) for x in beta_l1_coefficients.split(",")]
+    kwargs = dict(monotonic_sign=monotonic)
+    if len(beta_l1_coefficients) == 1:
+        kwargs["beta_l1_coefficient"] = beta_l1_coefficients[0]
+    else:
+        kwargs["beta_l1_coefficients"] = beta_l1_coefficients
+    interaction_l1_coefficients = [
+        float(x) for x in interaction_l1_coefficients.split(",")
+    ]
+    if len(interaction_l1_coefficients) == 1:
+        kwargs["interaction_l1_coefficient"] = interaction_l1_coefficients[0]
+    else:
+        kwargs["interaction_l1_coefficients"] = interaction_l1_coefficients
+
+    model = model_of_string(model_string, data_path, **kwargs,)
 
     torch.save(model, out_path)
     click.echo(f"LOG: Model defined as: {model}")
@@ -635,14 +660,14 @@ def cartesian(choice_json_path):
 @click.argument("source_path", type=click.Path(exists=True))
 @click.argument("dest_path", type=click.Path(exists=True))
 def transfer(source_path, dest_path):
-    """ Transfer beta coefficients from one tdms model to another."""
+    """Transfer beta coefficients from one tdms model to another."""
     source_model = torch.load(source_path)
     dest_model = torch.load(dest_path)
 
-    init_weights = source_model.state_dict()["input_layer.weight"]
-    if len(dest_model.input_layer.weight[0]) != len(init_weights[0]):
+    init_weights = source_model.state_dict()["latent_layer.weight"]
+    if len(dest_model.latent_layer.weight[0]) != len(init_weights[0]):
         raise ValueError("source & dest beta dimensions do not match.")
-    dest_model.input_layer.weight[0] = init_weights[0]
+    dest_model.latent_layer.weight[0] = init_weights[0]
     dest_model.freeze_betas = True
 
     torch.save(dest_model, dest_path)

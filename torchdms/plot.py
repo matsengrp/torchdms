@@ -175,10 +175,6 @@ def beta_coefficients(model, test_data, out):
     mutation.
     """
 
-    # below gives us the first transformation matrix of the model
-    # going from inputs -> latent space, thus
-    # a tensor of shape (n latent space dims, n input nodes)
-    beta_coefficient_data = next(model.parameters()).data
     bmap = dms.binarymap.BinaryMap(test_data.original_df,)
 
     # To represent the wtseq in the heatmap, create a mask
@@ -190,12 +186,12 @@ def beta_coefficients(model, test_data, out):
         wtmask[row_position, column_position] = True
 
     # plot beta's
-    num_latent_dims = beta_coefficient_data.shape[0]
+    num_latent_dims = model.beta_coefficients().shape[0]
     fig, ax = plt.subplots(num_latent_dims, figsize=(10, 5 * num_latent_dims))
     if num_latent_dims == 1:
         ax = [ax]
     for latent_dim in range(num_latent_dims):
-        latent = beta_coefficient_data[latent_dim].numpy()
+        latent = model.beta_coefficients()[latent_dim].numpy()
         # See model.numpy_single_mutant_predictions for why this transpose is here.
         beta_map = latent.reshape(len(test_data.wtseq), len(bmap.alphabet)).transpose()
         beta_map[wtmask] = np.nan
