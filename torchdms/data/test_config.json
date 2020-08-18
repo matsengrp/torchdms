@@ -6,7 +6,7 @@
         "epochs": 1,
         "independent_starts": 2,
         "loss_weight_span": 0.01,
-        "model_string": "VanillaGGE(1,sigmoid,10,relu)",
+        "model_string": "Planifolia(1,sigmoid,10,relu)",
         "monotonic": null,
         "prefix": "_ignore/run",
         "seed": 42

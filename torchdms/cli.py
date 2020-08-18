@@ -295,7 +295,7 @@ def create(
 ):
     """Create a model.
 
-    Model string describes the model, such as 'VanillaGGE(1,10)'.
+    Model string describes the model, such as 'Planifolia(1,10)'.
     """
     set_random_seed(seed)
     beta_l1_coefficients = [float(x) for x in beta_l1_coefficients.split(",")]

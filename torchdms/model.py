@@ -107,7 +107,7 @@ class TorchdmsModel(nn.Module):
         layer_name*.weight
         layer_name*.bias.
 
-        Layers from nested modules will be prefixed (e.g. with Independent2D).
+        Layers from nested modules will be prefixed (e.g. with Dianthum).
         """
         for name, param in self.named_parameters():
             parse_name = name.split(".")
@@ -165,7 +165,7 @@ class LinearModel(TorchdmsModel):
         return self.forward(x)
 
 
-class VanillaGGE(TorchdmsModel):
+class Planifolia(TorchdmsModel):
     """Make it just how you like it.
 
     input size can be inferred for the train/test datasets
@@ -366,8 +366,8 @@ class VanillaGGE(TorchdmsModel):
         return penalty
 
 
-class Independent2D(TorchdmsModel):
-    """Parallel and independent VanillaGGE for each of two output dimensions.
+class Dianthum(TorchdmsModel):
+    """Parallel and independent Planifolia for each of two output dimensions.
 
     beta_l1_coefficients and interaction_l1_coefficients are each lists
     with two elements, a penalty parameter for each of the parallel
@@ -406,7 +406,7 @@ class Independent2D(TorchdmsModel):
         for i, model in enumerate(("bind", "stab")):
             self.add_module(
                 f"model_{model}",
-                VanillaGGE(
+                Planifolia(
                     input_size,
                     layer_sizes,
                     activations,
@@ -483,13 +483,14 @@ class Independent2D(TorchdmsModel):
         )
 
 
-class Sparse2D(Independent2D):
+class Argus(Dianthum):
     """Allows the latent space for the second output feature (i.e. stability)
     to feed forward into the network for the first output feature (i.e.
     binding).
 
     Diagram:
-    https://user-images.githubusercontent.com/1173298/89943302-d4524d00-dbd2-11ea-827d-6ad6c238ff52.png"""
+    https://user-images.githubusercontent.com/1173298/89943302-d4524d00-dbd2-11ea-827d-6ad6c238ff52.png
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -521,9 +522,9 @@ class Sparse2D(Independent2D):
 
 KNOWN_MODELS = {
     "Linear": LinearModel,
-    "VanillaGGE": VanillaGGE,
-    "Independent2D": Independent2D,
-    "Sparse2D": Sparse2D,
+    "Planifolia": Planifolia,
+    "Dianthum": Dianthum,
+    "Argus": Argus,
 }
 
 
@@ -564,10 +565,10 @@ def model_of_string(model_string, data_path, **kwargs):
         raise IOError(model_name + " not known")
     data = from_pickle_file(data_path)
     test_dataset = data.test
-    if model_name == "VanillaGGE":
+    if model_name == "Planifolia":
         if len(layers) == 0:
             click.echo("LOG: No layers provided, so I'm creating a linear model.")
-        model = VanillaGGE(
+        model = Planifolia(
             test_dataset.feature_count(),
             layers,
             activations,
@@ -581,7 +582,7 @@ def model_of_string(model_string, data_path, **kwargs):
             test_dataset.target_names,
             alphabet=test_dataset.alphabet,
         )
-    elif model_name in ("Independent2D", "Sparse2D"):
+    elif model_name in ("Dianthum", "Argus"):
         model = KNOWN_MODELS[model_name](
             test_dataset.feature_count(),
             layers,
