@@ -183,6 +183,7 @@ class Analysis:
         patience=10,
         min_lr=1e-5,
         loss_weight_span=None,
+        exp_target=None,
     ):
         """Do pre-training on self.model using the specified number of
         independent starts, writing the best pre-trained model to the model
