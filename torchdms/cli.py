@@ -180,11 +180,9 @@ def prep(
     set_random_seed(seed)
     click.echo(f"LOG: Targets: {targets}")
     aa_func_scores, wtseq = from_pickle_file(in_path)
-
     if drop_nans:
         click.echo("LOG: dropping NaNs as requested.")
         aa_func_scores.dropna(inplace=True)
-
     total_variants = len(aa_func_scores.iloc[:, 1])
     click.echo(f"LOG: There are {total_variants} total variants in this dataset")
 
@@ -370,6 +368,13 @@ def create(
     "of epochs. Fail if data contains nans.",
 )
 @click.option(
+    "--exp-target",
+    type=int,
+    default=None,
+    help="Exponentiate functional scores of variants to emphasize fitting highly functional "
+    "protein variants. If on, weight decay will be turned off."
+)
+@click.option(
     "--epochs",
     default=100,
     show_default=True,
@@ -383,6 +388,7 @@ def train(
     data_path,
     loss_fn,
     loss_weight_span,
+    exp_target,
     batch_size,
     learning_rate,
     min_lr,
@@ -424,6 +430,15 @@ def train(
         click.echo(f"Starting simple training for {epochs} epochs.")
         analysis.simple_train(epochs, loss_fn)
         return
+    if exp_target:
+        click.echo("Exponentiating targets to emphasize fitting on highly functional protein variants.")
+        if loss_weight_span is not None:
+            click.echo(
+                "NOTE: you have indicated that you would like to exponentiate your targets "
+                "while also using weight decay. Since these procedures are redundant, "
+                "weight decay will be turned off."
+            )
+            loss_weight_span = None
     # else:
     if loss_weight_span is not None:
         click.echo(
@@ -439,6 +454,7 @@ def train(
         "patience": patience,
         "min_lr": min_lr,
         "loss_weight_span": loss_weight_span,
+        "exp_target": exp_target,
     }
 
     click.echo(f"Starting training. {training_params}")
