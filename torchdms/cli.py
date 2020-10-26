@@ -431,7 +431,7 @@ def train(
         analysis.simple_train(epochs, loss_fn)
         return
     if exp_target:
-        click.echo("Exponentiating targets to emphasize fitting on highly functional protein variants.")
+        click.echo(f"Exponentiating targets with base {exp_target}.")
         if loss_weight_span is not None:
             click.echo(
                 "NOTE: you have indicated that you would like to exponentiate your targets "

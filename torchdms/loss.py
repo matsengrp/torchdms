@@ -10,7 +10,7 @@ def l1(y_true, y_predicted, loss_decay=None, exp_target=None):
             torch.exp(loss_decay * y_true_squoze)
             * (y_true_squoze - y_predicted.squeeze()).abs()
         )
-    elif exp_target:
+    if exp_target:
         y_true_squoze = torch.pow(exp_target,y_true.squeeze())
         y_predicted_squoze = torch.pow(exp_target, y_predicted.squeeze())
         return torch.nn.functional.mse_loss(y_true_squoze, y_predicted_squoze)
@@ -26,7 +26,7 @@ def mse(y_true, y_predicted, loss_decay=None, exp_target=None):
             torch.exp(loss_decay * y_true_squoze)
             * (y_true_squoze - y_predicted.squeeze()) ** 2
         )
-    elif exp_target:
+    if exp_target:
         y_true_squoze = torch.pow(exp_target,y_true.squeeze())
         y_predicted_squoze = torch.pow(exp_target, y_predicted.squeeze())
         return torch.nn.functional.mse_loss(y_true_squoze, y_predicted_squoze)
@@ -34,6 +34,6 @@ def mse(y_true, y_predicted, loss_decay=None, exp_target=None):
     return torch.nn.functional.mse_loss(y_true.squeeze(), y_predicted.squeeze())
 
 
-def rmse(y_true, y_predicted, loss_decay=None, exp_target=None):
+def rmse(y_true, y_predicted, loss_decay=None):
     """Root mean square error, perhaps with loss decay."""
     return mse(y_true, y_predicted, loss_decay).sqrt()
