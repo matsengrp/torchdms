@@ -79,7 +79,13 @@ class Analysis:
         return sum(per_target_loss) + self.model.regularization_loss()
 
     def train(
-        self, epoch_count, loss_fn, patience=10, min_lr=1e-5, loss_weight_span=None, exp_target=None
+        self,
+        epoch_count,
+        loss_fn,
+        patience=10,
+        min_lr=1e-5,
+        loss_weight_span=None,
+        exp_target=None,
     ):
         """Train self.model using all the bells and whistles."""
         assert len(self.train_datasets) > 0
