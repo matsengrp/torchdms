@@ -13,7 +13,7 @@ def l1(y_true, y_predicted, loss_decay=None, exp_target=None):
     elif exp_target:
         y_true_squoze = torch.pow(exp_target,y_true.squeeze())
         y_predicted_squoze = torch.pow(exp_target, y_predicted.squeeze())
-        return torch.nn.functional.mse_loss(y_true_exp, y_predicted_exp)
+        return torch.nn.functional.mse_loss(y_true_squoze, y_predicted_squoze)
     # else:
     return torch.nn.functional.l1_loss(y_true.squeeze(), y_predicted.squeeze())
 
@@ -29,7 +29,7 @@ def mse(y_true, y_predicted, loss_decay=None, exp_target=None):
     elif exp_target:
         y_true_squoze = torch.pow(exp_target,y_true.squeeze())
         y_predicted_squoze = torch.pow(exp_target, y_predicted.squeeze())
-        return torch.nn.functional.mse_loss(y_true_exp, y_predicted_exp)
+        return torch.nn.functional.mse_loss(y_true_squoze, y_predicted_squoze)
     # else:
     return torch.nn.functional.mse_loss(y_true.squeeze(), y_predicted.squeeze())
 
