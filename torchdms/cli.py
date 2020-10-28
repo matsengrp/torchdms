@@ -392,10 +392,10 @@ def create(
 )
 @click.option(
     "--exp-target",
-    type=int,
+    type=float,
     default=None,
-    help="Exponentiate functional scores of variants to emphasize fitting highly functional "
-    "protein variants. If on, weight decay will be turned off.",
+    help="Provide base to be exponentiated by functional scores of variants."
+    "Emphasizes fitting highly functional protein variants. If on, weight decay will be turned off.",
 )
 @click.option(
     "--epochs",
