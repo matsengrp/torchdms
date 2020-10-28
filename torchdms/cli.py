@@ -395,7 +395,7 @@ def create(
     type=float,
     default=None,
     help="Provide base to be exponentiated by functional scores of variants."
-    "Emphasizes fitting highly functional protein variants. If on, weight decay will be turned off.",
+    "Emphasizes fitting highly functional variants. If on, weight decay will be turned off.",
 )
 @click.option(
     "--epochs",
