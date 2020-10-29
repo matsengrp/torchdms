@@ -2,37 +2,38 @@
 import torch
 
 
+def make_squoze_y_pair(exp_target):
+    """
+    Make squeezed versions of y_true and y_predicted, perhaps using exp_target as a base for exponentiation.
+    """
+    if exp_target is not None:
+        return torch.pow(exp_target, y_true.squeeze()), torch.pow(exp_target, y_predicted.squeeze())
+    # else:
+    return y_true.squeeze(), y_predicted.squeeze()
+
+
 def l1(y_true, y_predicted, loss_decay=None, exp_target=None):
     """Mean square error, perhaps with loss decay."""
-    y_true_squoze = y_true.squeeze()
-    y_predicted_squoze = y_predicted.squeeze()
+    y_true_squoze, y_predicted_squoze = make_squoze_y_pair(exp_target)
     if loss_decay:
         return torch.sum(
             torch.exp(loss_decay * y_true_squoze)
             * (y_true_squoze - y_predicted_squoze).abs()
         )
-    if exp_target:
-        y_true_squoze = torch.pow(exp_target, y_true.squeeze())
-        y_predicted_squoze = torch.pow(exp_target, y_predicted.squeeze())
     # else:
     return torch.nn.functional.l1_loss(y_true_squoze, y_predicted_squoze)
 
 
 def mse(y_true, y_predicted, loss_decay=None, exp_target=None):
     """Mean square error, perhaps with loss decay."""
-    y_true_squoze = y_true.squeeze()
-    y_predicted_squoze = y_predicted.squeeze()
+    y_true_squoze, y_predicted_squoze = make_squoze_y_pair(exp_target)
     if loss_decay:
         return torch.sum(
             torch.exp(loss_decay * y_true_squoze)
             * (y_true_squoze - y_predicted_squoze) ** 2
         )
-    if exp_target:
-        y_true_squoze = torch.pow(exp_target, y_true.squeeze())
-        y_predicted_squoze = torch.pow(exp_target, y_predicted.squeeze())
-        return torch.nn.functional.mse_loss(y_true_squoze, y_predicted_squoze)
     # else:
-    return torch.nn.functional.mse_loss(y_true.squeeze(), y_predicted.squeeze())
+    return torch.nn.functional.mse_loss(y_true_squoze, y_predicted_squoze)
 
 
 def rmse(y_true, y_predicted, loss_decay=None):
