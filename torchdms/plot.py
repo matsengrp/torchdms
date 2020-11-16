@@ -284,3 +284,49 @@ def plot_2d_geplot(model, geplot_df, nonlinearity_df, path):
         filename=path,
         verbose=False,
     )
+
+
+def plot_svd(model, test_data, out):
+    """ This function plots the log singular values and the cummulative sum of
+    each of a trained model's beta coefficent matricies.
+    """
+
+    bmap = dms.binarymap.BinaryMap(test_data.original_df,)
+
+    wtmask = np.full([len(bmap.alphabet), len(test_data.wtseq)], False, dtype=bool)
+    alphabet = bmap.alphabet
+    for column_position, aa in enumerate(test_data.wtseq):
+        row_position = alphabet.index(aa)
+        wtmask[row_position, column_position] = True
+
+    num_latent_dims = model.beta_coefficients().shape[0]
+
+    fig, ax = plt.subplots(nrows=num_latent_dims, ncols=2, figsize=(10, 5 * num_latent_dims))
+    for latent_dim in range(num_latent_dims):
+        latent = model.beta_coefficients()[latent_dim].numpy()
+        beta_map = latent.reshape(len(test_data.wtseq), len(bmap.alphabet)).transpose()
+        U, S, Vt = np.linalg.svd(beta_map, full_matrices=False)
+
+        sing_vals = np.arange(S.shape[0]) + 1 # index singular values for plotting
+        sing_vals_cumsum = np.cumsum(S)
+
+        if latent_dim > 1:
+            ax[latent_dim, 0].plot(sing_vals, np.log(S), 'ro-', linewidth=2)
+            ax[latent_dim, 0].set_xlabel('j')
+            ax[latent_dim, 0].set_ylabel(r'$log(\sigma_j)$')
+            ax[latent_dim, 0].set_title(f"Singular values for {latent_dim}")
+
+            ax[latent_dim, 1].plot(sing_vals, sing_vals_cumsum, 'ro-', linewidth=2)
+            ax[latent_dim, 1].set_xlabel('j')
+            ax[latent_dim, 1].set_ylabel('Cummulative value')
+            ax[latent_dim, 1].set_title(f"Cummulative singular values for {latent_dim}")
+        else:
+            ax[0].plot(sing_vals, np.log(S), 'ro-', linewidth=2)
+            ax[0].set(xlabel='j', ylabel=r'$log(\sigma_j)$', title=f"Singular values for {latent_dim}")
+            ax[1].plot(sing_vals, sing_vals_cumsum, 'ro-', linewidth=2)
+            ax[1].set(xlabel='j', ylabel='Cummulative value', title=f"Cummulative singular values for {latent_dim}" )
+
+
+    plt.tight_layout()
+    fig.suptitle(f"{model.str_summary()}")
+    fig.savefig(f"{out}")
