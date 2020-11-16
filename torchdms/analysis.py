@@ -79,13 +79,21 @@ class Analysis:
         return sum(per_target_loss) + self.model.regularization_loss()
 
     def train(
-        self, epoch_count, loss_fn, patience=10, min_lr=1e-5, loss_weight_span=None
+        self,
+        epoch_count,
+        loss_fn,
+        patience=10,
+        min_lr=1e-5,
+        loss_weight_span=None,
+        exp_target=None,
     ):
         """Train self.model using all the bells and whistles."""
         assert len(self.train_datasets) > 0
         target_count = self.train_datasets[0].target_count()
         assert self.model.output_size == target_count
 
+        if exp_target is not None:
+            loss_weight_span = None
         if loss_weight_span is not None:
             assert isinstance(loss_weight_span, float)
 
@@ -183,6 +191,7 @@ class Analysis:
         patience=10,
         min_lr=1e-5,
         loss_weight_span=None,
+        exp_target=None,
     ):
         """Do pre-training on self.model using the specified number of
         independent starts, writing the best pre-trained model to the model
@@ -203,7 +212,7 @@ class Analysis:
             )
         click.echo("LOG: Beginning full training.")
         self.model = torch.load(self.model_path)
-        self.train(epoch_count, loss_fn, patience, min_lr, loss_weight_span)
+        self.train(epoch_count, loss_fn, patience, min_lr, loss_weight_span, exp_target)
 
     def simple_train(self, epoch_count, loss_fn):
         """Bare-bones training of self.model.

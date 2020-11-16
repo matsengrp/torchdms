@@ -132,7 +132,9 @@ def cli(version):
     "number, we throw out the stratum completely.",
 )
 @click.option(
-    "--drop-nans", is_flag=True, help="Drop all rows that contain a nan.",
+    "--drop-nans",
+    is_flag=True,
+    help="Drop all rows that contain a nan.",
 )
 @click.option(
     "--export-dataframe",
@@ -180,11 +182,9 @@ def prep(
     set_random_seed(seed)
     click.echo(f"LOG: Targets: {targets}")
     aa_func_scores, wtseq = from_pickle_file(in_path)
-
     if drop_nans:
         click.echo("LOG: dropping NaNs as requested.")
         aa_func_scores.dropna(inplace=True)
-
     total_variants = len(aa_func_scores.iloc[:, 1])
     click.echo(f"LOG: There are {total_variants} total variants in this dataset")
 
@@ -204,7 +204,12 @@ def prep(
         )
 
         prep_by_stratum_and_export(
-            split_df, wtseq, targets, out_prefix, str(ctx.params), partition_label,
+            split_df,
+            wtseq,
+            targets,
+            out_prefix,
+            str(ctx.params),
+            partition_label,
         )
 
     if partition_by in aa_func_scores.columns:
@@ -312,7 +317,11 @@ def create(
     else:
         kwargs["interaction_l1_coefficients"] = interaction_l1_coefficients
 
-    model = model_of_string(model_string, data_path, **kwargs,)
+    model = model_of_string(
+        model_string,
+        data_path,
+        **kwargs,
+    )
 
     torch.save(model, out_path)
     click.echo(f"LOG: Model defined as: {model}")
@@ -333,10 +342,16 @@ def create(
     "to the exponential of a loss decay times the true score.",
 )
 @click.option(
-    "--batch-size", default=500, show_default=True, help="Batch size for training.",
+    "--batch-size",
+    default=500,
+    show_default=True,
+    help="Batch size for training.",
 )
 @click.option(
-    "--learning-rate", default=1e-3, show_default=True, help="Initial learning rate.",
+    "--learning-rate",
+    default=1e-3,
+    show_default=True,
+    help="Initial learning rate.",
 )
 @click.option(
     "--min-lr",
@@ -345,10 +360,16 @@ def create(
     help="Minimum learning rate before early stopping on training.",
 )
 @click.option(
-    "--patience", default=10, show_default=True, help="Patience for ReduceLROnPlateau.",
+    "--patience",
+    default=10,
+    show_default=True,
+    help="Patience for ReduceLROnPlateau.",
 )
 @click.option(
-    "--device", default="cpu", show_default=True, help="Device used to train nn",
+    "--device",
+    default="cpu",
+    show_default=True,
+    help="Device used to train nn",
 )
 @click.option(
     "--independent-starts",
@@ -370,6 +391,13 @@ def create(
     "of epochs. Fail if data contains nans.",
 )
 @click.option(
+    "--exp-target",
+    type=float,
+    default=None,
+    help="Provide base to be exponentiated by functional scores of variants."
+    "Emphasizes fitting highly functional variants. If on, weight decay will be turned off.",
+)
+@click.option(
     "--epochs",
     default=100,
     show_default=True,
@@ -383,6 +411,7 @@ def train(
     data_path,
     loss_fn,
     loss_weight_span,
+    exp_target,
     batch_size,
     learning_rate,
     min_lr,
@@ -424,6 +453,15 @@ def train(
         click.echo(f"Starting simple training for {epochs} epochs.")
         analysis.simple_train(epochs, loss_fn)
         return
+    if exp_target:
+        click.echo(f"Exponentiating targets with base {exp_target}.")
+        if loss_weight_span is not None:
+            click.echo(
+                "NOTE: you have indicated that you would like to exponentiate your targets "
+                "while also using weight decay. Since these procedures are redundant, "
+                "weight decay will be turned off."
+            )
+            loss_weight_span = None
     # else:
     if loss_weight_span is not None:
         click.echo(
@@ -439,6 +477,7 @@ def train(
         "patience": patience,
         "min_lr": min_lr,
         "loss_weight_span": loss_weight_span,
+        "exp_target": exp_target,
     }
 
     click.echo(f"Starting training. {training_params}")
@@ -481,7 +520,9 @@ def default_map_of_ctx_or_parent(ctx):
 @click.argument("data_path", type=click.Path(exists=True))
 @click.option("--out", required=True, type=click.Path())
 @click.option(
-    "--show-points", is_flag=True, help="Show points in addition to LOWESS curves.",
+    "--show-points",
+    is_flag=True,
+    help="Show points in addition to LOWESS curves.",
 )
 @click.option("--device", type=str, required=False, default="cpu")
 @click.option(
@@ -603,10 +644,14 @@ def go(ctx):
     prefix = ctx.default_map["prefix"]
     model_path = prefix + ".model"
     ctx.invoke(
-        create, out_path=model_path, **restrict_dict_to_params(ctx.default_map, create),
+        create,
+        out_path=model_path,
+        **restrict_dict_to_params(ctx.default_map, create),
     )
     ctx.invoke(
-        train, model_path=model_path, **restrict_dict_to_params(ctx.default_map, train),
+        train,
+        model_path=model_path,
+        **restrict_dict_to_params(ctx.default_map, train),
     )
     error_path = prefix + ".error.pdf"
     ctx.invoke(

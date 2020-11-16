@@ -95,7 +95,11 @@ def plot_test_correlation(evaluation_dict, model, out, cmap="plasma"):
         print(plot_title)
 
         per_target_df = pd.DataFrame(
-            dict(pred=pred, targ=targ, n_aa_substitutions=n_aa_substitutions,)
+            dict(
+                pred=pred,
+                targ=targ,
+                n_aa_substitutions=n_aa_substitutions,
+            )
         )
         correlation_series["correlation " + str(target)] = (
             per_target_df.groupby("n_aa_substitutions").corr().iloc[0::2, -1]
@@ -162,7 +166,9 @@ def plot_heatmap(model, path):
         plots += make_plot_for(output_idx, prediction)
 
     save_as_pdf_pages(
-        plots, filename=path, verbose=False,
+        plots,
+        filename=path,
+        verbose=False,
     )
 
 
@@ -175,7 +181,9 @@ def beta_coefficients(model, test_data, out):
     mutation.
     """
 
-    bmap = dms.binarymap.BinaryMap(test_data.original_df,)
+    bmap = dms.binarymap.BinaryMap(
+        test_data.original_df,
+    )
 
     # To represent the wtseq in the heatmap, create a mask
     # to encode which matrix entries are the wt nt in each position.
