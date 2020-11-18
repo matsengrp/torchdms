@@ -311,7 +311,7 @@ def plot_svd(model, test_data, out):
         sing_vals_cumsum = np.cumsum(S)/np.sum(S)
 
         if num_latent_dims > 1:
-            ax[latent_dim, 0].plot(sing_vals, np.log(S), 'ro-', linewidth=2)
+            ax[latent_dim, 0].plot(sing_vals, np.log10(S), 'ro-', linewidth=2)
             ax[latent_dim, 0].set_xlabel('j')
             ax[latent_dim, 0].set_ylabel(r'$log(\sigma_j)$')
             ax[latent_dim, 0].set_title(f"Singular values for {latent_dim}")
@@ -321,7 +321,7 @@ def plot_svd(model, test_data, out):
             ax[latent_dim, 1].set_ylabel('Cummulative value %')
             ax[latent_dim, 1].set_title(f"Cummulative singular values for {latent_dim}")
         else:
-            ax[0].plot(sing_vals, np.log(S), 'ro-', linewidth=2)
+            ax[0].plot(sing_vals, np.log10(S), 'ro-', linewidth=2)
             ax[0].set(xlabel='j', ylabel=r'$log(\sigma_j)$', title=f"Singular values for {latent_dim}")
             ax[1].plot(sing_vals, sing_vals_cumsum, 'ro-', linewidth=2)
             ax[1].set(xlabel='j', ylabel='Cummulative value %', title=f"Cummulative singular values for {latent_dim}" )
