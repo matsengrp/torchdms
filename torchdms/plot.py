@@ -327,13 +327,15 @@ def plot_svd(model, test_data, out):
         beta_map = build_beta_map(
             test_data, model.beta_coefficients()[latent_dim].numpy()
         )
-        U, S, Vt = np.linalg.svd(beta_map, full_matrices=False)
+        _, s_matrix, _ = np.linalg.svd(beta_map, full_matrices=False)
 
-        sing_vals = np.arange(S.shape[0]) + 1  # index singular values for plotting
-        sing_vals_cumsum = np.cumsum(S) / np.sum(S)
+        sing_vals = (
+            np.arange(s_matrix.shape[0]) + 1
+        )  # index singular values for plotting
+        sing_vals_cumsum = np.cumsum(s_matrix) / np.sum(s_matrix)
 
         if num_latent_dims > 1:
-            ax[latent_dim, 0].plot(sing_vals, np.log10(S), "ro-", linewidth=2)
+            ax[latent_dim, 0].plot(sing_vals, np.log10(s_matrix), "ro-", linewidth=2)
             ax[latent_dim, 0].set_xlabel("j")
             ax[latent_dim, 0].set_ylabel(r"$log(\sigma_j)$")
             ax[latent_dim, 0].set_title(f"Singular values for {latent_dim}")
@@ -343,7 +345,7 @@ def plot_svd(model, test_data, out):
             ax[latent_dim, 1].set_ylabel("Cummulative value %")
             ax[latent_dim, 1].set_title(f"Cummulative singular values for {latent_dim}")
         else:
-            ax[0].plot(sing_vals, np.log10(S), "ro-", linewidth=2)
+            ax[0].plot(sing_vals, np.log10(s_matrix), "ro-", linewidth=2)
             ax[0].set(
                 xlabel="j",
                 ylabel=r"$log(\sigma_j)$",
