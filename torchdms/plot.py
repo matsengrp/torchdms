@@ -285,26 +285,32 @@ def plot_2d_geplot(model, geplot_df, nonlinearity_df, path):
         verbose=False,
     )
 
-
-def plot_svd(model, test_data, out):
-    """ This function plots the log singular values and the cummulative sum of
-    each of a trained model's beta coefficent matricies.
+def build_beta_map(test_data, beta_vec):
+    """ This function creates a beta matrix for one latent layer of a torchdms model.
+    Takes a binary map object and beta vector as input and outputs a 21xL matrix.
     """
 
     bmap = dms.binarymap.BinaryMap(test_data.original_df,)
 
     wtmask = np.full([len(bmap.alphabet), len(test_data.wtseq)], False, dtype=bool)
     alphabet = bmap.alphabet
+
     for column_position, aa in enumerate(test_data.wtseq):
         row_position = alphabet.index(aa)
         wtmask[row_position, column_position] = True
+
+    return(beta_vec.reshape(len(test_data.wtseq), len(bmap.alphabet)).transpose())
+
+def plot_svd(model, test_data, out):
+    """ This function plots the log singular values and the cummulative sum of
+    each of a trained model's beta coefficent matricies.
+    """
 
     num_latent_dims = model.beta_coefficients().shape[0]
 
     fig, ax = plt.subplots(nrows=num_latent_dims, ncols=2, figsize=(10, 5 * num_latent_dims))
     for latent_dim in range(num_latent_dims):
-        latent = model.beta_coefficients()[latent_dim].numpy()
-        beta_map = latent.reshape(len(test_data.wtseq), len(bmap.alphabet)).transpose()
+        beta_map = build_beta_map(test_data, model.beta_coefficients()[latent_dim].numpy())
         U, S, Vt = np.linalg.svd(beta_map, full_matrices=False)
 
         sing_vals = np.arange(S.shape[0]) + 1 # index singular values for plotting
