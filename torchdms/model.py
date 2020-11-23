@@ -142,7 +142,10 @@ class LinearModel(TorchdmsModel):
     """The simplest model."""
 
     def __init__(
-        self, input_size, target_names, alphabet,
+        self,
+        input_size,
+        target_names,
+        alphabet,
     ):
         super().__init__(input_size, target_names, alphabet)
         self.latent_layer = nn.Linear(self.input_size, self.output_size)

@@ -95,7 +95,11 @@ def plot_test_correlation(evaluation_dict, model, out, cmap="plasma"):
         print(plot_title)
 
         per_target_df = pd.DataFrame(
-            dict(pred=pred, targ=targ, n_aa_substitutions=n_aa_substitutions,)
+            dict(
+                pred=pred,
+                targ=targ,
+                n_aa_substitutions=n_aa_substitutions,
+            )
         )
         correlation_series["correlation " + str(target)] = (
             per_target_df.groupby("n_aa_substitutions").corr().iloc[0::2, -1]
@@ -162,7 +166,9 @@ def plot_heatmap(model, path):
         plots += make_plot_for(output_idx, prediction)
 
     save_as_pdf_pages(
-        plots, filename=path, verbose=False,
+        plots,
+        filename=path,
+        verbose=False,
     )
 
 
@@ -175,7 +181,9 @@ def beta_coefficients(model, test_data, out):
     mutation.
     """
 
-    bmap = dms.binarymap.BinaryMap(test_data.original_df,)
+    bmap = dms.binarymap.BinaryMap(
+        test_data.original_df,
+    )
 
     # To represent the wtseq in the heatmap, create a mask
     # to encode which matrix entries are the wt nt in each position.
@@ -285,12 +293,15 @@ def plot_2d_geplot(model, geplot_df, nonlinearity_df, path):
         verbose=False,
     )
 
+
 def build_beta_map(test_data, beta_vec):
-    """ This function creates a beta matrix for one latent layer of a torchdms model.
+    """This function creates a beta matrix for one latent layer of a torchdms model.
     Takes a binary map object and beta vector as input and outputs a 21xL matrix.
     """
 
-    bmap = dms.binarymap.BinaryMap(test_data.original_df,)
+    bmap = dms.binarymap.BinaryMap(
+        test_data.original_df,
+    )
 
     wtmask = np.full([len(bmap.alphabet), len(test_data.wtseq)], False, dtype=bool)
     alphabet = bmap.alphabet
@@ -299,39 +310,51 @@ def build_beta_map(test_data, beta_vec):
         row_position = alphabet.index(aa)
         wtmask[row_position, column_position] = True
 
-    return(beta_vec.reshape(len(test_data.wtseq), len(bmap.alphabet)).transpose())
+    return beta_vec.reshape(len(test_data.wtseq), len(bmap.alphabet)).transpose()
+
 
 def plot_svd(model, test_data, out):
-    """ This function plots the log singular values and the cummulative sum of
+    """This function plots the log singular values and the cummulative sum of
     each of a trained model's beta coefficent matricies.
     """
 
     num_latent_dims = model.beta_coefficients().shape[0]
 
-    fig, ax = plt.subplots(nrows=num_latent_dims, ncols=2, figsize=(10, 5 * num_latent_dims))
+    fig, ax = plt.subplots(
+        nrows=num_latent_dims, ncols=2, figsize=(10, 5 * num_latent_dims)
+    )
     for latent_dim in range(num_latent_dims):
-        beta_map = build_beta_map(test_data, model.beta_coefficients()[latent_dim].numpy())
+        beta_map = build_beta_map(
+            test_data, model.beta_coefficients()[latent_dim].numpy()
+        )
         U, S, Vt = np.linalg.svd(beta_map, full_matrices=False)
 
-        sing_vals = np.arange(S.shape[0]) + 1 # index singular values for plotting
-        sing_vals_cumsum = np.cumsum(S)/np.sum(S)
+        sing_vals = np.arange(S.shape[0]) + 1  # index singular values for plotting
+        sing_vals_cumsum = np.cumsum(S) / np.sum(S)
 
         if num_latent_dims > 1:
-            ax[latent_dim, 0].plot(sing_vals, np.log10(S), 'ro-', linewidth=2)
-            ax[latent_dim, 0].set_xlabel('j')
-            ax[latent_dim, 0].set_ylabel(r'$log(\sigma_j)$')
+            ax[latent_dim, 0].plot(sing_vals, np.log10(S), "ro-", linewidth=2)
+            ax[latent_dim, 0].set_xlabel("j")
+            ax[latent_dim, 0].set_ylabel(r"$log(\sigma_j)$")
             ax[latent_dim, 0].set_title(f"Singular values for {latent_dim}")
 
-            ax[latent_dim, 1].plot(sing_vals, sing_vals_cumsum, 'ro-', linewidth=2)
-            ax[latent_dim, 1].set_xlabel('j')
-            ax[latent_dim, 1].set_ylabel('Cummulative value %')
+            ax[latent_dim, 1].plot(sing_vals, sing_vals_cumsum, "ro-", linewidth=2)
+            ax[latent_dim, 1].set_xlabel("j")
+            ax[latent_dim, 1].set_ylabel("Cummulative value %")
             ax[latent_dim, 1].set_title(f"Cummulative singular values for {latent_dim}")
         else:
-            ax[0].plot(sing_vals, np.log10(S), 'ro-', linewidth=2)
-            ax[0].set(xlabel='j', ylabel=r'$log(\sigma_j)$', title=f"Singular values for {latent_dim}")
-            ax[1].plot(sing_vals, sing_vals_cumsum, 'ro-', linewidth=2)
-            ax[1].set(xlabel='j', ylabel='Cummulative value %', title=f"Cummulative singular values for {latent_dim}" )
-
+            ax[0].plot(sing_vals, np.log10(S), "ro-", linewidth=2)
+            ax[0].set(
+                xlabel="j",
+                ylabel=r"$log(\sigma_j)$",
+                title=f"Singular values for {latent_dim}",
+            )
+            ax[1].plot(sing_vals, sing_vals_cumsum, "ro-", linewidth=2)
+            ax[1].set(
+                xlabel="j",
+                ylabel="Cummulative value %",
+                title=f"Cummulative singular values for {latent_dim}",
+            )
 
     plt.tight_layout()
     fig.suptitle(f"{model.str_summary()}")
