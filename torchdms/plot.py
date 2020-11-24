@@ -313,7 +313,7 @@ def plot_svd(model, test_data, out):
         beta_map, _ = build_beta_map(
             test_data, model.beta_coefficients()[latent_dim].numpy()
         )
-        _, s_matrix, _ = np.linalg.svd(beta_map, full_matrices=False)
+        s_matrix = np.linalg.svd(beta_map, compute_uv=False)
 
         sing_vals = (
             np.arange(s_matrix.shape[0]) + 1
