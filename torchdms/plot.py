@@ -181,6 +181,19 @@ def beta_coefficients(model, test_data, out):
     mutation.
     """
 
+
+    bmap = dms.binarymap.BinaryMap(
+        test_data.original_df,
+    )
+
+    # To represent the wtseq in the heatmap, create a mask
+    # to encode which matrix entries are the wt nt in each position.
+    wtmask = np.full([len(bmap.alphabet), len(test_data.wtseq)], False, dtype=bool)
+    alphabet = bmap.alphabet
+    for column_position, aa in enumerate(test_data.wtseq):
+        row_position = alphabet.index(aa)
+        wtmask[row_position, column_position] = True
+
     # plot beta's
     num_latent_dims = model.beta_coefficients().shape[0]
     fig, ax = plt.subplots(num_latent_dims, figsize=(10, 5 * num_latent_dims))
