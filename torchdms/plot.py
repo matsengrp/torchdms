@@ -181,28 +181,13 @@ def beta_coefficients(model, test_data, out):
     mutation.
     """
 
-    bmap = dms.binarymap.BinaryMap(
-        test_data.original_df,
-    )
-
-    # To represent the wtseq in the heatmap, create a mask
-    # to encode which matrix entries are the wt nt in each position.
-    wtmask = np.full([len(bmap.alphabet), len(test_data.wtseq)], False, dtype=bool)
-    alphabet = bmap.alphabet
-    for column_position, aa in enumerate(test_data.wtseq):
-        row_position = alphabet.index(aa)
-        wtmask[row_position, column_position] = True
-
     # plot beta's
     num_latent_dims = model.beta_coefficients().shape[0]
     fig, ax = plt.subplots(num_latent_dims, figsize=(10, 5 * num_latent_dims))
     if num_latent_dims == 1:
         ax = [ax]
     for latent_dim in range(num_latent_dims):
-        latent = model.beta_coefficients()[latent_dim].numpy()
-        # See model.numpy_single_mutant_predictions for why this transpose is here.
-        beta_map = latent.reshape(len(test_data.wtseq), len(bmap.alphabet)).transpose()
-        beta_map[wtmask] = np.nan
+        beta_map, alphabet = build_beta_map(test_data, model.beta_coefficients()[latent_dim].numpy())
         mapp = ax[latent_dim].imshow(beta_map, aspect="auto")
         fig.colorbar(mapp, ax=ax[latent_dim], orientation="horizontal")
         ax[latent_dim].set_title(f"Beta coeff for latent dimension {latent_dim}")
@@ -296,7 +281,8 @@ def plot_2d_geplot(model, geplot_df, nonlinearity_df, path):
 
 def build_beta_map(test_data, beta_vec):
     """This function creates a beta matrix for one latent layer of a torchdms model.
-    Takes a binary map object and beta vector as input and outputs a 21xL matrix.
+    Takes a binary map object and beta vector as input.
+    Returns a 21xL matrix of beta-coefficients and the amino acid alphabet.
     """
 
     bmap = dms.binarymap.BinaryMap(
@@ -309,8 +295,8 @@ def build_beta_map(test_data, beta_vec):
     for column_position, aa in enumerate(test_data.wtseq):
         row_position = alphabet.index(aa)
         wtmask[row_position, column_position] = True
-
-    return beta_vec.reshape(len(test_data.wtseq), len(bmap.alphabet)).transpose()
+    # See model.numpy_single_mutant_predictions for why this transpose is here.
+    return beta_vec.reshape(len(test_data.wtseq), len(bmap.alphabet)).transpose(), alphabet
 
 
 def plot_svd(model, test_data, out):
@@ -324,7 +310,7 @@ def plot_svd(model, test_data, out):
         nrows=num_latent_dims, ncols=2, figsize=(10, 5 * num_latent_dims)
     )
     for latent_dim in range(num_latent_dims):
-        beta_map = build_beta_map(
+        beta_map, _ = build_beta_map(
             test_data, model.beta_coefficients()[latent_dim].numpy()
         )
         _, s_matrix, _ = np.linalg.svd(beta_map, full_matrices=False)
