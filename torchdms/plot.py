@@ -181,7 +181,6 @@ def beta_coefficients(model, test_data, out):
     mutation.
     """
 
-
     bmap = dms.binarymap.BinaryMap(
         test_data.original_df,
     )
@@ -200,7 +199,9 @@ def beta_coefficients(model, test_data, out):
     if num_latent_dims == 1:
         ax = [ax]
     for latent_dim in range(num_latent_dims):
-        beta_map, alphabet = build_beta_map(test_data, model.beta_coefficients()[latent_dim].numpy())
+        beta_map, alphabet = build_beta_map(
+            test_data, model.beta_coefficients()[latent_dim].numpy()
+        )
         mapp = ax[latent_dim].imshow(beta_map, aspect="auto")
         fig.colorbar(mapp, ax=ax[latent_dim], orientation="horizontal")
         ax[latent_dim].set_title(f"Beta coeff for latent dimension {latent_dim}")
@@ -309,7 +310,10 @@ def build_beta_map(test_data, beta_vec):
         row_position = alphabet.index(aa)
         wtmask[row_position, column_position] = True
     # See model.numpy_single_mutant_predictions for why this transpose is here.
-    return beta_vec.reshape(len(test_data.wtseq), len(bmap.alphabet)).transpose(), alphabet
+    return (
+        beta_vec.reshape(len(test_data.wtseq), len(bmap.alphabet)).transpose(),
+        alphabet,
+    )
 
 
 def plot_svd(model, test_data, out):
