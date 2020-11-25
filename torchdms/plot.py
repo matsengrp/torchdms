@@ -28,6 +28,7 @@ from plotnine import (
     theme_void,
 )
 import scipy.stats as stats
+from torchdms.utils import build_beta_map
 
 
 def plot_exploded_dms_variants_dataframe_summary(exploded_df, out_path):
@@ -292,28 +293,6 @@ def plot_2d_geplot(model, geplot_df, nonlinearity_df, path):
         verbose=False,
     )
 
-
-def build_beta_map(test_data, beta_vec):
-    """This function creates a beta matrix for one latent layer of a torchdms model.
-    Takes a binary map object and beta vector as input.
-    Returns a 21xL matrix of beta-coefficients and the amino acid alphabet.
-    """
-
-    bmap = dms.binarymap.BinaryMap(
-        test_data.original_df,
-    )
-
-    wtmask = np.full([len(bmap.alphabet), len(test_data.wtseq)], False, dtype=bool)
-    alphabet = bmap.alphabet
-
-    for column_position, aa in enumerate(test_data.wtseq):
-        row_position = alphabet.index(aa)
-        wtmask[row_position, column_position] = True
-    # See model.numpy_single_mutant_predictions for why this transpose is here.
-    return (
-        beta_vec.reshape(len(test_data.wtseq), len(bmap.alphabet)).transpose(),
-        alphabet,
-    )
 
 
 def plot_svd(model, test_data, out):
