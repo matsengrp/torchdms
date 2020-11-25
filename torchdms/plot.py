@@ -294,7 +294,6 @@ def plot_2d_geplot(model, geplot_df, nonlinearity_df, path):
     )
 
 
-
 def plot_svd(model, test_data, out):
     """This function plots the log singular values and the cummulative sum of
     each of a trained model's beta coefficent matricies.
