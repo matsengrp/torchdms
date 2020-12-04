@@ -7,6 +7,7 @@ import torch
 from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torchdms.data import BinaryMapDataset
+from torchdms.utils import build_beta_map
 
 
 def make_data_loader_infinite(data_loader):
@@ -86,6 +87,7 @@ class Analysis:
         min_lr=1e-5,
         loss_weight_span=None,
         exp_target=None,
+        k=None,
     ):
         """Train self.model using all the bells and whistles."""
         assert len(self.train_datasets) > 0
@@ -159,6 +161,22 @@ class Analysis:
                         for param in self.model.monotonic_params_from_latent_space():
                             param.data.clamp_(0)
                 optimizer.step()
+                # if k >=1, reconstruct beta matricies with truncated SVD
+                if k is not None:
+                    num_latent_dims = self.model.beta_coefficients().shape[0]
+                    for latent_dim in range(num_latent_dims):
+                        # grab beta coefficients
+                        beta_vec = self.model.beta_coefficients()[latent_dim].detach().numpy()
+                        # create beta-map
+                        beta_map, _ = build_beta_map(self.val_data, beta_vec)
+                        # run SVD
+                        U, S, V = torch.svd(torch.from_numpy(beta_map))
+                        # truncate S
+                        S[k:] = 0
+                        # reconstruct beta-map
+                        beta_approx = U@torch.diag(S)@V
+                        # flatten and assign to model.
+                        self.model.beta_coefficients()[latent_dim] = beta_approx.flatten()
 
             val_samples = self.val_data.samples.to(self.device)
             val_predictions = self.model(val_samples)
@@ -192,6 +210,7 @@ class Analysis:
         min_lr=1e-5,
         loss_weight_span=None,
         exp_target=None,
+        k=None,
     ):
         """Do pre-training on self.model using the specified number of
         independent starts, writing the best pre-trained model to the model
@@ -212,7 +231,7 @@ class Analysis:
             )
         click.echo("LOG: Beginning full training.")
         self.model = torch.load(self.model_path)
-        self.train(epoch_count, loss_fn, patience, min_lr, loss_weight_span, exp_target)
+        self.train(epoch_count, loss_fn, patience, min_lr, loss_weight_span, exp_target, k)
 
     def simple_train(self, epoch_count, loss_fn):
         """Bare-bones training of self.model.
