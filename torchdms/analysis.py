@@ -174,7 +174,7 @@ class Analysis:
                         # truncate S
                         S[k:] = 0
                         # reconstruct beta-map
-                        beta_approx = U@torch.diag(S)@V
+                        beta_approx = (U.mm(torch.diag(S))).mm(torch.transpose(V,0,1))
                         # flatten and assign to model.
                         self.model.beta_coefficients()[latent_dim] = beta_approx.flatten()
 
