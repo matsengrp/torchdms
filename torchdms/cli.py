@@ -402,7 +402,7 @@ def create(
     "--k",
     type=int,
     default=None,
-    help="What number of dimensions to use in the low-rank reconstructions of betas."
+    help="What number of dimensions to use in the low-rank reconstructions of betas.",
 )
 @click.option(
     "--epochs",

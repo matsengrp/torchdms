@@ -166,17 +166,23 @@ class Analysis:
                     num_latent_dims = self.model.beta_coefficients().shape[0]
                     for latent_dim in range(num_latent_dims):
                         # grab beta coefficients
-                        beta_vec = self.model.beta_coefficients()[latent_dim].detach().numpy()
+                        beta_vec = (
+                            self.model.beta_coefficients()[latent_dim].detach().numpy()
+                        )
                         # create beta-map
                         beta_map, _ = build_beta_map(self.val_data, beta_vec)
                         # run SVD
-                        U, S, V = torch.svd(torch.from_numpy(beta_map))
+                        u_vecs, s_vals, v_vecs = torch.svd(torch.from_numpy(beta_map))
                         # truncate S
-                        S[k:] = 0
+                        s_vals[k:] = 0
                         # reconstruct beta-map
-                        beta_approx = (U.mm(torch.diag(S))).mm(torch.transpose(V,0,1))
+                        beta_approx = (u_vecs.mm(torch.diag(s_vals))).mm(
+                            torch.transpose(v_vecs, 0, 1)
+                        )
                         # flatten and assign to model.
-                        self.model.beta_coefficients()[latent_dim] = beta_approx.flatten()
+                        self.model.beta_coefficients()[
+                            latent_dim
+                        ] = beta_approx.flatten()
 
             val_samples = self.val_data.samples.to(self.device)
             val_predictions = self.model(val_samples)
@@ -231,7 +237,9 @@ class Analysis:
             )
         click.echo("LOG: Beginning full training.")
         self.model = torch.load(self.model_path)
-        self.train(epoch_count, loss_fn, patience, min_lr, loss_weight_span, exp_target, k)
+        self.train(
+            epoch_count, loss_fn, patience, min_lr, loss_weight_span, exp_target, k
+        )
 
     def simple_train(self, epoch_count, loss_fn):
         """Bare-bones training of self.model.
