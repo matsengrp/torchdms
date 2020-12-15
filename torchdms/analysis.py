@@ -167,7 +167,7 @@ class Analysis:
                     for latent_dim in range(num_latent_dims):
                         # grab beta coefficients
                         beta_vec = (
-                            self.model.beta_coefficients()[latent_dim].detach().numpy()
+                            self.model.beta_coefficients()[latent_dim].detach().numpy() # copy issues here
                         )
                         # create beta-map
                         beta_map, _ = build_beta_map(self.val_data, beta_vec)
@@ -183,6 +183,7 @@ class Analysis:
                         self.model.beta_coefficients()[
                             latent_dim
                         ] = beta_approx.flatten()
+                        self.model.beta_coefficients()[latent_dim].requires_grad = True
 
             val_samples = self.val_data.samples.to(self.device)
             val_predictions = self.model(val_samples)
