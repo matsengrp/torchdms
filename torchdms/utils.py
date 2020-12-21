@@ -168,9 +168,11 @@ def make_cartesian_product_hierarchy(dict_of_option_dicts, dry_run=False):
 
 
 def build_beta_map(test_data, beta_vec):
-    """This function creates a beta matrix for one latent layer of a torchdms model.
-    Takes a binary map object and beta vector as input.
-    Returns a 21xL matrix of beta-coefficients and the amino acid alphabet.
+    """This function creates a beta matrix for one latent layer of a torchdms
+    model.
+
+    Takes a binary map object and beta vector as input. Returns a 21xL
+    matrix of beta-coefficients and the amino acid alphabet.
     """
 
     bmap = dms.binarymap.BinaryMap(

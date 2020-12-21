@@ -167,9 +167,12 @@ class Analysis:
                     for latent_dim in range(num_latent_dims):
                         # grab beta coefficients
                         beta_vec = (
-                            self.model.beta_coefficients()[latent_dim].detach().clone().numpy()
+                            self.model.beta_coefficients()[latent_dim]
+                            .detach()
+                            .clone()
+                            .numpy()
                         )
-                        #print(f'Beta vec before: {beta_vec}')
+                        # print(f'Beta vec before: {beta_vec}')
                         # create beta-map
                         beta_map, _ = build_beta_map(self.val_data, beta_vec)
                         # run SVD
@@ -181,18 +184,29 @@ class Analysis:
                             torch.transpose(v_vecs, 0, 1)
                         )
                         rank_approx = torch.matrix_rank(beta_approx, tol=0.0001)
-                        print(f'Beta matrix approximation for latent dim {latent_dim} is rank {rank_approx}.')
-                        #print(f'Approximation for latent dim {latent_dim}: {beta_approx}')
+                        # print(
+                        #     f"Beta matrix approximation for latent dim {latent_dim} is rank {rank_approx}."
+                        # )
+                        # print(f'Approximation for latent dim {latent_dim}: {beta_approx}')
 
                         # flatten and assign to model.
                         self.model.beta_coefficients()[
                             latent_dim
                         ] = beta_approx.transpose(1, 0).flatten()
-                        beta_vec_new = self.model.beta_coefficients()[latent_dim].detach().clone().numpy()
-                        test, _ = build_beta_map(self.val_data, beta_vec_new)
-                        rank = torch.matrix_rank(torch.from_numpy(test), tol=0.0001)
-                        print(f'Beta matrix for latent dim {latent_dim} is rank {rank} after updating.')
-                        print(f'Approximation and updated beta are equal: {torch.all(torch.eq(torch.from_numpy(beta_vec_new), beta_approx.flatten()))}')
+                        # beta_vec_new = (
+                        #     self.model.beta_coefficients()[latent_dim]
+                        #     .detach()
+                        #     .clone()
+                        #     .numpy()
+                        # )
+                        # test, _ = build_beta_map(self.val_data, beta_vec_new)
+                        # rank = torch.matrix_rank(torch.from_numpy(test), tol=0.0001)
+                        # print(
+                        #     f"Beta matrix for latent dim {latent_dim} is rank {rank} after updating."
+                        # )
+                        # print(
+                        #     f"Approximation and updated beta are equal: {torch.all(torch.eq(torch.from_numpy(beta_vec_new), beta_approx.flatten()))}"
+                        # )
 
             val_samples = self.val_data.samples.to(self.device)
             val_predictions = self.model(val_samples)
