@@ -307,11 +307,12 @@ def plot_svd(model, test_data, out):
         beta_map, _ = build_beta_map(
             test_data, model.beta_coefficients()[latent_dim].numpy()
         )
+        rank = np.linalg.matrix_rank(beta_map)
         s_matrix = np.linalg.svd(beta_map, compute_uv=False)
 
-        sing_vals = (
-            np.arange(s_matrix.shape[0]) + 1
-        )  # index singular values for plotting
+        sing_vals = np.arange(rank) + 1  # index singular values for plotting
+        sing_vals = sing_vals[:rank]
+        s_matrix = s_matrix[:rank]
         sing_vals_cumsum = np.cumsum(s_matrix) / np.sum(s_matrix)
 
         if num_latent_dims > 1:
