@@ -17,6 +17,7 @@ def make_data_loader_infinite(data_loader):
         for data in loader:
             yield data
 
+
 def low_rank_approximation(beta_map, rank_approx):
     """Returns low-rank approximation of beta matrix."""
     assert rank_approx > 0
@@ -24,9 +25,7 @@ def low_rank_approximation(beta_map, rank_approx):
     # truncate S
     s_vals[rank_approx:] = 0
     # reconstruct beta-map
-    beta_approx = (u_vecs.mm(torch.diag(s_vals))).mm(
-        torch.transpose(v_vecs, 0, 1)
-    )
+    beta_approx = (u_vecs.mm(torch.diag(s_vals))).mm(torch.transpose(v_vecs, 0, 1))
     return beta_approx.transpose(1, 0).flatten()
 
 
@@ -90,8 +89,6 @@ class Analysis:
             )
         ]
         return sum(per_target_loss) + self.model.regularization_loss()
-
-
 
     def train(
         self,
@@ -244,7 +241,13 @@ class Analysis:
         click.echo("LOG: Beginning full training.")
         self.model = torch.load(self.model_path)
         self.train(
-            epoch_count, loss_fn, patience, min_lr, loss_weight_span, exp_target, rank_approx
+            epoch_count,
+            loss_fn,
+            patience,
+            min_lr,
+            loss_weight_span,
+            exp_target,
+            rank_approx,
         )
 
     def simple_train(self, epoch_count, loss_fn):
