@@ -163,7 +163,7 @@ class Analysis:
                 optimizer.step()
                 # if k >=1, reconstruct beta matricies with truncated SVD
                 if rank_approx is not None:
-                    num_latent_dims = self.model.beta_coefficients().shape[0]
+                    num_latent_dims = self.model.latent_dim
                     for latent_dim in range(num_latent_dims):
                         beta_vec = (
                             self.model.beta_coefficients()[latent_dim]
