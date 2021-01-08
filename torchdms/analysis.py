@@ -79,6 +79,23 @@ class Analysis:
         ]
         return sum(per_target_loss) + self.model.regularization_loss()
 
+    def low_rank_approximation(
+        self,
+        beta_map,
+        rank_approx,
+    ):
+        """Returns low-rank approximation of beta matrix."""
+        assert rank_approx > 0
+        u_vecs, s_vals, v_vecs = torch.svd(torch.from_numpy(beta_map))
+        # truncate S
+        s_vals[rank_approx:] = 0
+        # reconstruct beta-map
+        beta_approx = (u_vecs.mm(torch.diag(s_vals))).mm(
+            torch.transpose(v_vecs, 0, 1)
+        )
+        return beta_approx.transpose(1, 0).flatten()
+
+
     def train(
         self,
         epoch_count,
@@ -172,16 +189,9 @@ class Analysis:
                             .numpy()
                         )
                         beta_map, _ = build_beta_map(self.val_data, beta_vec)
-                        u_vecs, s_vals, v_vecs = torch.svd(torch.from_numpy(beta_map))
-                        # truncate S
-                        s_vals[rank_approx:] = 0
-                        # reconstruct beta-map
-                        beta_approx = (u_vecs.mm(torch.diag(s_vals))).mm(
-                            torch.transpose(v_vecs, 0, 1)
-                        )
                         self.model.beta_coefficients()[
                             latent_dim
-                        ] = beta_approx.transpose(1, 0).flatten()
+                        ] = self.low_rank_approximation(beta_map, rank_approx)
 
             val_samples = self.val_data.samples.to(self.device)
             val_predictions = self.model(val_samples)
