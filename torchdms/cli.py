@@ -477,9 +477,7 @@ def train(
             "the loss function when the true target value is large. Is that true?"
         )
     if beta_rank is not None:
-        click.echo(
-            f"NOTE: Using a rank-{beta_rank} approximation for beta coefficents after each gradient step."
-        )
+        click.echo(f"NOTE: Using rank-{beta_rank} approximation for beta coefficents.")
     training_params = {
         "independent_start_count": independent_starts,
         "independent_start_epoch_count": independent_start_epochs,
