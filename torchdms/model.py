@@ -146,6 +146,7 @@ class TorchdmsModel(nn.Module):
     def training_styles(self):
         return [self.default_training_style]
 
+
 class LinearModel(TorchdmsModel):
     """The simplest model."""
 
@@ -515,9 +516,7 @@ class Argus(Dianthum):
             layer_name,
             nn.Linear(
                 self.latent_dim,
-                self.model_bind.internal_layer_dimensions[
-                    first_post_latent_layer_idx
-                ],
+                self.model_bind.internal_layer_dimensions[first_post_latent_layer_idx],
                 bias=True,
             ),
         )
@@ -540,10 +539,8 @@ class Argus(Dianthum):
         return self.model_stab.parameters()
 
 
-
 class ArgusSequential(Argus):
-    """Argus with sequential training: stab then bind.
-    """
+    """Argus with sequential training: stab then bind."""
 
     @property
     def training_styles(self):
