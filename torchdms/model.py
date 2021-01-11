@@ -137,10 +137,15 @@ class TorchdmsModel(nn.Module):
         if self.monotonic_sign is not None:
             self.reflect_monotonic_params()
 
+    def set_require_grad_for_all_parameters(self, value):
+        """Set require_grad for all parameters."""
+        for param in self.parameters():
+            param.requires_grad = value
+
     def default_training_style(self):
         """The default training style."""
         click.echo("Training in default style.")
-        return self.parameters()
+        set_require_grad_for_all_parameters(True)
 
     @property
     def training_styles(self):
@@ -532,11 +537,13 @@ class Argus(Dianthum):
 
     def only_train_bind_style(self):
         click.echo("Only training bind.")
-        return self.model_bind.parameters()
+        self.set_require_grad_for_all_parameters(True)
+        self.model_stab.set_require_grad_for_all_parameters(False)
 
     def only_train_stab_style(self):
         click.echo("Only training stab.")
-        return self.model_stab.parameters()
+        self.set_require_grad_for_all_parameters(True)
+        self.model_bind.set_require_grad_for_all_parameters(False)
 
 
 class ArgusSequential(Argus):
