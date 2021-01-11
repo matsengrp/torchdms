@@ -145,7 +145,7 @@ class TorchdmsModel(nn.Module):
     def default_training_style(self):
         """The default training style."""
         click.echo("Training in default style.")
-        set_require_grad_for_all_parameters(True)
+        self.set_require_grad_for_all_parameters(True)
 
     @property
     def training_styles(self):
