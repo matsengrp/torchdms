@@ -27,6 +27,9 @@ max-attributes=700
 # Maximum number of local variables.
 max-locals=700
 
+# Maximum number of statements in function / method
+max-statements=75
+
 
 [SIMILARITIES]
 

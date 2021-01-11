@@ -7,6 +7,8 @@ import pickle
 import json
 import re
 import pandas as pd
+import numpy as np
+import dms_variants as dms
 
 
 def from_pickle_file(path):
@@ -163,3 +165,28 @@ def make_cartesian_product_hierarchy(dict_of_option_dicts, dry_run=False):
                 if not os.path.exists(directory_path):
                     os.makedirs(directory_path)
                 to_json_file(final_dict, json_path)
+
+
+def build_beta_map(test_data, beta_vec):
+    """This function creates a beta matrix for one latent layer of a torchdms
+    model.
+
+    Takes a binary map object and beta vector as input. Returns a 21xL
+    matrix of beta-coefficients and the amino acid alphabet.
+    """
+
+    bmap = dms.binarymap.BinaryMap(
+        test_data.original_df,
+    )
+
+    wtmask = np.full([len(bmap.alphabet), len(test_data.wtseq)], False, dtype=bool)
+    alphabet = bmap.alphabet
+
+    for column_position, aa in enumerate(test_data.wtseq):
+        row_position = alphabet.index(aa)
+        wtmask[row_position, column_position] = True
+    # See model.numpy_single_mutant_predictions for why this transpose is here.
+    return (
+        beta_vec.reshape(len(test_data.wtseq), len(bmap.alphabet)).transpose(),
+        alphabet,
+    )

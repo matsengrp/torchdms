@@ -399,6 +399,12 @@ def create(
     "Emphasizes fitting highly functional variants. If on, weight decay will be turned off.",
 )
 @click.option(
+    "--beta-rank",
+    type=int,
+    default=None,
+    help="What number of dimensions to use in the low-rank reconstructions of betas.",
+)
+@click.option(
     "--epochs",
     default=100,
     show_default=True,
@@ -424,6 +430,7 @@ def train(
     epochs,
     dry_run,
     seed,
+    beta_rank,
 ):
     """Train a model, saving trained model to original location."""
     if dry_run:
@@ -469,7 +476,8 @@ def train(
             "NOTE: you are using loss decays, which assumes that you want to up-weight "
             "the loss function when the true target value is large. Is that true?"
         )
-
+    if beta_rank is not None:
+        click.echo(f"NOTE: Using rank-{beta_rank} approximation for beta coefficents.")
     training_params = {
         "independent_start_count": independent_starts,
         "independent_start_epoch_count": independent_start_epochs,
@@ -479,6 +487,7 @@ def train(
         "min_lr": min_lr,
         "loss_weight_span": loss_weight_span,
         "exp_target": exp_target,
+        "beta_rank": beta_rank,
     }
 
     click.echo(f"Starting training. {training_params}")
