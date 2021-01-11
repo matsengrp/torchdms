@@ -137,6 +137,14 @@ class TorchdmsModel(nn.Module):
         if self.monotonic_sign is not None:
             self.reflect_monotonic_params()
 
+    def default_training_style(self):
+        """The default training style."""
+        click.echo("Training in default style.")
+        return self.parameters()
+
+    @property
+    def training_styles(self):
+        return [self.default_training_style]
 
 class LinearModel(TorchdmsModel):
     """The simplest model."""
@@ -500,14 +508,15 @@ class Argus(Dianthum):
 
         # expand input dimension of first post-latent layer in bind network
         # to accommodate stab-->bind interaction
-        layer_name = self.model_bind.layers[self.model_bind.latent_idx + 1]
+        first_post_latent_layer_idx = self.model_bind.latent_idx + 1
+        layer_name = self.model_bind.layers[first_post_latent_layer_idx]
         setattr(
             self.model_bind,
             layer_name,
             nn.Linear(
                 self.latent_dim,
                 self.model_bind.internal_layer_dimensions[
-                    self.model_bind.latent_idx + 1
+                    first_post_latent_layer_idx
                 ],
                 bias=True,
             ),
@@ -521,6 +530,18 @@ class Argus(Dianthum):
             ),
             1,
         )
+
+    def only_train_bind_style(self):
+        click.echo("Only training bind.")
+        return self.model_bind.parameters()
+
+    def only_train_stab_style(self):
+        click.echo("Only training stab.")
+        return self.model_stab.parameters()
+
+    @property
+    def training_styles(self):
+        return [self.only_train_stab_style, self.only_train_bind_style]
 
 
 KNOWN_MODELS = {

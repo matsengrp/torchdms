@@ -201,11 +201,12 @@ class Analysis:
         self.model.to(self.device)
 
         def optimizer_and_scheduler_of_training_style(training_style):
-            optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
+            parameters_to_optimize = training_style()
+            optimizer = torch.optim.Adam(parameters_to_optimize, lr=self.learning_rate)
             scheduler = ReduceLROnPlateau(optimizer, patience=patience, verbose=True)
             return (optimizer, scheduler)
 
-        for training_style in ["void"]:
+        for training_style in self.model.training_styles:
             optimizer, scheduler = optimizer_and_scheduler_of_training_style(training_style)
 
             with click.progressbar(range(epoch_count)) as progress_bar:
