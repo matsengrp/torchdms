@@ -610,7 +610,7 @@ def model_of_string(model_string, data_path, **kwargs):
             test_dataset.target_names,
             alphabet=test_dataset.alphabet,
         )
-    elif model_name in ("Dianthum", "Argus"):
+    elif model_name in ("Dianthum", "Argus", "ArgusSequential"):
         model = KNOWN_MODELS[model_name](
             test_dataset.feature_count(),
             layers,
