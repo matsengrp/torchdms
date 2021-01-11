@@ -18,12 +18,12 @@ def make_data_loader_infinite(data_loader):
             yield data
 
 
-def low_rank_approximation(beta_map, rank_approx):
+def low_rank_approximation(beta_map, beta_rank):
     """Returns low-rank approximation of beta matrix."""
-    assert rank_approx > 0
+    assert beta_rank > 0
     u_vecs, s_vals, v_vecs = torch.svd(torch.from_numpy(beta_map))
     # truncate S
-    s_vals[rank_approx:] = 0
+    s_vals[beta_rank:] = 0
     # reconstruct beta-map
     beta_approx = (u_vecs.mm(torch.diag(s_vals))).mm(torch.transpose(v_vecs, 0, 1))
     return beta_approx.transpose(1, 0).flatten()
@@ -98,7 +98,7 @@ class Analysis:
         min_lr=1e-5,
         loss_weight_span=None,
         exp_target=None,
-        rank_approx=None,
+        beta_rank=None,
     ):
         """Train self.model using all the bells and whistles."""
         assert len(self.train_datasets) > 0
@@ -173,7 +173,7 @@ class Analysis:
                             param.data.clamp_(0)
                 optimizer.step()
                 # if k >=1, reconstruct beta matricies with truncated SVD
-                if rank_approx is not None:
+                if beta_rank is not None:
                     num_latent_dims = self.model.latent_dim
                     for latent_dim in range(num_latent_dims):
                         beta_vec = (
@@ -185,7 +185,7 @@ class Analysis:
                         beta_map, _ = build_beta_map(self.val_data, beta_vec)
                         self.model.beta_coefficients()[
                             latent_dim
-                        ] = low_rank_approximation(beta_map, rank_approx)
+                        ] = low_rank_approximation(beta_map, beta_rank)
 
             val_samples = self.val_data.samples.to(self.device)
             val_predictions = self.model(val_samples)
@@ -219,7 +219,7 @@ class Analysis:
         min_lr=1e-5,
         loss_weight_span=None,
         exp_target=None,
-        rank_approx=None,
+        beta_rank=None,
     ):
         """Do pre-training on self.model using the specified number of
         independent starts, writing the best pre-trained model to the model
@@ -247,7 +247,7 @@ class Analysis:
             min_lr,
             loss_weight_span,
             exp_target,
-            rank_approx,
+            beta_rank,
         )
 
     def simple_train(self, epoch_count, loss_fn):
