@@ -138,13 +138,7 @@ class Analysis:
             loss_decays = [no_loss_decay for _ in self.train_datasets]
             val_loss_decay = no_loss_decay
 
-        batch_count = 1 + max(map(len, self.train_datasets)) // self.batch_size
-        self.model.train()  # Sets model to training mode.
-        optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
-        scheduler = ReduceLROnPlateau(optimizer, patience=patience, verbose=True)
-        self.model.to(self.device)
-
-        def step_model():
+        def step_model(optimizer, scheduler):
             for _ in range(batch_count):
                 optimizer.zero_grad()
                 per_batch_loss = 0.0
@@ -202,12 +196,24 @@ class Analysis:
 
             scheduler.step(val_loss)
 
-        with click.progressbar(range(epoch_count)) as progress_bar:
-            for _ in progress_bar:
-                step_model()
-                if optimizer.state_dict()["param_groups"][0]["lr"] < min_lr:
-                    click.echo("Learning rate dropped below stated minimum. Stopping.")
-                    break
+        batch_count = 1 + max(map(len, self.train_datasets)) // self.batch_size
+        self.model.train()  # Sets model to training mode.
+        self.model.to(self.device)
+
+        def optimizer_and_scheduler_of_training_style(training_style):
+            optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
+            scheduler = ReduceLROnPlateau(optimizer, patience=patience, verbose=True)
+            return (optimizer, scheduler)
+
+        for training_style in ["void"]:
+            optimizer, scheduler = optimizer_and_scheduler_of_training_style(training_style)
+
+            with click.progressbar(range(epoch_count)) as progress_bar:
+                for _ in progress_bar:
+                    step_model(optimizer, scheduler)
+                    if optimizer.state_dict()["param_groups"][0]["lr"] < min_lr:
+                        click.echo("Learning rate dropped below stated minimum. Stopping.")
+                        break
 
     def multi_train(
         self,
