@@ -539,6 +539,12 @@ class Argus(Dianthum):
         click.echo("Only training stab.")
         return self.model_stab.parameters()
 
+
+
+class ArgusSequential(Argus):
+    """Argus with sequential training: stab then bind.
+    """
+
     @property
     def training_styles(self):
         return [self.only_train_stab_style, self.only_train_bind_style]
@@ -549,6 +555,7 @@ KNOWN_MODELS = {
     "Planifolia": Planifolia,
     "Dianthum": Dianthum,
     "Argus": Argus,
+    "ArgusSequential": ArgusSequential,
 }
 
 
