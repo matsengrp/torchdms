@@ -22,7 +22,7 @@ setup(
         "click-config-file",
         "dms_variants",
         "matplotlib",
-        "plotnine==0.6.0",
+        "plotnine",
         "pytest",
         "scipy",
         "statsmodels==0.11.0",
