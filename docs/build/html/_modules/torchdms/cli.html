@@ -1,0 +1,953 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>torchdms.cli &mdash; torchdms 0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> torchdms
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../_autosummary/torchdms.html">torchdms</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">torchdms</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>torchdms.cli</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for torchdms.cli</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Command line interface.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">pathlib</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">click</span>
+<span class="kn">import</span> <span class="nn">click_config_file</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span> <span class="nn">torchdms</span>
+<span class="kn">from</span> <span class="nn">torchdms.analysis</span> <span class="kn">import</span> <span class="n">Analysis</span>
+<span class="kn">from</span> <span class="nn">torchdms.data</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">check_onehot_encoding</span><span class="p">,</span>
+    <span class="n">partition</span><span class="p">,</span>
+    <span class="n">prep_by_stratum_and_export</span><span class="p">,</span>
+    <span class="n">SplitDataset</span><span class="p">,</span>
+    <span class="n">summarize_dms_variants_dataframe</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">torchdms.evaluation</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">build_evaluation_dict</span><span class="p">,</span>
+    <span class="n">complete_error_summary</span><span class="p">,</span>
+    <span class="n">error_df_of_evaluation_dict</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">torchdms.loss</span> <span class="kn">import</span> <span class="n">l1</span><span class="p">,</span> <span class="n">mse</span><span class="p">,</span> <span class="n">rmse</span>
+<span class="kn">from</span> <span class="nn">torchdms.model</span> <span class="kn">import</span> <span class="n">model_of_string</span>
+<span class="kn">from</span> <span class="nn">torchdms.plot</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">beta_coefficients</span><span class="p">,</span>
+    <span class="n">build_geplot_df</span><span class="p">,</span>
+    <span class="n">build_2d_nonlinearity_df</span><span class="p">,</span>
+    <span class="n">plot_error</span><span class="p">,</span>
+    <span class="n">plot_geplot</span><span class="p">,</span>
+    <span class="n">plot_2d_geplot</span><span class="p">,</span>
+    <span class="n">plot_heatmap</span><span class="p">,</span>
+    <span class="n">plot_svd</span><span class="p">,</span>
+    <span class="n">plot_test_correlation</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">torchdms.utils</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">from_pickle_file</span><span class="p">,</span>
+    <span class="n">from_json_file</span><span class="p">,</span>
+    <span class="n">make_cartesian_product_hierarchy</span><span class="p">,</span>
+    <span class="n">to_pickle_file</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="json_provider"><a class="viewcode-back" href="../../_autosummary/torchdms.cli.json_provider.html#torchdms.cli.json_provider">[docs]</a><span class="k">def</span> <span class="nf">json_provider</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">cmd_name</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Enable loading of flags from a JSON file via click_config_file.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">cmd_name</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">config_data</span><span class="p">:</span>
+            <span class="n">config_dict</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">config_data</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">cmd_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">config_dict</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s2">&quot;default&quot;</span> <span class="ow">in</span> <span class="n">config_dict</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">config_dict</span><span class="p">[</span><span class="s2">&quot;default&quot;</span><span class="p">]</span>
+                <span class="c1"># else:</span>
+                <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Could not find a &#39;</span><span class="si">{</span><span class="n">cmd_name</span><span class="si">}</span><span class="s2">&#39; or &#39;default&#39; section in &#39;</span><span class="si">{</span><span class="n">file_path</span><span class="si">}</span><span class="s2">&#39;&quot;</span>
+                <span class="p">)</span>
+            <span class="k">return</span> <span class="n">config_dict</span><span class="p">[</span><span class="n">cmd_name</span><span class="p">]</span>
+    <span class="c1"># else:</span>
+    <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="set_random_seed"><a class="viewcode-back" href="../../_autosummary/torchdms.cli.set_random_seed.html#torchdms.cli.set_random_seed">[docs]</a><span class="k">def</span> <span class="nf">set_random_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">seed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;LOG: Setting random seed to </span><span class="si">{</span><span class="n">seed</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+        <span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="dry_run_option"><a class="viewcode-back" href="../../_autosummary/torchdms.cli.dry_run_option.html#torchdms.cli.dry_run_option">[docs]</a><span class="k">def</span> <span class="nf">dry_run_option</span><span class="p">(</span><span class="n">command</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+        <span class="s2">&quot;--dry-run&quot;</span><span class="p">,</span>
+        <span class="n">is_flag</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Only print paths and files to be made, rather than actually making them.&quot;</span><span class="p">,</span>
+    <span class="p">)(</span><span class="n">command</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="print_method_name_and_locals"><a class="viewcode-back" href="../../_autosummary/torchdms.cli.print_method_name_and_locals.html#torchdms.cli.print_method_name_and_locals">[docs]</a><span class="k">def</span> <span class="nf">print_method_name_and_locals</span><span class="p">(</span><span class="n">method_name</span><span class="p">,</span> <span class="n">local_variables</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Print method name and local variables.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="s2">&quot;ctx&quot;</span> <span class="ow">in</span> <span class="n">local_variables</span><span class="p">:</span>
+        <span class="k">del</span> <span class="n">local_variables</span><span class="p">[</span><span class="s2">&quot;ctx&quot;</span><span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">method_name</span><span class="si">}{</span><span class="n">local_variables</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="seed_option"><a class="viewcode-back" href="../../_autosummary/torchdms.cli.seed_option.html#torchdms.cli.seed_option">[docs]</a><span class="k">def</span> <span class="nf">seed_option</span><span class="p">(</span><span class="n">command</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+        <span class="s2">&quot;--seed&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+        <span class="n">show_default</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Set random seed. Seed is uninitialized if not set.&quot;</span><span class="p">,</span>
+    <span class="p">)(</span><span class="n">command</span><span class="p">)</span></div>
+
+
+<span class="c1"># Entry point</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">group</span><span class="p">(</span>
+    <span class="n">context_settings</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;help_option_names&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;-h&quot;</span><span class="p">,</span> <span class="s2">&quot;--help&quot;</span><span class="p">]},</span>
+    <span class="n">invoke_without_command</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s2">&quot;-v&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;--version&quot;</span><span class="p">,</span>
+    <span class="n">is_flag</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Print version and exit. Note that as per `git describe`, the SHA is prefixed &quot;</span>
+    <span class="s2">&quot;by a `g`.&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="k">def</span> <span class="nf">cli</span><span class="p">(</span><span class="n">version</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Train and evaluate neural networks on deep mutational scanning data.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">version</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;torchdms version </span><span class="si">{</span><span class="n">torchdms</span><span class="o">.</span><span class="n">__version__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+
+<span class="nd">@cli</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">argument</span><span class="p">(</span><span class="s2">&quot;in_path&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">argument</span><span class="p">(</span><span class="s2">&quot;out_prefix&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">Path</span><span class="p">())</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">argument</span><span class="p">(</span><span class="s2">&quot;targets&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s2">&quot;--per-stratum-variants-for-test&quot;</span><span class="p">,</span>
+    <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+    <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">default</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+    <span class="n">show_default</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;This is the number of variants for each stratum to hold out for testing, with &quot;</span>
+    <span class="s2">&quot;the same number used for validation. The rest of the examples will be used for &quot;</span>
+    <span class="s2">&quot;training the model.&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s2">&quot;--skip-stratum-if-count-is-smaller-than&quot;</span><span class="p">,</span>
+    <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+    <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">default</span><span class="o">=</span><span class="mi">250</span><span class="p">,</span>
+    <span class="n">show_default</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;If the total number of examples for any particular stratum is lower than this &quot;</span>
+    <span class="s2">&quot;number, we throw out the stratum completely.&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s2">&quot;--drop-nans&quot;</span><span class="p">,</span>
+    <span class="n">is_flag</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Drop all rows that contain a nan.&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s2">&quot;--export-dataframe&quot;</span><span class="p">,</span>
+    <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+    <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Filename prefix for exporting the original dataframe in a .pkl file with an &quot;</span>
+    <span class="s2">&quot;appended in_test column.&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s2">&quot;--partition-by&quot;</span><span class="p">,</span>
+    <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+    <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Column name containing a feature by which the data should be split into &quot;</span>
+    <span class="s2">&quot;independent datasets for partitioning; e.g. &#39;library&#39;.&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nd">@dry_run_option</span>
+<span class="nd">@seed_option</span>
+<span class="nd">@click_config_file</span><span class="o">.</span><span class="n">configuration_option</span><span class="p">(</span><span class="n">implicit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">provider</span><span class="o">=</span><span class="n">json_provider</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">pass_context</span>
+<span class="k">def</span> <span class="nf">prep</span><span class="p">(</span>
+    <span class="n">ctx</span><span class="p">,</span>
+    <span class="n">in_path</span><span class="p">,</span>
+    <span class="n">out_prefix</span><span class="p">,</span>
+    <span class="n">targets</span><span class="p">,</span>
+    <span class="n">per_stratum_variants_for_test</span><span class="p">,</span>
+    <span class="n">skip_stratum_if_count_is_smaller_than</span><span class="p">,</span>
+    <span class="n">drop_nans</span><span class="p">,</span>
+    <span class="n">export_dataframe</span><span class="p">,</span>
+    <span class="n">partition_by</span><span class="p">,</span>
+    <span class="n">dry_run</span><span class="p">,</span>
+    <span class="n">seed</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Prepare data for training.</span>
+
+<span class="sd">    IN_PATH should point to a pickle dump&#39;d Pandas DataFrame containing</span>
+<span class="sd">    the string encoded `aa_substitutions` column along with any TARGETS</span>
+<span class="sd">    you specify. OUT_PREFIX is the location to dump the prepped data to</span>
+<span class="sd">    another pickle file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">dry_run</span><span class="p">:</span>
+        <span class="n">print_method_name_and_locals</span><span class="p">(</span><span class="s2">&quot;prep&quot;</span><span class="p">,</span> <span class="nb">locals</span><span class="p">())</span>
+        <span class="k">return</span>
+    <span class="n">set_random_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+    <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;LOG: Targets: </span><span class="si">{</span><span class="n">targets</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">aa_func_scores</span><span class="p">,</span> <span class="n">wtseq</span> <span class="o">=</span> <span class="n">from_pickle_file</span><span class="p">(</span><span class="n">in_path</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">drop_nans</span><span class="p">:</span>
+        <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="s2">&quot;LOG: dropping NaNs as requested.&quot;</span><span class="p">)</span>
+        <span class="n">aa_func_scores</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">total_variants</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">aa_func_scores</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])</span>
+    <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;LOG: There are </span><span class="si">{</span><span class="n">total_variants</span><span class="si">}</span><span class="s2"> total variants in this dataset&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">partition_by</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s2">&quot;library&quot;</span> <span class="ow">in</span> <span class="n">aa_func_scores</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+        <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span>
+            <span class="s2">&quot;WARNING: you have a &#39;library&#39; column but haven&#39;t specified a partition &quot;</span>
+            <span class="s2">&quot;via &#39;--partition-by&#39;&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">prep_by_stratum_and_export_of_partition_label_and_df</span><span class="p">(</span><span class="n">partition_label</span><span class="p">,</span> <span class="n">df</span><span class="p">):</span>
+        <span class="n">split_df</span> <span class="o">=</span> <span class="n">partition</span><span class="p">(</span>
+            <span class="n">df</span><span class="p">,</span>
+            <span class="n">per_stratum_variants_for_test</span><span class="p">,</span>
+            <span class="n">skip_stratum_if_count_is_smaller_than</span><span class="p">,</span>
+            <span class="n">export_dataframe</span><span class="p">,</span>
+            <span class="n">partition_label</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">prep_by_stratum_and_export</span><span class="p">(</span>
+            <span class="n">split_df</span><span class="p">,</span>
+            <span class="n">wtseq</span><span class="p">,</span>
+            <span class="n">targets</span><span class="p">,</span>
+            <span class="n">out_prefix</span><span class="p">,</span>
+            <span class="nb">str</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">params</span><span class="p">),</span>
+            <span class="n">partition_label</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">partition_by</span> <span class="ow">in</span> <span class="n">aa_func_scores</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">partition_label</span><span class="p">,</span> <span class="n">per_partition_label_df</span> <span class="ow">in</span> <span class="n">aa_func_scores</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span>
+            <span class="n">partition_by</span>
+        <span class="p">):</span>
+            <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;LOG: Partitioning data via &#39;</span><span class="si">{</span><span class="n">partition_label</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+            <span class="n">prep_by_stratum_and_export_of_partition_label_and_df</span><span class="p">(</span>
+                <span class="n">partition_label</span><span class="p">,</span> <span class="n">per_partition_label_df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">prep_by_stratum_and_export_of_partition_label_and_df</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">aa_func_scores</span><span class="p">)</span>
+
+    <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span>
+        <span class="s2">&quot;LOG: Successfully finished prep and dumped SplitDataset &quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;object to </span><span class="si">{</span><span class="n">out_prefix</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="p">)</span>
+
+
+<span class="nd">@cli</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">argument</span><span class="p">(</span><span class="s2">&quot;data_path&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s2">&quot;--out-prefix&quot;</span><span class="p">,</span>
+    <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">Path</span><span class="p">(),</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;If this flag is set, make pdf plots summarizing the data.&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nd">@click_config_file</span><span class="o">.</span><span class="n">configuration_option</span><span class="p">(</span><span class="n">implicit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">provider</span><span class="o">=</span><span class="n">json_provider</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">summarize</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="n">out_prefix</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Report various summaries of the data.&quot;&quot;&quot;</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">from_pickle_file</span><span class="p">(</span><span class="n">data_path</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="n">summarize_dms_variants_dataframe</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">out_prefix</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+        <span class="n">summarize_dms_variants_dataframe</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">out_prefix</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">SplitDataset</span><span class="p">):</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">summarize</span><span class="p">(</span><span class="n">out_prefix</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Summary of </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+
+<span class="nd">@cli</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">argument</span><span class="p">(</span><span class="s2">&quot;data_path&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+<span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="n">data_path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Validate that a given data set is sane.&quot;&quot;&quot;</span>
+    <span class="n">splitdata</span> <span class="o">=</span> <span class="n">from_pickle_file</span><span class="p">(</span><span class="n">data_path</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">splitdata</span><span class="o">.</span><span class="n">labeled_splits</span><span class="p">:</span>
+        <span class="n">check_onehot_encoding</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Validated </span><span class="si">{</span><span class="n">data_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+
+<span class="nd">@cli</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">argument</span><span class="p">(</span><span class="s2">&quot;data_path&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">argument</span><span class="p">(</span><span class="s2">&quot;out_path&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">Path</span><span class="p">())</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">argument</span><span class="p">(</span><span class="s2">&quot;model_string&quot;</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s2">&quot;--monotonic&quot;</span><span class="p">,</span>
+    <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+    <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;If this option is used, &quot;</span>
+    <span class="s2">&quot;then the model will be initialized with weights greater than zero. &quot;</span>
+    <span class="s2">&quot;During training with this model then, tdms will put a floor of &quot;</span>
+    <span class="s2">&quot;0 on all non-bias weights. It will also multiply the output by the value provided &quot;</span>
+    <span class="s2">&quot; as an option argument here, so use -1.0 if you want your nonlinearity to be &quot;</span>
+    <span class="s2">&quot;monotonically decreasing, or 1.0 if you want it to be increasing.&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s2">&quot;--beta-l1-coefficients&quot;</span><span class="p">,</span>
+    <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Coefficients with which to l1-regularize beta coefficients, &quot;</span>
+    <span class="s2">&quot;a comma-seperated list of coefficients for each latent dimension.&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s2">&quot;--interaction-l1-coefficients&quot;</span><span class="p">,</span>
+    <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Coefficients with which to l1-regularize site interaction weights, &quot;</span>
+    <span class="s2">&quot;a comma-seperated list of coefficients for each latent dimension&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nd">@seed_option</span>
+<span class="nd">@click_config_file</span><span class="o">.</span><span class="n">configuration_option</span><span class="p">(</span><span class="n">implicit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">provider</span><span class="o">=</span><span class="n">json_provider</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">create</span><span class="p">(</span>
+    <span class="n">model_string</span><span class="p">,</span>
+    <span class="n">data_path</span><span class="p">,</span>
+    <span class="n">out_path</span><span class="p">,</span>
+    <span class="n">monotonic</span><span class="p">,</span>
+    <span class="n">beta_l1_coefficients</span><span class="p">,</span>
+    <span class="n">interaction_l1_coefficients</span><span class="p">,</span>
+    <span class="n">seed</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create a model.</span>
+
+<span class="sd">    Model string describes the model, such as &#39;Planifolia(1,10)&#39;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">set_random_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+    <span class="n">beta_l1_coefficients</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">beta_l1_coefficients</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)]</span>
+    <span class="n">kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">monotonic_sign</span><span class="o">=</span><span class="n">monotonic</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">beta_l1_coefficients</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;beta_l1_coefficient&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">beta_l1_coefficients</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;beta_l1_coefficients&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">beta_l1_coefficients</span>
+    <span class="n">interaction_l1_coefficients</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">interaction_l1_coefficients</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">interaction_l1_coefficients</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;interaction_l1_coefficient&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">interaction_l1_coefficients</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;interaction_l1_coefficients&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">interaction_l1_coefficients</span>
+
+    <span class="n">model</span> <span class="o">=</span> <span class="n">model_of_string</span><span class="p">(</span>
+        <span class="n">model_string</span><span class="p">,</span>
+        <span class="n">data_path</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">torch</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">out_path</span><span class="p">)</span>
+    <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;LOG: Model defined as: </span><span class="si">{</span><span class="n">model</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;LOG: Saved model to </span><span class="si">{</span><span class="n">out_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+
+<span class="nd">@cli</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">argument</span><span class="p">(</span><span class="s2">&quot;model_path&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">argument</span><span class="p">(</span><span class="s2">&quot;data_path&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s2">&quot;--loss-fn&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;l1&quot;</span><span class="p">,</span> <span class="n">show_default</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Loss function for training.&quot;</span>
+<span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s2">&quot;--loss-weight-span&quot;</span><span class="p">,</span>
+    <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+    <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;If this option is used, add a weight to a mean-absolute-deviation loss equal &quot;</span>
+    <span class="s2">&quot;to the exponential of a loss decay times the true score.&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s2">&quot;--batch-size&quot;</span><span class="p">,</span>
+    <span class="n">default</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
+    <span class="n">show_default</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Batch size for training.&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s2">&quot;--learning-rate&quot;</span><span class="p">,</span>
+    <span class="n">default</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span>
+    <span class="n">show_default</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Initial learning rate.&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s2">&quot;--min-lr&quot;</span><span class="p">,</span>
+    <span class="n">default</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span>
+    <span class="n">show_default</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Minimum learning rate before early stopping on training.&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s2">&quot;--patience&quot;</span><span class="p">,</span>
+    <span class="n">default</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+    <span class="n">show_default</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Patience for ReduceLROnPlateau.&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s2">&quot;--device&quot;</span><span class="p">,</span>
+    <span class="n">default</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">,</span>
+    <span class="n">show_default</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Device used to train nn&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s2">&quot;--independent-starts&quot;</span><span class="p">,</span>
+    <span class="n">default</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+    <span class="n">show_default</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Number of independent training starts to use. Each training start gets trained &quot;</span>
+    <span class="s2">&quot;independently and the best start is used for full training.&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s2">&quot;--independent-start-epochs&quot;</span><span class="p">,</span>
+    <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;How long to train each independent start. If not set, 10</span><span class="si">% o</span><span class="s2">f the full number &quot;</span>
+    <span class="s2">&quot;of epochs is used.&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s2">&quot;--simple-training&quot;</span><span class="p">,</span>
+    <span class="n">is_flag</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Ignore all fancy training options: do bare-bones training for a fixed number &quot;</span>
+    <span class="s2">&quot;of epochs. Fail if data contains nans.&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s2">&quot;--exp-target&quot;</span><span class="p">,</span>
+    <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+    <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Provide base to be exponentiated by functional scores of variants.&quot;</span>
+    <span class="s2">&quot;Emphasizes fitting highly functional variants. If on, weight decay will be turned off.&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s2">&quot;--beta-rank&quot;</span><span class="p">,</span>
+    <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+    <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;What number of dimensions to use in the low-rank reconstructions of betas.&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s2">&quot;--epochs&quot;</span><span class="p">,</span>
+    <span class="n">default</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+    <span class="n">show_default</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Number of epochs for full training.&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nd">@dry_run_option</span>
+<span class="nd">@seed_option</span>
+<span class="nd">@click_config_file</span><span class="o">.</span><span class="n">configuration_option</span><span class="p">(</span><span class="n">implicit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">provider</span><span class="o">=</span><span class="n">json_provider</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">train</span><span class="p">(</span>
+    <span class="n">model_path</span><span class="p">,</span>
+    <span class="n">data_path</span><span class="p">,</span>
+    <span class="n">loss_fn</span><span class="p">,</span>
+    <span class="n">loss_weight_span</span><span class="p">,</span>
+    <span class="n">exp_target</span><span class="p">,</span>
+    <span class="n">batch_size</span><span class="p">,</span>
+    <span class="n">learning_rate</span><span class="p">,</span>
+    <span class="n">min_lr</span><span class="p">,</span>
+    <span class="n">patience</span><span class="p">,</span>
+    <span class="n">device</span><span class="p">,</span>
+    <span class="n">independent_starts</span><span class="p">,</span>
+    <span class="n">independent_start_epochs</span><span class="p">,</span>
+    <span class="n">simple_training</span><span class="p">,</span>
+    <span class="n">epochs</span><span class="p">,</span>
+    <span class="n">dry_run</span><span class="p">,</span>
+    <span class="n">seed</span><span class="p">,</span>
+    <span class="n">beta_rank</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Train a model, saving trained model to original location.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">dry_run</span><span class="p">:</span>
+        <span class="n">print_method_name_and_locals</span><span class="p">(</span><span class="s2">&quot;train&quot;</span><span class="p">,</span> <span class="nb">locals</span><span class="p">())</span>
+        <span class="k">return</span>
+    <span class="n">set_random_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+
+    <span class="n">model</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">model_path</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">from_pickle_file</span><span class="p">(</span><span class="n">data_path</span><span class="p">)</span>
+
+    <span class="n">analysis_params</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="n">model</span><span class="p">,</span>
+        <span class="s2">&quot;model_path&quot;</span><span class="p">:</span> <span class="n">model_path</span><span class="p">,</span>
+        <span class="s2">&quot;val_data&quot;</span><span class="p">:</span> <span class="n">data</span><span class="o">.</span><span class="n">val</span><span class="p">,</span>
+        <span class="s2">&quot;train_data_list&quot;</span><span class="p">:</span> <span class="n">data</span><span class="o">.</span><span class="n">train</span><span class="p">,</span>
+        <span class="s2">&quot;batch_size&quot;</span><span class="p">:</span> <span class="n">batch_size</span><span class="p">,</span>
+        <span class="s2">&quot;learning_rate&quot;</span><span class="p">:</span> <span class="n">learning_rate</span><span class="p">,</span>
+        <span class="s2">&quot;device&quot;</span><span class="p">:</span> <span class="n">device</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="n">analysis</span> <span class="o">=</span> <span class="n">Analysis</span><span class="p">(</span><span class="o">**</span><span class="n">analysis_params</span><span class="p">)</span>
+    <span class="n">known_loss_fn</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;l1&quot;</span><span class="p">:</span> <span class="n">l1</span><span class="p">,</span> <span class="s2">&quot;mse&quot;</span><span class="p">:</span> <span class="n">mse</span><span class="p">,</span> <span class="s2">&quot;rmse&quot;</span><span class="p">:</span> <span class="n">rmse</span><span class="p">}</span>
+    <span class="k">if</span> <span class="n">loss_fn</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">known_loss_fn</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loss function &#39;</span><span class="si">{</span><span class="n">loss_fn</span><span class="si">}</span><span class="s2">&#39; not known.&quot;</span><span class="p">)</span>
+    <span class="n">loss_fn</span> <span class="o">=</span> <span class="n">known_loss_fn</span><span class="p">[</span><span class="n">loss_fn</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">simple_training</span><span class="p">:</span>
+        <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Starting simple training for </span><span class="si">{</span><span class="n">epochs</span><span class="si">}</span><span class="s2"> epochs.&quot;</span><span class="p">)</span>
+        <span class="n">analysis</span><span class="o">.</span><span class="n">simple_train</span><span class="p">(</span><span class="n">epochs</span><span class="p">,</span> <span class="n">loss_fn</span><span class="p">)</span>
+        <span class="k">return</span>
+    <span class="k">if</span> <span class="n">exp_target</span><span class="p">:</span>
+        <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Exponentiating targets with base </span><span class="si">{</span><span class="n">exp_target</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">loss_weight_span</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span>
+                <span class="s2">&quot;NOTE: you have indicated that you would like to exponentiate your targets &quot;</span>
+                <span class="s2">&quot;while also using weight decay. Since these procedures are redundant, &quot;</span>
+                <span class="s2">&quot;weight decay will be turned off.&quot;</span>
+            <span class="p">)</span>
+            <span class="n">loss_weight_span</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1"># else:</span>
+    <span class="k">if</span> <span class="n">loss_weight_span</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span>
+            <span class="s2">&quot;NOTE: you are using loss decays, which assumes that you want to up-weight &quot;</span>
+            <span class="s2">&quot;the loss function when the true target value is large. Is that true?&quot;</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="n">beta_rank</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;NOTE: Using rank-</span><span class="si">{</span><span class="n">beta_rank</span><span class="si">}</span><span class="s2"> approximation for beta coefficents.&quot;</span><span class="p">)</span>
+    <span class="n">training_params</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;independent_start_count&quot;</span><span class="p">:</span> <span class="n">independent_starts</span><span class="p">,</span>
+        <span class="s2">&quot;independent_start_epoch_count&quot;</span><span class="p">:</span> <span class="n">independent_start_epochs</span><span class="p">,</span>
+        <span class="s2">&quot;epoch_count&quot;</span><span class="p">:</span> <span class="n">epochs</span><span class="p">,</span>
+        <span class="s2">&quot;loss_fn&quot;</span><span class="p">:</span> <span class="n">loss_fn</span><span class="p">,</span>
+        <span class="s2">&quot;patience&quot;</span><span class="p">:</span> <span class="n">patience</span><span class="p">,</span>
+        <span class="s2">&quot;min_lr&quot;</span><span class="p">:</span> <span class="n">min_lr</span><span class="p">,</span>
+        <span class="s2">&quot;loss_weight_span&quot;</span><span class="p">:</span> <span class="n">loss_weight_span</span><span class="p">,</span>
+        <span class="s2">&quot;exp_target&quot;</span><span class="p">:</span> <span class="n">exp_target</span><span class="p">,</span>
+        <span class="s2">&quot;beta_rank&quot;</span><span class="p">:</span> <span class="n">beta_rank</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Starting training. </span><span class="si">{</span><span class="n">training_params</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">analysis</span><span class="o">.</span><span class="n">multi_train</span><span class="p">(</span><span class="o">**</span><span class="n">training_params</span><span class="p">)</span>
+
+
+<span class="nd">@cli</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">argument</span><span class="p">(</span><span class="s2">&quot;model_path&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">argument</span><span class="p">(</span><span class="s2">&quot;data_path&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s2">&quot;--out&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">Path</span><span class="p">())</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s2">&quot;--device&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
+<span class="nd">@click_config_file</span><span class="o">.</span><span class="n">configuration_option</span><span class="p">(</span><span class="n">implicit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">provider</span><span class="o">=</span><span class="n">json_provider</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="n">model_path</span><span class="p">,</span> <span class="n">data_path</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">device</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Evaluate the performance of a model.</span>
+
+<span class="sd">    Dump to a dictionary containing the results.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">model_path</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">from_pickle_file</span><span class="p">(</span><span class="n">data_path</span><span class="p">)</span>
+    <span class="n">evaluation</span> <span class="o">=</span> <span class="n">build_evaluation_dict</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">test</span><span class="p">,</span> <span class="n">device</span><span class="p">)</span>
+    <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;LOG: pickle dump evalution data dictionary to </span><span class="si">{</span><span class="n">out</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">to_pickle_file</span><span class="p">(</span><span class="n">evaluation</span><span class="p">,</span> <span class="n">out</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="default_map_of_ctx_or_parent"><a class="viewcode-back" href="../../_autosummary/torchdms.cli.default_map_of_ctx_or_parent.html#torchdms.cli.default_map_of_ctx_or_parent">[docs]</a><span class="k">def</span> <span class="nf">default_map_of_ctx_or_parent</span><span class="p">(</span><span class="n">ctx</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Get the default_map from this context or the parent context.</span>
+
+<span class="sd">    In our application, the default_map is parsed from the JSON</span>
+<span class="sd">    configuration file. The parent context can be useful if we are</span>
+<span class="sd">    invoked from another subcommand.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">default_map</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">default_map</span>
+    <span class="k">if</span> <span class="n">default_map</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">default_map</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">default_map</span>
+    <span class="k">return</span> <span class="n">default_map</span></div>
+
+
+<span class="nd">@cli</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">argument</span><span class="p">(</span><span class="s2">&quot;model_path&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">argument</span><span class="p">(</span><span class="s2">&quot;data_path&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s2">&quot;--out&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">Path</span><span class="p">())</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s2">&quot;--show-points&quot;</span><span class="p">,</span>
+    <span class="n">is_flag</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Show points in addition to LOWESS curves.&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s2">&quot;--device&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s2">&quot;--include-details&quot;</span><span class="p">,</span>
+    <span class="n">is_flag</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Include details from config file in error summary.&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nd">@click_config_file</span><span class="o">.</span><span class="n">configuration_option</span><span class="p">(</span><span class="n">implicit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">provider</span><span class="o">=</span><span class="n">json_provider</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">pass_context</span>
+<span class="k">def</span> <span class="nf">error</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">model_path</span><span class="p">,</span> <span class="n">data_path</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">show_points</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="n">include_details</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Evaluate and produce plot of error.&quot;&quot;&quot;</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">model_path</span><span class="p">)</span>
+    <span class="n">prefix</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">out</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="n">from_pickle_file</span><span class="p">(</span><span class="n">data_path</span><span class="p">)</span>
+
+    <span class="n">evaluation</span> <span class="o">=</span> <span class="n">build_evaluation_dict</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">test</span><span class="p">,</span> <span class="n">device</span><span class="p">)</span>
+    <span class="n">error_df</span> <span class="o">=</span> <span class="n">error_df_of_evaluation_dict</span><span class="p">(</span><span class="n">evaluation</span><span class="p">)</span>
+
+    <span class="n">plot_error</span><span class="p">(</span><span class="n">error_df</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">str_summary</span><span class="p">(),</span> <span class="n">show_points</span><span class="p">)</span>
+    <span class="n">error_df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">prefix</span> <span class="o">+</span> <span class="s2">&quot;.csv&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="n">error_summary_df</span> <span class="o">=</span> <span class="n">complete_error_summary</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">include_details</span><span class="p">:</span>
+        <span class="n">default_map</span> <span class="o">=</span> <span class="n">default_map_of_ctx_or_parent</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">default_map</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">default_map</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">error_summary_df</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+    <span class="n">error_summary_df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">prefix</span> <span class="o">+</span> <span class="s2">&quot;-summary.csv&quot;</span><span class="p">)</span>
+
+    <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;LOG: error plot finished and dumped to </span><span class="si">{</span><span class="n">out</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+
+<span class="nd">@cli</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">argument</span><span class="p">(</span><span class="s2">&quot;model_path&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">argument</span><span class="p">(</span><span class="s2">&quot;data_path&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s2">&quot;--out&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">Path</span><span class="p">())</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s2">&quot;--device&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
+<span class="nd">@click_config_file</span><span class="o">.</span><span class="n">configuration_option</span><span class="p">(</span><span class="n">implicit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">provider</span><span class="o">=</span><span class="n">json_provider</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">scatter</span><span class="p">(</span><span class="n">model_path</span><span class="p">,</span> <span class="n">data_path</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">device</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Evaluate and produce scatter plot of observed vs predicted targets on</span>
+<span class="sd">    the test set provided.&quot;&quot;&quot;</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">model_path</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">from_pickle_file</span><span class="p">(</span><span class="n">data_path</span><span class="p">)</span>
+    <span class="n">evaluation</span> <span class="o">=</span> <span class="n">build_evaluation_dict</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">test</span><span class="p">,</span> <span class="n">device</span><span class="p">)</span>
+    <span class="n">plot_test_correlation</span><span class="p">(</span><span class="n">evaluation</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">out</span><span class="p">)</span>
+    <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;LOG: scatter plot finished and dumped to </span><span class="si">{</span><span class="n">out</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+
+<span class="nd">@cli</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">argument</span><span class="p">(</span><span class="s2">&quot;model_path&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">argument</span><span class="p">(</span><span class="s2">&quot;data_path&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s2">&quot;--out&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">Path</span><span class="p">())</span>
+<span class="nd">@click_config_file</span><span class="o">.</span><span class="n">configuration_option</span><span class="p">(</span><span class="n">implicit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">provider</span><span class="o">=</span><span class="n">json_provider</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">beta</span><span class="p">(</span><span class="n">model_path</span><span class="p">,</span> <span class="n">data_path</span><span class="p">,</span> <span class="n">out</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Plot beta coefficients as a heatmap.&quot;&quot;&quot;</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">model_path</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">from_pickle_file</span><span class="p">(</span><span class="n">data_path</span><span class="p">)</span>
+    <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;LOG: loaded data, evaluating beta coeff for wildtype seq: </span><span class="si">{</span><span class="n">data</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">wtseq</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="p">)</span>
+    <span class="n">beta_coefficients</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">test</span><span class="p">,</span> <span class="n">out</span><span class="p">)</span>
+    <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;LOG: Beta coefficients plotted and dumped to </span><span class="si">{</span><span class="n">out</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+
+<span class="nd">@cli</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">argument</span><span class="p">(</span><span class="s2">&quot;model_path&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s2">&quot;--out&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">Path</span><span class="p">())</span>
+<span class="nd">@click_config_file</span><span class="o">.</span><span class="n">configuration_option</span><span class="p">(</span><span class="n">implicit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">provider</span><span class="o">=</span><span class="n">json_provider</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">heatmap</span><span class="p">(</span><span class="n">model_path</span><span class="p">,</span> <span class="n">out</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Plot single mutant predictions as a heatmap.&quot;&quot;&quot;</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">model_path</span><span class="p">)</span>
+    <span class="n">plot_heatmap</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">out</span><span class="p">)</span>
+
+
+<span class="nd">@cli</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">argument</span><span class="p">(</span><span class="s2">&quot;model_path&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">argument</span><span class="p">(</span><span class="s2">&quot;data_path&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s2">&quot;--steps&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">show_default</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s2">&quot;--out&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">Path</span><span class="p">())</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s2">&quot;--device&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
+<span class="nd">@click_config_file</span><span class="o">.</span><span class="n">configuration_option</span><span class="p">(</span><span class="n">implicit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">provider</span><span class="o">=</span><span class="n">json_provider</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">geplot</span><span class="p">(</span><span class="n">model_path</span><span class="p">,</span> <span class="n">data_path</span><span class="p">,</span> <span class="n">steps</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">device</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Make a &quot;global epistasis&quot; plot showing the fit to the nonlinearity.&quot;&quot;&quot;</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">model_path</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">from_pickle_file</span><span class="p">(</span><span class="n">data_path</span><span class="p">)</span>
+    <span class="n">geplot_df</span> <span class="o">=</span> <span class="n">build_geplot_df</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">test</span><span class="p">,</span> <span class="n">device</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">latent_dim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">plot_geplot</span><span class="p">(</span><span class="n">geplot_df</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">str_summary</span><span class="p">())</span>
+    <span class="k">elif</span> <span class="n">model</span><span class="o">.</span><span class="n">latent_dim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">nonlinearity_df</span> <span class="o">=</span> <span class="n">build_2d_nonlinearity_df</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">geplot_df</span><span class="p">,</span> <span class="n">steps</span><span class="p">)</span>
+        <span class="n">plot_2d_geplot</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">geplot_df</span><span class="p">,</span> <span class="n">nonlinearity_df</span><span class="p">,</span> <span class="n">out</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span>
+            <span class="s2">&quot;WARNING: I don&#39;t know how to make a GE plot for any other dims other than 1 &quot;</span>
+            <span class="s2">&quot;and 2.&quot;</span>
+        <span class="p">)</span>
+
+
+<span class="nd">@cli</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">argument</span><span class="p">(</span><span class="s2">&quot;model_path&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">argument</span><span class="p">(</span><span class="s2">&quot;data_path&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s2">&quot;--out&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">Path</span><span class="p">())</span>
+<span class="nd">@click_config_file</span><span class="o">.</span><span class="n">configuration_option</span><span class="p">(</span><span class="n">implicit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">provider</span><span class="o">=</span><span class="n">json_provider</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">svd</span><span class="p">(</span><span class="n">model_path</span><span class="p">,</span> <span class="n">data_path</span><span class="p">,</span> <span class="n">out</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Plot singular values of beta matricies.&quot;&quot;&quot;</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">model_path</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">from_pickle_file</span><span class="p">(</span><span class="n">data_path</span><span class="p">)</span>
+    <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="s2">&quot;LOG: model loaded, calculating SVD for beta coefficents.&quot;</span><span class="p">)</span>
+    <span class="n">plot_svd</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">test</span><span class="p">,</span> <span class="n">out</span><span class="p">)</span>
+    <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;LOG: Singular values of beta plotted and dumped to </span><span class="si">{</span><span class="n">out</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="restrict_dict_to_params"><a class="viewcode-back" href="../../_autosummary/torchdms.cli.restrict_dict_to_params.html#torchdms.cli.restrict_dict_to_params">[docs]</a><span class="k">def</span> <span class="nf">restrict_dict_to_params</span><span class="p">(</span><span class="n">d_to_restrict</span><span class="p">,</span> <span class="n">cmd</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Restrict the given dictionary to the names of parameters for cmd.&quot;&quot;&quot;</span>
+    <span class="n">param_names</span> <span class="o">=</span> <span class="p">{</span><span class="n">param</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">cmd</span><span class="o">.</span><span class="n">params</span><span class="p">}</span>
+    <span class="k">return</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">d_to_restrict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">d_to_restrict</span> <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">param_names</span><span class="p">}</span></div>
+
+
+<span class="nd">@cli</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
+<span class="nd">@click_config_file</span><span class="o">.</span><span class="n">configuration_option</span><span class="p">(</span><span class="n">implicit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">provider</span><span class="o">=</span><span class="n">json_provider</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">pass_context</span>
+<span class="k">def</span> <span class="nf">go</span><span class="p">(</span><span class="n">ctx</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Run a common sequence of commands: create, train, scatter, and beta.</span>
+
+<span class="sd">    Then touch a `.sentinel` file to signal successful completion.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ctx</span><span class="o">.</span><span class="n">default_map</span><span class="p">:</span>
+        <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span>
+            <span class="s2">&quot;Please supply a non-empty JSON configuration file via the --config option.&quot;</span>
+        <span class="p">)</span>
+        <span class="k">return</span>
+    <span class="n">prefix</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">default_map</span><span class="p">[</span><span class="s2">&quot;prefix&quot;</span><span class="p">]</span>
+    <span class="n">model_path</span> <span class="o">=</span> <span class="n">prefix</span> <span class="o">+</span> <span class="s2">&quot;.model&quot;</span>
+    <span class="n">ctx</span><span class="o">.</span><span class="n">invoke</span><span class="p">(</span>
+        <span class="n">create</span><span class="p">,</span>
+        <span class="n">out_path</span><span class="o">=</span><span class="n">model_path</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">restrict_dict_to_params</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">default_map</span><span class="p">,</span> <span class="n">create</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">ctx</span><span class="o">.</span><span class="n">invoke</span><span class="p">(</span>
+        <span class="n">train</span><span class="p">,</span>
+        <span class="n">model_path</span><span class="o">=</span><span class="n">model_path</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">restrict_dict_to_params</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">default_map</span><span class="p">,</span> <span class="n">train</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">error_path</span> <span class="o">=</span> <span class="n">prefix</span> <span class="o">+</span> <span class="s2">&quot;.error.pdf&quot;</span>
+    <span class="n">ctx</span><span class="o">.</span><span class="n">invoke</span><span class="p">(</span>
+        <span class="n">error</span><span class="p">,</span>
+        <span class="n">model_path</span><span class="o">=</span><span class="n">model_path</span><span class="p">,</span>
+        <span class="n">out</span><span class="o">=</span><span class="n">error_path</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">restrict_dict_to_params</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">default_map</span><span class="p">,</span> <span class="n">error</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">scatter_path</span> <span class="o">=</span> <span class="n">prefix</span> <span class="o">+</span> <span class="s2">&quot;.scatter.pdf&quot;</span>
+    <span class="n">ctx</span><span class="o">.</span><span class="n">invoke</span><span class="p">(</span>
+        <span class="n">scatter</span><span class="p">,</span>
+        <span class="n">model_path</span><span class="o">=</span><span class="n">model_path</span><span class="p">,</span>
+        <span class="n">out</span><span class="o">=</span><span class="n">scatter_path</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">restrict_dict_to_params</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">default_map</span><span class="p">,</span> <span class="n">scatter</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">ge_path</span> <span class="o">=</span> <span class="n">prefix</span> <span class="o">+</span> <span class="s2">&quot;.ge.pdf&quot;</span>
+    <span class="n">ctx</span><span class="o">.</span><span class="n">invoke</span><span class="p">(</span>
+        <span class="n">geplot</span><span class="p">,</span>
+        <span class="n">model_path</span><span class="o">=</span><span class="n">model_path</span><span class="p">,</span>
+        <span class="n">out</span><span class="o">=</span><span class="n">ge_path</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">restrict_dict_to_params</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">default_map</span><span class="p">,</span> <span class="n">geplot</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">beta_path</span> <span class="o">=</span> <span class="n">prefix</span> <span class="o">+</span> <span class="s2">&quot;.beta.pdf&quot;</span>
+    <span class="n">ctx</span><span class="o">.</span><span class="n">invoke</span><span class="p">(</span>
+        <span class="n">beta</span><span class="p">,</span>
+        <span class="n">model_path</span><span class="o">=</span><span class="n">model_path</span><span class="p">,</span>
+        <span class="n">out</span><span class="o">=</span><span class="n">beta_path</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">restrict_dict_to_params</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">default_map</span><span class="p">,</span> <span class="n">beta</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">svd_path</span> <span class="o">=</span> <span class="n">prefix</span> <span class="o">+</span> <span class="s2">&quot;.svd.pdf&quot;</span>
+    <span class="n">ctx</span><span class="o">.</span><span class="n">invoke</span><span class="p">(</span>
+        <span class="n">svd</span><span class="p">,</span>
+        <span class="n">model_path</span><span class="o">=</span><span class="n">model_path</span><span class="p">,</span>
+        <span class="n">out</span><span class="o">=</span><span class="n">svd_path</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">restrict_dict_to_params</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">default_map</span><span class="p">,</span> <span class="n">svd</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">heatmap_path</span> <span class="o">=</span> <span class="n">prefix</span> <span class="o">+</span> <span class="s2">&quot;.heat.pdf&quot;</span>
+    <span class="n">ctx</span><span class="o">.</span><span class="n">invoke</span><span class="p">(</span>
+        <span class="n">heatmap</span><span class="p">,</span>
+        <span class="n">model_path</span><span class="o">=</span><span class="n">model_path</span><span class="p">,</span>
+        <span class="n">out</span><span class="o">=</span><span class="n">heatmap_path</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">restrict_dict_to_params</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">default_map</span><span class="p">,</span> <span class="n">heatmap</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">sentinel_path</span> <span class="o">=</span> <span class="n">prefix</span> <span class="o">+</span> <span class="s2">&quot;.sentinel&quot;</span>
+    <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;LOG: `tdms go` completed; touching </span><span class="si">{</span><span class="n">sentinel_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">sentinel_path</span><span class="p">)</span><span class="o">.</span><span class="n">touch</span><span class="p">()</span>
+
+
+<span class="nd">@cli</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">argument</span><span class="p">(</span><span class="s2">&quot;choice_json_path&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+<span class="k">def</span> <span class="nf">cartesian</span><span class="p">(</span><span class="n">choice_json_path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Take the cartesian product of the variable options in a config file, and</span>
+<span class="sd">    put it all in an _output directory.&quot;&quot;&quot;</span>
+    <span class="n">make_cartesian_product_hierarchy</span><span class="p">(</span><span class="n">from_json_file</span><span class="p">(</span><span class="n">choice_json_path</span><span class="p">))</span>
+
+
+<span class="nd">@cli</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">argument</span><span class="p">(</span><span class="s2">&quot;source_path&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">argument</span><span class="p">(</span><span class="s2">&quot;dest_path&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+<span class="k">def</span> <span class="nf">transfer</span><span class="p">(</span><span class="n">source_path</span><span class="p">,</span> <span class="n">dest_path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Transfer beta coefficients from one tdms model to another.&quot;&quot;&quot;</span>
+    <span class="n">source_model</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">source_path</span><span class="p">)</span>
+    <span class="n">dest_model</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">dest_path</span><span class="p">)</span>
+
+    <span class="n">init_weights</span> <span class="o">=</span> <span class="n">source_model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">()[</span><span class="s2">&quot;latent_layer.weight&quot;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dest_model</span><span class="o">.</span><span class="n">latent_layer</span><span class="o">.</span><span class="n">weight</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">init_weights</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;source &amp; dest beta dimensions do not match.&quot;</span><span class="p">)</span>
+    <span class="n">dest_model</span><span class="o">.</span><span class="n">latent_layer</span><span class="o">.</span><span class="n">weight</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">init_weights</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">dest_model</span><span class="o">.</span><span class="n">freeze_betas</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="n">torch</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">dest_model</span><span class="p">,</span> <span class="n">dest_path</span><span class="p">)</span>
+    <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;LOG: Beta coefficients copied from </span><span class="si">{</span><span class="n">source_path</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">dest_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">cli</span><span class="p">()</span>  <span class="c1"># pylint: disable=no-value-for-parameter</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright .
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

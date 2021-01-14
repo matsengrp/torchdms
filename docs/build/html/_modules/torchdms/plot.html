@@ -1,0 +1,543 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>torchdms.plot &mdash; torchdms 0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> torchdms
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../_autosummary/torchdms.html">torchdms</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">torchdms</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>torchdms.plot</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for torchdms.plot</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Plotting functions.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">os.path</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span> <span class="nn">dms_variants</span> <span class="k">as</span> <span class="nn">dms</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">from</span> <span class="nn">plotnine</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">aes</span><span class="p">,</span>
+    <span class="n">facet_grid</span><span class="p">,</span>
+    <span class="n">geom_bar</span><span class="p">,</span>
+    <span class="n">geom_line</span><span class="p">,</span>
+    <span class="n">geom_point</span><span class="p">,</span>
+    <span class="n">geom_density</span><span class="p">,</span>
+    <span class="n">geom_smooth</span><span class="p">,</span>
+    <span class="n">geom_tile</span><span class="p">,</span>
+    <span class="n">ggplot</span><span class="p">,</span>
+    <span class="n">ggtitle</span><span class="p">,</span>
+    <span class="n">save_as_pdf_pages</span><span class="p">,</span>
+    <span class="n">scale_x_discrete</span><span class="p">,</span>
+    <span class="n">scale_y_discrete</span><span class="p">,</span>
+    <span class="n">theme</span><span class="p">,</span>
+    <span class="n">theme_seaborn</span><span class="p">,</span>
+    <span class="n">theme_set</span><span class="p">,</span>
+    <span class="n">theme_void</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">import</span> <span class="nn">scipy.stats</span> <span class="k">as</span> <span class="nn">stats</span>
+<span class="kn">from</span> <span class="nn">torchdms.utils</span> <span class="kn">import</span> <span class="n">build_beta_map</span>
+
+
+<div class="viewcode-block" id="plot_exploded_dms_variants_dataframe_summary"><a class="viewcode-back" href="../../_autosummary/torchdms.plot.plot_exploded_dms_variants_dataframe_summary.html#torchdms.plot.plot_exploded_dms_variants_dataframe_summary">[docs]</a><span class="k">def</span> <span class="nf">plot_exploded_dms_variants_dataframe_summary</span><span class="p">(</span><span class="n">exploded_df</span><span class="p">,</span> <span class="n">out_path</span><span class="p">):</span>
+    <span class="n">plots</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span>
+            <span class="n">ggplot</span><span class="p">(</span><span class="n">exploded_df</span><span class="p">,</span> <span class="n">aes</span><span class="p">(</span><span class="s2">&quot;site&quot;</span><span class="p">))</span>
+            <span class="o">+</span> <span class="n">geom_bar</span><span class="p">()</span>
+            <span class="o">+</span> <span class="n">facet_grid</span><span class="p">(</span><span class="s2">&quot;mut_AA~&quot;</span><span class="p">)</span>
+            <span class="o">+</span> <span class="n">theme_void</span><span class="p">()</span>
+            <span class="o">+</span> <span class="n">theme</span><span class="p">(</span><span class="n">figure_size</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+            <span class="o">+</span> <span class="n">ggtitle</span><span class="p">(</span><span class="s2">&quot;distribution of mutant positions&quot;</span><span class="p">)</span>
+        <span class="p">),</span>
+        <span class="p">(</span>
+            <span class="n">ggplot</span><span class="p">(</span><span class="n">exploded_df</span><span class="p">,</span> <span class="n">aes</span><span class="p">(</span><span class="s2">&quot;affinity_score&quot;</span><span class="p">))</span>
+            <span class="o">+</span> <span class="n">geom_density</span><span class="p">(</span><span class="n">fill</span><span class="o">=</span><span class="s2">&quot;steelblue&quot;</span><span class="p">)</span>
+            <span class="o">+</span> <span class="n">facet_grid</span><span class="p">(</span><span class="s2">&quot;mut_AA~&quot;</span><span class="p">,</span> <span class="n">scales</span><span class="o">=</span><span class="s2">&quot;free_y&quot;</span><span class="p">)</span>
+            <span class="o">+</span> <span class="n">theme_void</span><span class="p">()</span>
+            <span class="o">+</span> <span class="n">theme</span><span class="p">(</span><span class="n">figure_size</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+            <span class="o">+</span> <span class="n">ggtitle</span><span class="p">(</span><span class="s2">&quot;distribution of affinity score&quot;</span><span class="p">)</span>
+        <span class="p">),</span>
+    <span class="p">]</span>
+    <span class="n">save_as_pdf_pages</span><span class="p">(</span><span class="n">plots</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">out_path</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="plot_error"><a class="viewcode-back" href="../../_autosummary/torchdms.plot.plot_error.html#torchdms.plot.plot_error">[docs]</a><span class="k">def</span> <span class="nf">plot_error</span><span class="p">(</span><span class="n">error_df</span><span class="p">,</span> <span class="n">out_path</span><span class="p">,</span> <span class="n">title_prefix</span><span class="p">,</span> <span class="n">show_points</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="n">theme_set</span><span class="p">(</span><span class="n">theme_seaborn</span><span class="p">(</span><span class="n">style</span><span class="o">=</span><span class="s2">&quot;whitegrid&quot;</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="s2">&quot;paper&quot;</span><span class="p">))</span>
+    <span class="n">base_plot</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">aes</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s2">&quot;observed&quot;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s2">&quot;abs_error&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;n_aa_substitutions&quot;</span><span class="p">),</span>
+        <span class="n">geom_smooth</span><span class="p">(</span><span class="n">aes</span><span class="p">(</span><span class="n">group</span><span class="o">=</span><span class="s2">&quot;n_aa_substitutions&quot;</span><span class="p">),</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;lowess&quot;</span><span class="p">),</span>
+    <span class="p">]</span>
+    <span class="k">if</span> <span class="n">show_points</span><span class="p">:</span>
+        <span class="n">base_plot</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">geom_point</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mf">0.1</span><span class="p">))</span>
+    <span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">)</span>
+    <span class="n">plots</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">ggplot</span><span class="p">(</span><span class="n">per_target_error_df</span><span class="p">)</span> <span class="o">+</span> <span class="n">base_plot</span> <span class="o">+</span> <span class="n">ggtitle</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">target</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">title_prefix</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">target</span><span class="p">,</span> <span class="n">per_target_error_df</span> <span class="ow">in</span> <span class="n">error_df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;target&quot;</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="n">save_as_pdf_pages</span><span class="p">(</span><span class="n">plots</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">out_path</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="plot_test_correlation"><a class="viewcode-back" href="../../_autosummary/torchdms.plot.plot_test_correlation.html#torchdms.plot.plot_test_correlation">[docs]</a><span class="k">def</span> <span class="nf">plot_test_correlation</span><span class="p">(</span><span class="n">evaluation_dict</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;plasma&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Plot scatter plot and correlation values between predicted and observed</span>
+<span class="sd">    for each target.&quot;&quot;&quot;</span>
+    <span class="n">num_targets</span> <span class="o">=</span> <span class="n">evaluation_dict</span><span class="p">[</span><span class="s2">&quot;targets&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">n_aa_substitutions</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">split</span><span class="p">())</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">evaluation_dict</span><span class="p">[</span><span class="s2">&quot;original_df&quot;</span><span class="p">][</span><span class="s2">&quot;aa_substitutions&quot;</span><span class="p">]</span>
+    <span class="p">]</span>
+    <span class="n">width</span> <span class="o">=</span> <span class="mi">7</span> <span class="o">*</span> <span class="n">num_targets</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">num_targets</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">num_targets</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="p">[</span><span class="n">ax</span><span class="p">]</span>
+    <span class="n">correlation_series</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">target</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_targets</span><span class="p">):</span>
+        <span class="n">pred</span> <span class="o">=</span> <span class="n">evaluation_dict</span><span class="p">[</span><span class="s2">&quot;predictions&quot;</span><span class="p">][:,</span> <span class="n">target</span><span class="p">]</span>
+        <span class="n">targ</span> <span class="o">=</span> <span class="n">evaluation_dict</span><span class="p">[</span><span class="s2">&quot;targets&quot;</span><span class="p">][:,</span> <span class="n">target</span><span class="p">]</span>
+        <span class="n">corr</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">pearsonr</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="n">targ</span><span class="p">)</span>
+        <span class="n">scatter</span> <span class="o">=</span> <span class="n">ax</span><span class="p">[</span><span class="n">target</span><span class="p">]</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="n">targ</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">n_aa_substitutions</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mf">8.0</span><span class="p">)</span>
+        <span class="n">ax</span><span class="p">[</span><span class="n">target</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Predicted&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="p">[</span><span class="n">target</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Observed&quot;</span><span class="p">)</span>
+        <span class="n">target_name</span> <span class="o">=</span> <span class="n">evaluation_dict</span><span class="p">[</span><span class="s2">&quot;target_names&quot;</span><span class="p">][</span><span class="n">target</span><span class="p">]</span>
+        <span class="n">plot_title</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">target_name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">model</span><span class="o">.</span><span class="n">str_summary</span><span class="p">()</span><span class="si">}</span><span class="se">\n</span><span class="s2">pearsonr = </span><span class="si">{</span><span class="nb">round</span><span class="p">(</span><span class="n">corr</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="mi">3</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+        <span class="n">ax</span><span class="p">[</span><span class="n">target</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">plot_title</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">plot_title</span><span class="p">)</span>
+
+        <span class="n">per_target_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+            <span class="nb">dict</span><span class="p">(</span>
+                <span class="n">pred</span><span class="o">=</span><span class="n">pred</span><span class="p">,</span>
+                <span class="n">targ</span><span class="o">=</span><span class="n">targ</span><span class="p">,</span>
+                <span class="n">n_aa_substitutions</span><span class="o">=</span><span class="n">n_aa_substitutions</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">correlation_series</span><span class="p">[</span><span class="s2">&quot;correlation &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">target</span><span class="p">)]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">per_target_df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;n_aa_substitutions&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">corr</span><span class="p">()</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">::</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="p">)</span>
+
+    <span class="n">correlation_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">correlation_series</span><span class="p">)</span>
+    <span class="n">correlation_df</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">correlation_df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">droplevel</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">correlation_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">out</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">correlation_df</span><span class="p">[</span><span class="s2">&quot;model&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">str_summary</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">characteristic</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">characteristics</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">correlation_df</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">characteristic</span>
+    <span class="n">correlation_df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">correlation_path</span> <span class="o">+</span> <span class="s2">&quot;.corr.csv&quot;</span><span class="p">)</span>
+
+    <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span>
+        <span class="o">*</span><span class="n">scatter</span><span class="o">.</span><span class="n">legend_elements</span><span class="p">(),</span> <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mf">0.20</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;n-mutant&quot;</span>
+    <span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">out</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="pretty_breaks"><a class="viewcode-back" href="../../_autosummary/torchdms.plot.pretty_breaks.html#torchdms.plot.pretty_breaks">[docs]</a><span class="k">def</span> <span class="nf">pretty_breaks</span><span class="p">(</span><span class="n">break_count</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">make_pretty_breaks</span><span class="p">(</span><span class="n">passed_breaks</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">passed_breaks</span><span class="p">[::</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">passed_breaks</span><span class="p">)</span> <span class="o">/</span> <span class="n">break_count</span><span class="p">)]</span>
+
+    <span class="k">return</span> <span class="n">make_pretty_breaks</span></div>
+
+
+<div class="viewcode-block" id="plot_heatmap"><a class="viewcode-back" href="../../_autosummary/torchdms.plot.plot_heatmap.html#torchdms.plot.plot_heatmap">[docs]</a><span class="k">def</span> <span class="nf">plot_heatmap</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This function takes in a model and plots the single mutant predictions.</span>
+
+<span class="sd">    We plot this as a heatmap where the rows are substitutions</span>
+<span class="sd">    nucleotides, and the columns are the sequence positions for each</span>
+<span class="sd">    mutation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">theme_set</span><span class="p">(</span><span class="n">theme_seaborn</span><span class="p">(</span><span class="n">style</span><span class="o">=</span><span class="s2">&quot;whitegrid&quot;</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="s2">&quot;paper&quot;</span><span class="p">))</span>
+    <span class="n">predictions</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">single_mutant_predictions</span><span class="p">()</span>
+
+    <span class="c1"># This code does put nans where they should go. However, plotnine doesn&#39;t display</span>
+    <span class="c1"># these as gray or anything useful. Punting.</span>
+    <span class="c1"># for prediction in predictions:</span>
+    <span class="c1">#     for column_position, aa in enumerate(test_data.wtseq):</span>
+    <span class="c1">#         prediction.loc[aa, column_position] = np.nan</span>
+
+    <span class="k">def</span> <span class="nf">make_plot_for</span><span class="p">(</span><span class="n">output_idx</span><span class="p">,</span> <span class="n">prediction</span><span class="p">):</span>
+        <span class="n">molten</span> <span class="o">=</span> <span class="n">prediction</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span><span class="o">.</span><span class="n">melt</span><span class="p">(</span><span class="n">id_vars</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;AA&quot;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="p">(</span>
+                <span class="n">ggplot</span><span class="p">(</span><span class="n">molten</span><span class="p">,</span> <span class="n">aes</span><span class="p">(</span><span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;AA&quot;</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="s2">&quot;value&quot;</span><span class="p">))</span>
+                <span class="o">+</span> <span class="n">geom_tile</span><span class="p">()</span>
+                <span class="o">+</span> <span class="n">scale_x_discrete</span><span class="p">(</span><span class="n">breaks</span><span class="o">=</span><span class="n">pretty_breaks</span><span class="p">(</span><span class="mi">5</span><span class="p">))</span>
+                <span class="o">+</span> <span class="n">scale_y_discrete</span><span class="p">(</span><span class="n">limits</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">alphabet</span><span class="p">)))</span>
+                <span class="o">+</span> <span class="n">ggtitle</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">model</span><span class="o">.</span><span class="n">target_names</span><span class="p">[</span><span class="n">output_idx</span><span class="p">]</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">model</span><span class="o">.</span><span class="n">str_summary</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="p">),</span>
+            <span class="p">(</span>
+                <span class="n">ggplot</span><span class="p">(</span><span class="n">molten</span><span class="p">,</span> <span class="n">aes</span><span class="p">(</span><span class="s2">&quot;value&quot;</span><span class="p">))</span>
+                <span class="o">+</span> <span class="n">geom_density</span><span class="p">(</span><span class="n">fill</span><span class="o">=</span><span class="s2">&quot;steelblue&quot;</span><span class="p">)</span>
+                <span class="o">+</span> <span class="n">facet_grid</span><span class="p">(</span><span class="s2">&quot;AA~&quot;</span><span class="p">,</span> <span class="n">scales</span><span class="o">=</span><span class="s2">&quot;free_y&quot;</span><span class="p">)</span>
+                <span class="o">+</span> <span class="n">theme_void</span><span class="p">()</span>
+                <span class="o">+</span> <span class="n">ggtitle</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">model</span><span class="o">.</span><span class="n">target_names</span><span class="p">[</span><span class="n">output_idx</span><span class="p">]</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">model</span><span class="o">.</span><span class="n">str_summary</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="p">),</span>
+        <span class="p">]</span>
+
+    <span class="n">plots</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">output_idx</span><span class="p">,</span> <span class="n">prediction</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">predictions</span><span class="p">):</span>
+        <span class="n">plots</span> <span class="o">+=</span> <span class="n">make_plot_for</span><span class="p">(</span><span class="n">output_idx</span><span class="p">,</span> <span class="n">prediction</span><span class="p">)</span>
+
+    <span class="n">save_as_pdf_pages</span><span class="p">(</span>
+        <span class="n">plots</span><span class="p">,</span>
+        <span class="n">filename</span><span class="o">=</span><span class="n">path</span><span class="p">,</span>
+        <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="beta_coefficients"><a class="viewcode-back" href="../../_autosummary/torchdms.plot.beta_coefficients.html#torchdms.plot.beta_coefficients">[docs]</a><span class="k">def</span> <span class="nf">beta_coefficients</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">test_data</span><span class="p">,</span> <span class="n">out</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This function takes in a (ideally trained) model and plots the values of</span>
+<span class="sd">    the weights corresponding to the inputs, dubbed &quot;beta coefficients&quot;.</span>
+
+<span class="sd">    We plot this as a heatmap where the rows are substitutions</span>
+<span class="sd">    nucleotides, and the columns are the sequence positions for each</span>
+<span class="sd">    mutation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">bmap</span> <span class="o">=</span> <span class="n">dms</span><span class="o">.</span><span class="n">binarymap</span><span class="o">.</span><span class="n">BinaryMap</span><span class="p">(</span>
+        <span class="n">test_data</span><span class="o">.</span><span class="n">original_df</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># To represent the wtseq in the heatmap, create a mask</span>
+    <span class="c1"># to encode which matrix entries are the wt nt in each position.</span>
+    <span class="n">wtmask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">bmap</span><span class="o">.</span><span class="n">alphabet</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">test_data</span><span class="o">.</span><span class="n">wtseq</span><span class="p">)],</span> <span class="kc">False</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="n">alphabet</span> <span class="o">=</span> <span class="n">bmap</span><span class="o">.</span><span class="n">alphabet</span>
+    <span class="k">for</span> <span class="n">column_position</span><span class="p">,</span> <span class="n">aa</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">test_data</span><span class="o">.</span><span class="n">wtseq</span><span class="p">):</span>
+        <span class="n">row_position</span> <span class="o">=</span> <span class="n">alphabet</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">aa</span><span class="p">)</span>
+        <span class="n">wtmask</span><span class="p">[</span><span class="n">row_position</span><span class="p">,</span> <span class="n">column_position</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="c1"># plot beta&#39;s</span>
+    <span class="n">num_latent_dims</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">beta_coefficients</span><span class="p">()</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">num_latent_dims</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">5</span> <span class="o">*</span> <span class="n">num_latent_dims</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">num_latent_dims</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="p">[</span><span class="n">ax</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">latent_dim</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_latent_dims</span><span class="p">):</span>
+        <span class="n">beta_map</span><span class="p">,</span> <span class="n">alphabet</span> <span class="o">=</span> <span class="n">build_beta_map</span><span class="p">(</span>
+            <span class="n">test_data</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">beta_coefficients</span><span class="p">()[</span><span class="n">latent_dim</span><span class="p">]</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+        <span class="p">)</span>
+        <span class="n">mapp</span> <span class="o">=</span> <span class="n">ax</span><span class="p">[</span><span class="n">latent_dim</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">beta_map</span><span class="p">,</span> <span class="n">aspect</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">)</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">mapp</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">[</span><span class="n">latent_dim</span><span class="p">],</span> <span class="n">orientation</span><span class="o">=</span><span class="s2">&quot;horizontal&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="p">[</span><span class="n">latent_dim</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Beta coeff for latent dimension </span><span class="si">{</span><span class="n">latent_dim</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="p">[</span><span class="n">latent_dim</span><span class="p">]</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">(</span><span class="n">ticks</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">21</span><span class="p">))</span>
+        <span class="n">ax</span><span class="p">[</span><span class="n">latent_dim</span><span class="p">]</span><span class="o">.</span><span class="n">set_yticklabels</span><span class="p">(</span><span class="n">alphabet</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">model</span><span class="o">.</span><span class="n">str_summary</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">out</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="df_with_named_columns_of_np_array"><a class="viewcode-back" href="../../_autosummary/torchdms.plot.df_with_named_columns_of_np_array.html#torchdms.plot.df_with_named_columns_of_np_array">[docs]</a><span class="k">def</span> <span class="nf">df_with_named_columns_of_np_array</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">column_prefix</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">column_prefix</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">col_idx</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">col_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])]</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="build_geplot_df"><a class="viewcode-back" href="../../_autosummary/torchdms.plot.build_geplot_df.html#torchdms.plot.build_geplot_df">[docs]</a><span class="k">def</span> <span class="nf">build_geplot_df</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Build data frame for making a global epistasis plot.&quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="n">data</span><span class="o">.</span><span class="n">feature_count</span><span class="p">()</span> <span class="o">==</span> <span class="n">model</span><span class="o">.</span><span class="n">input_size</span>
+    <span class="k">assert</span> <span class="n">data</span><span class="o">.</span><span class="n">target_count</span><span class="p">()</span> <span class="o">==</span> <span class="n">model</span><span class="o">.</span><span class="n">output_size</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="n">df_with_named_columns_of_np_array</span><span class="p">(</span>
+                <span class="n">model</span><span class="o">.</span><span class="n">to_latent</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">samples</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">))</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="s2">&quot;latent&quot;</span>
+            <span class="p">),</span>
+            <span class="n">df_with_named_columns_of_np_array</span><span class="p">(</span>
+                <span class="n">model</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">samples</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">))</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="s2">&quot;prediction&quot;</span>
+            <span class="p">),</span>
+            <span class="n">df_with_named_columns_of_np_array</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">targets</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="s2">&quot;target&quot;</span><span class="p">),</span>
+        <span class="p">],</span>
+        <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="plot_geplot"><a class="viewcode-back" href="../../_autosummary/torchdms.plot.plot_geplot.html#torchdms.plot.plot_geplot">[docs]</a><span class="k">def</span> <span class="nf">plot_geplot</span><span class="p">(</span><span class="n">geplot_df</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">title</span><span class="p">):</span>
+    <span class="n">theme_set</span><span class="p">(</span><span class="n">theme_seaborn</span><span class="p">(</span><span class="n">style</span><span class="o">=</span><span class="s2">&quot;ticks&quot;</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="s2">&quot;paper&quot;</span><span class="p">))</span>
+    <span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.3</span>
+    <span class="p">(</span>
+        <span class="n">ggplot</span><span class="p">(</span><span class="n">geplot_df</span><span class="p">)</span>
+        <span class="o">+</span> <span class="n">geom_point</span><span class="p">(</span><span class="n">aes</span><span class="p">(</span><span class="s2">&quot;latent_0&quot;</span><span class="p">,</span> <span class="s2">&quot;target_0&quot;</span><span class="p">),</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">)</span>
+        <span class="o">+</span> <span class="n">geom_line</span><span class="p">(</span><span class="n">aes</span><span class="p">(</span><span class="s2">&quot;latent_0&quot;</span><span class="p">,</span> <span class="s2">&quot;prediction_0&quot;</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">)</span>
+        <span class="o">+</span> <span class="n">ggtitle</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="series_min_max"><a class="viewcode-back" href="../../_autosummary/torchdms.plot.series_min_max.html#torchdms.plot.series_min_max">[docs]</a><span class="k">def</span> <span class="nf">series_min_max</span><span class="p">(</span><span class="n">series</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">series</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">series</span><span class="o">.</span><span class="n">max</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="build_2d_nonlinearity_df"><a class="viewcode-back" href="../../_autosummary/torchdms.plot.build_2d_nonlinearity_df.html#torchdms.plot.build_2d_nonlinearity_df">[docs]</a><span class="k">def</span> <span class="nf">build_2d_nonlinearity_df</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">geplot_df</span><span class="p">,</span> <span class="n">steps</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Build a dataframe that contains the value of the nonlinearity for the</span>
+<span class="sd">    domain of the range of values seen in the geplot_df.&quot;&quot;&quot;</span>
+    <span class="n">latent_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;latent_0&quot;</span><span class="p">,</span> <span class="s2">&quot;latent_1&quot;</span><span class="p">]</span>
+    <span class="n">latent_domains</span> <span class="o">=</span> <span class="p">[</span><span class="n">series_min_max</span><span class="p">(</span><span class="n">geplot_df</span><span class="p">[</span><span class="n">key</span><span class="p">])</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">latent_keys</span><span class="p">]</span>
+    <span class="n">inputs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cartesian_prod</span><span class="p">(</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">*</span><span class="n">latent_domains</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">steps</span><span class="o">=</span><span class="n">steps</span><span class="p">),</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">*</span><span class="n">latent_domains</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">steps</span><span class="o">=</span><span class="n">steps</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">predictions</span> <span class="o">=</span> <span class="n">df_with_named_columns_of_np_array</span><span class="p">(</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">from_latent_to_output</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="s2">&quot;prediction&quot;</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">inputs</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="n">columns</span><span class="o">=</span><span class="n">latent_keys</span><span class="p">),</span> <span class="n">predictions</span><span class="p">],</span>
+        <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="plot_2d_geplot"><a class="viewcode-back" href="../../_autosummary/torchdms.plot.plot_2d_geplot.html#torchdms.plot.plot_2d_geplot">[docs]</a><span class="k">def</span> <span class="nf">plot_2d_geplot</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">geplot_df</span><span class="p">,</span> <span class="n">nonlinearity_df</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">make_plot_for</span><span class="p">(</span><span class="n">output_idx</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="n">ggplot</span><span class="p">()</span>
+            <span class="o">+</span> <span class="n">geom_tile</span><span class="p">(</span>
+                <span class="n">aes</span><span class="p">(</span><span class="s2">&quot;latent_0&quot;</span><span class="p">,</span> <span class="s2">&quot;latent_1&quot;</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;prediction_</span><span class="si">{</span><span class="n">output_idx</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">),</span>
+                <span class="n">nonlinearity_df</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="o">+</span> <span class="n">geom_point</span><span class="p">(</span>
+                <span class="n">aes</span><span class="p">(</span><span class="s2">&quot;latent_0&quot;</span><span class="p">,</span> <span class="s2">&quot;latent_1&quot;</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;target_</span><span class="si">{</span><span class="n">output_idx</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">),</span>
+                <span class="n">geplot_df</span><span class="p">,</span>
+                <span class="n">stroke</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="o">+</span> <span class="n">ggtitle</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">model</span><span class="o">.</span><span class="n">target_names</span><span class="p">[</span><span class="n">output_idx</span><span class="p">]</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">model</span><span class="o">.</span><span class="n">str_summary</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="n">save_as_pdf_pages</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">make_plot_for</span><span class="p">(</span><span class="n">output_idx</span><span class="p">)</span> <span class="k">for</span> <span class="n">output_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">target_names</span><span class="p">))],</span>
+        <span class="n">filename</span><span class="o">=</span><span class="n">path</span><span class="p">,</span>
+        <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="plot_svd"><a class="viewcode-back" href="../../_autosummary/torchdms.plot.plot_svd.html#torchdms.plot.plot_svd">[docs]</a><span class="k">def</span> <span class="nf">plot_svd</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">test_data</span><span class="p">,</span> <span class="n">out</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This function plots the log singular values and the cummulative sum of</span>
+<span class="sd">    each of a trained model&#39;s beta coefficent matricies.&quot;&quot;&quot;</span>
+
+    <span class="n">num_latent_dims</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">beta_coefficients</span><span class="p">()</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span>
+        <span class="n">nrows</span><span class="o">=</span><span class="n">num_latent_dims</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">5</span> <span class="o">*</span> <span class="n">num_latent_dims</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">for</span> <span class="n">latent_dim</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_latent_dims</span><span class="p">):</span>
+        <span class="n">beta_map</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">build_beta_map</span><span class="p">(</span>
+            <span class="n">test_data</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">beta_coefficients</span><span class="p">()[</span><span class="n">latent_dim</span><span class="p">]</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+        <span class="p">)</span>
+        <span class="n">rank</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">matrix_rank</span><span class="p">(</span><span class="n">beta_map</span><span class="p">)</span>
+        <span class="n">s_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">svd</span><span class="p">(</span><span class="n">beta_map</span><span class="p">,</span> <span class="n">compute_uv</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="n">sing_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">rank</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>  <span class="c1"># index singular values for plotting</span>
+        <span class="n">sing_vals</span> <span class="o">=</span> <span class="n">sing_vals</span><span class="p">[:</span><span class="n">rank</span><span class="p">]</span>
+        <span class="n">s_matrix</span> <span class="o">=</span> <span class="n">s_matrix</span><span class="p">[:</span><span class="n">rank</span><span class="p">]</span>
+        <span class="n">sing_vals_cumsum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">s_matrix</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">s_matrix</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">num_latent_dims</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">ax</span><span class="p">[</span><span class="n">latent_dim</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">sing_vals</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">s_matrix</span><span class="p">),</span> <span class="s2">&quot;ro-&quot;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">ax</span><span class="p">[</span><span class="n">latent_dim</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;j&quot;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="p">[</span><span class="n">latent_dim</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$log(\sigma_j)$&quot;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="p">[</span><span class="n">latent_dim</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Singular values for </span><span class="si">{</span><span class="n">latent_dim</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="n">ax</span><span class="p">[</span><span class="n">latent_dim</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">sing_vals</span><span class="p">,</span> <span class="n">sing_vals_cumsum</span><span class="p">,</span> <span class="s2">&quot;ro-&quot;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">ax</span><span class="p">[</span><span class="n">latent_dim</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;j&quot;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="p">[</span><span class="n">latent_dim</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Cummulative value %&quot;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="p">[</span><span class="n">latent_dim</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cummulative singular values for </span><span class="si">{</span><span class="n">latent_dim</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">sing_vals</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">s_matrix</span><span class="p">),</span> <span class="s2">&quot;ro-&quot;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span>
+                <span class="n">xlabel</span><span class="o">=</span><span class="s2">&quot;j&quot;</span><span class="p">,</span>
+                <span class="n">ylabel</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;$log(\sigma_j)$&quot;</span><span class="p">,</span>
+                <span class="n">title</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Singular values for </span><span class="si">{</span><span class="n">latent_dim</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">sing_vals</span><span class="p">,</span> <span class="n">sing_vals_cumsum</span><span class="p">,</span> <span class="s2">&quot;ro-&quot;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span>
+                <span class="n">xlabel</span><span class="o">=</span><span class="s2">&quot;j&quot;</span><span class="p">,</span>
+                <span class="n">ylabel</span><span class="o">=</span><span class="s2">&quot;Cummulative value %&quot;</span><span class="p">,</span>
+                <span class="n">title</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Cummulative singular values for </span><span class="si">{</span><span class="n">latent_dim</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">model</span><span class="o">.</span><span class="n">str_summary</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">out</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright .
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

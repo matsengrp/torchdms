@@ -1,0 +1,507 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>torchdms.analysis &mdash; torchdms 0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> torchdms
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../_autosummary/torchdms.html">torchdms</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">torchdms</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>torchdms.analysis</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for torchdms.analysis</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;A wrapper class for training models.&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">click</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">DataLoader</span>
+<span class="kn">from</span> <span class="nn">torch.optim.lr_scheduler</span> <span class="kn">import</span> <span class="n">ReduceLROnPlateau</span>
+<span class="kn">from</span> <span class="nn">torchdms.data</span> <span class="kn">import</span> <span class="n">BinaryMapDataset</span>
+<span class="kn">from</span> <span class="nn">torchdms.utils</span> <span class="kn">import</span> <span class="n">build_beta_map</span>
+
+
+<div class="viewcode-block" id="make_data_loader_infinite"><a class="viewcode-back" href="../../_autosummary/torchdms.analysis.make_data_loader_infinite.html#torchdms.analysis.make_data_loader_infinite">[docs]</a><span class="k">def</span> <span class="nf">make_data_loader_infinite</span><span class="p">(</span><span class="n">data_loader</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;With this we can always just ask for more data with next(), going</span>
+<span class="sd">    through minibatches as guided by DataLoader.&quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">loader</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">data_loader</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">loader</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">data</span></div>
+
+
+<div class="viewcode-block" id="low_rank_approximation"><a class="viewcode-back" href="../../_autosummary/torchdms.analysis.low_rank_approximation.html#torchdms.analysis.low_rank_approximation">[docs]</a><span class="k">def</span> <span class="nf">low_rank_approximation</span><span class="p">(</span><span class="n">beta_map</span><span class="p">,</span> <span class="n">beta_rank</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns low-rank approximation of beta matrix.&quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="n">beta_rank</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    <span class="n">u_vecs</span><span class="p">,</span> <span class="n">s_vals</span><span class="p">,</span> <span class="n">v_vecs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">svd</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">beta_map</span><span class="p">))</span>
+    <span class="c1"># truncate S</span>
+    <span class="n">s_vals</span><span class="p">[</span><span class="n">beta_rank</span><span class="p">:]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="c1"># reconstruct beta-map</span>
+    <span class="n">beta_approx</span> <span class="o">=</span> <span class="p">(</span><span class="n">u_vecs</span><span class="o">.</span><span class="n">mm</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">s_vals</span><span class="p">)))</span><span class="o">.</span><span class="n">mm</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">v_vecs</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">beta_approx</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Analysis"><a class="viewcode-back" href="../../_autosummary/torchdms.analysis.Analysis.html#torchdms.analysis.Analysis">[docs]</a><span class="k">class</span> <span class="nc">Analysis</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;A wrapper class for training models.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">model</span><span class="p">,</span>
+        <span class="n">model_path</span><span class="p">,</span>
+        <span class="n">val_data</span><span class="p">,</span>
+        <span class="n">train_data_list</span><span class="p">,</span>
+        <span class="n">batch_size</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
+        <span class="n">learning_rate</span><span class="o">=</span><span class="mf">5e-3</span><span class="p">,</span>
+        <span class="n">device</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">=</span> <span class="n">batch_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">learning_rate</span> <span class="o">=</span> <span class="n">learning_rate</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_path</span> <span class="o">=</span> <span class="n">model_path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">val_data</span> <span class="o">=</span> <span class="n">val_data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">train_datasets</span> <span class="o">=</span> <span class="n">train_data_list</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">train_loaders</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">DataLoader</span><span class="p">(</span><span class="n">train_dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">train_dataset</span> <span class="ow">in</span> <span class="n">train_data_list</span>
+        <span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">train_infinite_loaders</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">make_data_loader_infinite</span><span class="p">(</span><span class="n">train_loader</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">train_loader</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_loaders</span>
+        <span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">val_loss_record</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">float_info</span><span class="o">.</span><span class="n">max</span>
+
+<div class="viewcode-block" id="Analysis.loss_of_targets_and_prediction"><a class="viewcode-back" href="../../_autosummary/torchdms.analysis.Analysis.html#torchdms.analysis.Analysis.loss_of_targets_and_prediction">[docs]</a>    <span class="k">def</span> <span class="nf">loss_of_targets_and_prediction</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">loss_fn</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">predictions</span><span class="p">,</span> <span class="n">per_target_loss_decay</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return loss on the valid predictions, i.e. the ones that are not</span>
+<span class="sd">        NaN.&quot;&quot;&quot;</span>
+        <span class="n">valid_target_indices</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">targets</span><span class="p">)</span>
+        <span class="n">valid_targets</span> <span class="o">=</span> <span class="n">targets</span><span class="p">[</span><span class="n">valid_target_indices</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">valid_predict</span> <span class="o">=</span> <span class="n">predictions</span><span class="p">[</span><span class="n">valid_target_indices</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">loss_fn</span><span class="p">(</span><span class="n">valid_targets</span><span class="p">,</span> <span class="n">valid_predict</span><span class="p">,</span> <span class="n">per_target_loss_decay</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Analysis.complete_loss"><a class="viewcode-back" href="../../_autosummary/torchdms.analysis.Analysis.html#torchdms.analysis.Analysis.complete_loss">[docs]</a>    <span class="k">def</span> <span class="nf">complete_loss</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">loss_fn</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">predictions</span><span class="p">,</span> <span class="n">loss_decays</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compute our total (across targets) loss with regularization.</span>
+
+<span class="sd">        Here we compute loss separately for each target, before summing</span>
+<span class="sd">        the results. This allows for us to take advantage of the samples</span>
+<span class="sd">        which may contain missing information for a subset of the</span>
+<span class="sd">        targets.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">per_target_loss</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">loss_of_targets_and_prediction</span><span class="p">(</span>
+                <span class="n">loss_fn</span><span class="p">,</span>
+                <span class="n">targets</span><span class="p">[:,</span> <span class="n">target_idx</span><span class="p">],</span>
+                <span class="n">predictions</span><span class="p">[:,</span> <span class="n">target_idx</span><span class="p">],</span>
+                <span class="n">per_target_loss_decay</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">target_idx</span><span class="p">,</span> <span class="n">per_target_loss_decay</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+                <span class="nb">range</span><span class="p">(</span><span class="n">targets</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">loss_decays</span>
+            <span class="p">)</span>
+        <span class="p">]</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">per_target_loss</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">regularization_loss</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Analysis.train"><a class="viewcode-back" href="../../_autosummary/torchdms.analysis.Analysis.html#torchdms.analysis.Analysis.train">[docs]</a>    <span class="k">def</span> <span class="nf">train</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">epoch_count</span><span class="p">,</span>
+        <span class="n">loss_fn</span><span class="p">,</span>
+        <span class="n">patience</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+        <span class="n">min_lr</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span>
+        <span class="n">loss_weight_span</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">exp_target</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">beta_rank</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Train self.model using all the bells and whistles.&quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train_datasets</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+        <span class="n">target_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_datasets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">target_count</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">output_size</span> <span class="o">==</span> <span class="n">target_count</span>
+
+        <span class="k">if</span> <span class="n">exp_target</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">loss_weight_span</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">loss_weight_span</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">loss_weight_span</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span>
+
+            <span class="k">def</span> <span class="nf">loss_decay_of_extrema</span><span class="p">(</span><span class="n">worst_score</span><span class="p">,</span> <span class="n">best_score</span><span class="p">):</span>
+                <span class="n">loss_decay</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">loss_weight_span</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">worst_score</span> <span class="o">-</span> <span class="n">best_score</span><span class="p">)</span>
+                <span class="k">assert</span> <span class="n">loss_decay</span> <span class="o">&gt;</span> <span class="mf">0.0</span>
+                <span class="k">if</span> <span class="n">loss_decay</span> <span class="o">&gt;</span> <span class="mf">1e3</span><span class="p">:</span>
+                    <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="s2">&quot;WARNING: whoa, you have a big loss decay!&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">loss_decay</span>
+
+            <span class="k">def</span> <span class="nf">loss_decays_of_target_extrema</span><span class="p">(</span><span class="n">extremum_pairs_across_targets</span><span class="p">):</span>
+                <span class="k">return</span> <span class="p">[</span>
+                    <span class="n">loss_decay_of_extrema</span><span class="p">(</span><span class="o">*</span><span class="n">extremum_pair</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">extremum_pair</span> <span class="ow">in</span> <span class="n">extremum_pairs_across_targets</span>
+                <span class="p">]</span>
+
+            <span class="n">target_extrema_across_strata</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">train_dataset</span><span class="o">.</span><span class="n">target_extrema</span><span class="p">()</span> <span class="k">for</span> <span class="n">train_dataset</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_datasets</span>
+            <span class="p">]</span>
+            <span class="n">loss_decays</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">loss_decays_of_target_extrema</span><span class="p">(</span><span class="n">extremum_pairs_across_targets</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">extremum_pairs_across_targets</span> <span class="ow">in</span> <span class="n">target_extrema_across_strata</span>
+            <span class="p">]</span>
+            <span class="n">val_loss_decay</span> <span class="o">=</span> <span class="n">loss_decays_of_target_extrema</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">val_data</span><span class="o">.</span><span class="n">target_extrema</span><span class="p">()</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">no_loss_decay</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">target_count</span>
+            <span class="n">loss_decays</span> <span class="o">=</span> <span class="p">[</span><span class="n">no_loss_decay</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_datasets</span><span class="p">]</span>
+            <span class="n">val_loss_decay</span> <span class="o">=</span> <span class="n">no_loss_decay</span>
+
+        <span class="n">batch_count</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="nb">max</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_datasets</span><span class="p">))</span> <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>  <span class="c1"># Sets model to training mode.</span>
+        <span class="n">optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">learning_rate</span><span class="p">)</span>
+        <span class="n">scheduler</span> <span class="o">=</span> <span class="n">ReduceLROnPlateau</span><span class="p">(</span><span class="n">optimizer</span><span class="p">,</span> <span class="n">patience</span><span class="o">=</span><span class="n">patience</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">step_model</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">batch_count</span><span class="p">):</span>
+                <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+                <span class="n">per_batch_loss</span> <span class="o">=</span> <span class="mf">0.0</span>
+                <span class="k">for</span> <span class="n">train_infinite_loader</span><span class="p">,</span> <span class="n">per_stratum_loss_decays</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">train_infinite_loaders</span><span class="p">,</span> <span class="n">loss_decays</span>
+                <span class="p">):</span>
+
+                    <span class="n">batch</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">train_infinite_loader</span><span class="p">)</span>
+                    <span class="n">samples</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="s2">&quot;samples&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+                    <span class="n">predictions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span>
+
+                    <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">complete_loss</span><span class="p">(</span>
+                        <span class="n">loss_fn</span><span class="p">,</span> <span class="n">batch</span><span class="p">[</span><span class="s2">&quot;targets&quot;</span><span class="p">],</span> <span class="n">predictions</span><span class="p">,</span> <span class="n">per_stratum_loss_decays</span>
+                    <span class="p">)</span>
+                    <span class="n">per_batch_loss</span> <span class="o">+=</span> <span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+
+                    <span class="c1"># Note that here we are using gradient accumulation: calling</span>
+                    <span class="c1"># backward for each loader before clearing the gradient via</span>
+                    <span class="c1"># zero_grad. See, e.g. https://link.medium.com/wem03OhPH5</span>
+                    <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+
+                    <span class="c1"># if the model is monotonic, we clamp all negative parameters</span>
+                    <span class="c1"># after the latent space ecluding all bias parameters.</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">monotonic_sign</span><span class="p">:</span>
+                        <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">monotonic_params_from_latent_space</span><span class="p">():</span>
+                            <span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">clamp_</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+                <span class="c1"># if k &gt;=1, reconstruct beta matricies with truncated SVD</span>
+                <span class="k">if</span> <span class="n">beta_rank</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">num_latent_dims</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">latent_dim</span>
+                    <span class="k">for</span> <span class="n">latent_dim</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_latent_dims</span><span class="p">):</span>
+                        <span class="n">beta_vec</span> <span class="o">=</span> <span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">beta_coefficients</span><span class="p">()[</span><span class="n">latent_dim</span><span class="p">]</span>
+                            <span class="o">.</span><span class="n">detach</span><span class="p">()</span>
+                            <span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+                            <span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+                        <span class="p">)</span>
+                        <span class="n">beta_map</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">build_beta_map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">val_data</span><span class="p">,</span> <span class="n">beta_vec</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">beta_coefficients</span><span class="p">()[</span>
+                            <span class="n">latent_dim</span>
+                        <span class="p">]</span> <span class="o">=</span> <span class="n">low_rank_approximation</span><span class="p">(</span><span class="n">beta_map</span><span class="p">,</span> <span class="n">beta_rank</span><span class="p">)</span>
+
+            <span class="n">val_samples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">val_data</span><span class="o">.</span><span class="n">samples</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+            <span class="n">val_predictions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">val_samples</span><span class="p">)</span>
+            <span class="n">val_loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">complete_loss</span><span class="p">(</span>
+                <span class="n">loss_fn</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">val_data</span><span class="o">.</span><span class="n">targets</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">),</span>
+                <span class="n">val_predictions</span><span class="p">,</span>
+                <span class="n">val_loss_decay</span><span class="p">,</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">val_loss</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">val_loss_record</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">validation loss record: </span><span class="si">{</span><span class="n">val_loss</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">torch</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_path</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">val_loss_record</span> <span class="o">=</span> <span class="n">val_loss</span>
+
+            <span class="n">scheduler</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">val_loss</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">click</span><span class="o">.</span><span class="n">progressbar</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">epoch_count</span><span class="p">))</span> <span class="k">as</span> <span class="n">progress_bar</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">progress_bar</span><span class="p">:</span>
+                <span class="n">step_model</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">optimizer</span><span class="o">.</span><span class="n">state_dict</span><span class="p">()[</span><span class="s2">&quot;param_groups&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;lr&quot;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">min_lr</span><span class="p">:</span>
+                    <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="s2">&quot;Learning rate dropped below stated minimum. Stopping.&quot;</span><span class="p">)</span>
+                    <span class="k">break</span></div>
+
+<div class="viewcode-block" id="Analysis.multi_train"><a class="viewcode-back" href="../../_autosummary/torchdms.analysis.Analysis.html#torchdms.analysis.Analysis.multi_train">[docs]</a>    <span class="k">def</span> <span class="nf">multi_train</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">independent_start_count</span><span class="p">,</span>
+        <span class="n">independent_start_epoch_count</span><span class="p">,</span>
+        <span class="n">epoch_count</span><span class="p">,</span>
+        <span class="n">loss_fn</span><span class="p">,</span>
+        <span class="n">patience</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+        <span class="n">min_lr</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span>
+        <span class="n">loss_weight_span</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">exp_target</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">beta_rank</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Do pre-training on self.model using the specified number of</span>
+<span class="sd">        independent starts, writing the best pre-trained model to the model</span>
+<span class="sd">        path, then fully training it.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">independent_start_epoch_count</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">independent_start_epoch_count</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="mf">0.1</span> <span class="o">*</span> <span class="n">epoch_count</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">independent_start_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">independent_start_count</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;LOG: Independent start </span><span class="si">{</span><span class="n">independent_start_idx</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">independent_start_count</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">randomize_parameters</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="p">(</span>
+                <span class="n">independent_start_epoch_count</span><span class="p">,</span>
+                <span class="n">loss_fn</span><span class="p">,</span>
+                <span class="n">patience</span><span class="p">,</span>
+                <span class="n">min_lr</span><span class="p">,</span>
+                <span class="n">loss_weight_span</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="s2">&quot;LOG: Beginning full training.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_path</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="p">(</span>
+            <span class="n">epoch_count</span><span class="p">,</span>
+            <span class="n">loss_fn</span><span class="p">,</span>
+            <span class="n">patience</span><span class="p">,</span>
+            <span class="n">min_lr</span><span class="p">,</span>
+            <span class="n">loss_weight_span</span><span class="p">,</span>
+            <span class="n">exp_target</span><span class="p">,</span>
+            <span class="n">beta_rank</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="Analysis.simple_train"><a class="viewcode-back" href="../../_autosummary/torchdms.analysis.Analysis.html#torchdms.analysis.Analysis.simple_train">[docs]</a>    <span class="k">def</span> <span class="nf">simple_train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">epoch_count</span><span class="p">,</span> <span class="n">loss_fn</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Bare-bones training of self.model.</span>
+
+<span class="sd">        This traning doesn&#39;t even handle nans. If you want that behavior, just use</span>
+<span class="sd">        self.loss_of_targets_and_prediction rather than loss_fn directly.</span>
+
+<span class="sd">        We also cat together all of the data rather than getting gradients on a</span>
+<span class="sd">        per-stratum basis. If you don&#39;t want this behavior use</span>
+<span class="sd">        self.train_infinite_loaders rather than the train_infinite_loaders defined</span>
+<span class="sd">        below.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train_datasets</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+        <span class="n">target_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_datasets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">target_count</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">output_size</span> <span class="o">==</span> <span class="n">target_count</span>
+
+        <span class="n">batch_count</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="nb">max</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_datasets</span><span class="p">))</span> <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>  <span class="c1"># Sets model to training mode.</span>
+        <span class="n">optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">learning_rate</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+
+        <span class="n">train_infinite_loaders</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">make_data_loader_infinite</span><span class="p">(</span>
+                <span class="n">DataLoader</span><span class="p">(</span>
+                    <span class="n">BinaryMapDataset</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train_datasets</span><span class="p">),</span>
+                    <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span>
+                    <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="p">]</span>
+
+        <span class="k">def</span> <span class="nf">step_model</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">batch_count</span><span class="p">):</span>
+                <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+                <span class="k">for</span> <span class="n">train_infinite_loader</span> <span class="ow">in</span> <span class="n">train_infinite_loaders</span><span class="p">:</span>
+                    <span class="n">batch</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">train_infinite_loader</span><span class="p">)</span>
+                    <span class="n">samples</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="s2">&quot;samples&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+                    <span class="n">predictions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span>
+                    <span class="n">loss</span> <span class="o">=</span> <span class="n">loss_fn</span><span class="p">(</span><span class="n">batch</span><span class="p">[</span><span class="s2">&quot;targets&quot;</span><span class="p">],</span> <span class="n">predictions</span><span class="p">)</span>
+
+                    <span class="c1"># Note that here we are using gradient accumulation: calling</span>
+                    <span class="c1"># backward for each loader before clearing the gradient via</span>
+                    <span class="c1"># zero_grad. See, e.g. https://link.medium.com/wem03OhPH5</span>
+                    <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+
+                    <span class="c1"># if the model is monotonic, we clamp all negative parameters</span>
+                    <span class="c1"># after the latent space excluding all bias parameters.</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">monotonic_sign</span><span class="p">:</span>
+                        <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">monotonic_params_from_latent_space</span><span class="p">():</span>
+                            <span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">clamp_</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+
+        <span class="k">with</span> <span class="n">click</span><span class="o">.</span><span class="n">progressbar</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">epoch_count</span><span class="p">))</span> <span class="k">as</span> <span class="n">progress_bar</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">progress_bar</span><span class="p">:</span>
+                <span class="n">step_model</span><span class="p">()</span>
+
+        <span class="n">torch</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_path</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright .
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
