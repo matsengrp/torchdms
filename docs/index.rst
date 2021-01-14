@@ -1,14 +1,11 @@
 
 Welcome to the torchdms documentation!
-====================================
-
-.. toctree::
-
-Modules
--------
+======================================
 
 .. autosummary::
-   :toctree: modules
+   :toctree: _autosummary
+   :template: custom-module-template.rst
+   :recursive:
 
 
 
