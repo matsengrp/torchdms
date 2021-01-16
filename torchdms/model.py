@@ -551,7 +551,7 @@ class ArgusSequential(Argus):
     """Argus with sequential training: stab then bind."""
 
     @property
-    def training_styles(self):
+    def training_style_sequence(self):
         """The sequence of training styles that will be used during training.
 
         Here we just train stab and then train bind."""
