@@ -202,7 +202,7 @@ class Analysis:
 
             scheduler.step(val_loss)
 
-        for training_style in self.model.training_styles:
+        for training_style in self.model.training_style_sequence:
             training_style()
 
             with click.progressbar(range(epoch_count)) as progress_bar:
