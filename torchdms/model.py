@@ -107,7 +107,7 @@ class TorchdmsModel(nn.Module):
         layer_name*.weight
         layer_name*.bias.
 
-        Layers from nested modules will be prefixed (e.g. with Dianthum).
+        Layers from nested modules will be prefixed (e.g. with Independent).
         """
         for name, param in self.named_parameters():
             parse_name = name.split(".")
@@ -184,7 +184,7 @@ class LinearModel(TorchdmsModel):
         return self.forward(x)
 
 
-class Planifolia(TorchdmsModel):
+class FullyConnected(TorchdmsModel):
     """Make it just how you like it.
 
     input size can be inferred for the train/test datasets
@@ -385,8 +385,8 @@ class Planifolia(TorchdmsModel):
         return penalty
 
 
-class Dianthum(TorchdmsModel):
-    """Parallel and independent Planifolia for each of two output dimensions.
+class Independent(TorchdmsModel):
+    """Parallel and independent FullyConnected for each of two output dimensions.
 
     beta_l1_coefficients and interaction_l1_coefficients are each lists
     with two elements, a penalty parameter for each of the parallel
@@ -425,7 +425,7 @@ class Dianthum(TorchdmsModel):
         for i, model in enumerate(("bind", "stab")):
             self.add_module(
                 f"model_{model}",
-                Planifolia(
+                FullyConnected(
                     input_size,
                     layer_sizes,
                     activations,
@@ -502,7 +502,7 @@ class Dianthum(TorchdmsModel):
         )
 
 
-class Argus(Dianthum):
+class Conditional(Independent):
     """Allows the latent space for the second output feature (i.e. stability)
     to feed forward into the network for the first output feature (i.e.
     binding).
@@ -548,8 +548,8 @@ class Argus(Dianthum):
         self.model_bind.set_require_grad_for_all_parameters(False)
 
 
-class ArgusSequential(Argus):
-    """Argus with sequential training: stab then bind."""
+class ConditionalSequential(Conditional):
+    """Conditional with sequential training: stab then bind."""
 
     @property
     def training_style_sequence(self):
@@ -562,10 +562,10 @@ class ArgusSequential(Argus):
 
 KNOWN_MODELS = {
     "Linear": LinearModel,
-    "Planifolia": Planifolia,
-    "Dianthum": Dianthum,
-    "Argus": Argus,
-    "ArgusSequential": ArgusSequential,
+    "FullyConnected": FullyConnected,
+    "Independent": Independent,
+    "Conditional": Conditional,
+    "ConditionalSequential": ConditionalSequential,
 }
 
 
@@ -606,10 +606,10 @@ def model_of_string(model_string, data_path, **kwargs):
         raise IOError(model_name + " not known")
     data = from_pickle_file(data_path)
     test_dataset = data.test
-    if model_name == "Planifolia":
+    if model_name == "FullyConnected":
         if len(layers) == 0:
             click.echo("LOG: No layers provided, so I'm creating a linear model.")
-        model = Planifolia(
+        model = FullyConnected(
             test_dataset.feature_count(),
             layers,
             activations,
@@ -623,7 +623,7 @@ def model_of_string(model_string, data_path, **kwargs):
             test_dataset.target_names,
             alphabet=test_dataset.alphabet,
         )
-    elif model_name in ("Dianthum", "Argus", "ArgusSequential"):
+    elif model_name in ("Independent", "Conditional", "ConditionalSequential"):
         model = KNOWN_MODELS[model_name](
             test_dataset.feature_count(),
             layers,
