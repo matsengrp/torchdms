@@ -149,7 +149,8 @@ class TorchdmsModel(nn.Module):
 
     @property
     def training_style_sequence(self):
-        """The sequence of training styles that will be used during training."""
+        """The sequence of training styles that will be used during
+        training."""
         return [self.default_training_style]
 
 
@@ -554,7 +555,8 @@ class ArgusSequential(Argus):
     def training_style_sequence(self):
         """The sequence of training styles that will be used during training.
 
-        Here we just train stab and then train bind."""
+        Here we just train stab and then train bind.
+        """
         return [self.only_train_stab_style, self.only_train_bind_style]
 
 
