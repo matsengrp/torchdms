@@ -1,5 +1,7 @@
 _ignore
 _build
+_autosummary
+/_modules
 /data
 /figs
 __pycache__/
@@ -7,4 +9,3 @@ __pycache__/
 *.egg-info/
 .ipynb_checkpoints/
 .DS_Store
-_autosummary
