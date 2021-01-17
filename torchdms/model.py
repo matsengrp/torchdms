@@ -137,6 +137,22 @@ class TorchdmsModel(nn.Module):
         if self.monotonic_sign is not None:
             self.reflect_monotonic_params()
 
+    def set_require_grad_for_all_parameters(self, value):
+        """Set require_grad for all parameters."""
+        for param in self.parameters():
+            param.requires_grad = value
+
+    def default_training_style(self):
+        """The default training style."""
+        click.echo("Training in default style.")
+        self.set_require_grad_for_all_parameters(True)
+
+    @property
+    def training_style_sequence(self):
+        """The sequence of training styles that will be used during
+        training."""
+        return [self.default_training_style]
+
 
 class LinearModel(TorchdmsModel):
     """The simplest model."""
@@ -500,15 +516,14 @@ class Argus(Dianthum):
 
         # expand input dimension of first post-latent layer in bind network
         # to accommodate stab-->bind interaction
-        layer_name = self.model_bind.layers[self.model_bind.latent_idx + 1]
+        first_post_latent_layer_idx = self.model_bind.latent_idx + 1
+        layer_name = self.model_bind.layers[first_post_latent_layer_idx]
         setattr(
             self.model_bind,
             layer_name,
             nn.Linear(
                 self.latent_dim,
-                self.model_bind.internal_layer_dimensions[
-                    self.model_bind.latent_idx + 1
-                ],
+                self.model_bind.internal_layer_dimensions[first_post_latent_layer_idx],
                 bias=True,
             ),
         )
@@ -522,12 +537,35 @@ class Argus(Dianthum):
             1,
         )
 
+    def only_train_bind_style(self):
+        click.echo("Only training bind.")
+        self.set_require_grad_for_all_parameters(True)
+        self.model_stab.set_require_grad_for_all_parameters(False)
+
+    def only_train_stab_style(self):
+        click.echo("Only training stab.")
+        self.set_require_grad_for_all_parameters(True)
+        self.model_bind.set_require_grad_for_all_parameters(False)
+
+
+class ArgusSequential(Argus):
+    """Argus with sequential training: stab then bind."""
+
+    @property
+    def training_style_sequence(self):
+        """The sequence of training styles that will be used during training.
+
+        Here we just train stab and then train bind.
+        """
+        return [self.only_train_stab_style, self.only_train_bind_style]
+
 
 KNOWN_MODELS = {
     "Linear": LinearModel,
     "Planifolia": Planifolia,
     "Dianthum": Dianthum,
     "Argus": Argus,
+    "ArgusSequential": ArgusSequential,
 }
 
 
@@ -585,7 +623,7 @@ def model_of_string(model_string, data_path, **kwargs):
             test_dataset.target_names,
             alphabet=test_dataset.alphabet,
         )
-    elif model_name in ("Dianthum", "Argus"):
+    elif model_name in ("Dianthum", "Argus", "ArgusSequential"):
         model = KNOWN_MODELS[model_name](
             test_dataset.feature_count(),
             layers,

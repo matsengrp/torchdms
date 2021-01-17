@@ -202,12 +202,17 @@ class Analysis:
 
             scheduler.step(val_loss)
 
-        with click.progressbar(range(epoch_count)) as progress_bar:
-            for _ in progress_bar:
-                step_model()
-                if optimizer.state_dict()["param_groups"][0]["lr"] < min_lr:
-                    click.echo("Learning rate dropped below stated minimum. Stopping.")
-                    break
+        for training_style in self.model.training_style_sequence:
+            training_style()
+
+            with click.progressbar(range(epoch_count)) as progress_bar:
+                for _ in progress_bar:
+                    step_model()
+                    if optimizer.state_dict()["param_groups"][0]["lr"] < min_lr:
+                        click.echo(
+                            "Learning rate dropped below stated minimum. Stopping."
+                        )
+                        break
 
     def multi_train(
         self,

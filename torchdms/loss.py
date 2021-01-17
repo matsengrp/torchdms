@@ -6,8 +6,9 @@ def make_squoze_y_pair(y_true, y_predicted, exp_target):
     """Make squeezed versions of y_true and y_predicted, perhaps using
     exp_target as a base for exponentiation."""
     if exp_target is not None:
-        return torch.pow(exp_target, y_true.squeeze()), torch.pow(
-            exp_target, y_predicted.squeeze()
+        return (
+            torch.pow(exp_target, y_true.squeeze()),
+            torch.pow(exp_target, y_predicted.squeeze()),
         )
     # else:
     return y_true.squeeze(), y_predicted.squeeze()
