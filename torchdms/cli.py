@@ -727,7 +727,7 @@ def go(ctx):
         out=svd_path,
         **restrict_dict_to_params(ctx.default_map, svd),
     )
-    profiles_path = prefix + "profiles.pdf"
+    profiles_path = prefix + ".profiles.pdf"
     ctx.invoke(
         profiles,
         model_path=model_path,
