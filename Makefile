@@ -19,6 +19,14 @@ format:
 lint:
 	pylint **/[^_]*.py && echo "LINTING PASS"
 
+deploy:
+	make -C docs html
+	git checkout gh-pages
+	cp -a docs/_build/html/* .
+	git add .
+	git commit --amend -av -m "update docs"
+	git push -f
+
 torchdms/data/_ignore/test_df.prepped.pkl: torchdms/data/test_df.pkl
 	mkdir -p torchdms/data/_ignore
 	tdms prep --per-stratum-variants-for-test 10 --skip-stratum-if-count-is-smaller-than 30 torchdms/data/test_df.pkl torchdms/data/_ignore/test_df.prepped affinity_score
