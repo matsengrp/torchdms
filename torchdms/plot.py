@@ -405,6 +405,5 @@ def plot_svd_profiles(model, test_data, out):
                 ylabel='Site number'
             )
 
-        plt.tight_layout()
-        #fig.suptitle(f"{model.str_summary}")
-        fig.savefig(f"{out}")
+    fig.suptitle(f"{model.str_summary()}")
+    fig.savefig(f"{out}")
