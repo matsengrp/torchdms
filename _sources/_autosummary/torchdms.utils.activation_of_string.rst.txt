@@ -1,0 +1,6 @@
+torchdms.utils.activation\_of\_string
+=====================================
+
+.. currentmodule:: torchdms.utils
+
+.. autofunction:: activation_of_string

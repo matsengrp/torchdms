@@ -1,0 +1,6 @@
+torchdms.loss.weighted\_loss
+============================
+
+.. currentmodule:: torchdms.loss
+
+.. autofunction:: weighted_loss

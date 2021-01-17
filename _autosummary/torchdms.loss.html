@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>torchdms.loss &mdash; torchdms 0.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="torchdms.loss.diff_penalty" href="torchdms.loss.diff_penalty.html" />
+    <link rel="prev" title="torchdms.evaluation.error_summary_of_error_df" href="torchdms.evaluation.error_summary_of_error_df.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> torchdms
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cli.html">Command line interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../model.html">Specifying models</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="torchdms.html">torchdms</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="torchdms.analysis.html">torchdms.analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="torchdms.cli.html">torchdms.cli</a></li>
+<li class="toctree-l2"><a class="reference internal" href="torchdms.data.html">torchdms.data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="torchdms.evaluation.html">torchdms.evaluation</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">torchdms.loss</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="torchdms.loss.diff_penalty.html">torchdms.loss.diff_penalty</a></li>
+<li class="toctree-l3"><a class="reference internal" href="torchdms.loss.l1.html">torchdms.loss.l1</a></li>
+<li class="toctree-l3"><a class="reference internal" href="torchdms.loss.mse.html">torchdms.loss.mse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="torchdms.loss.product_penalty.html">torchdms.loss.product_penalty</a></li>
+<li class="toctree-l3"><a class="reference internal" href="torchdms.loss.rmse.html">torchdms.loss.rmse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="torchdms.loss.sitewise_group_lasso.html">torchdms.loss.sitewise_group_lasso</a></li>
+<li class="toctree-l3"><a class="reference internal" href="torchdms.loss.sum_diff_penalty.html">torchdms.loss.sum_diff_penalty</a></li>
+<li class="toctree-l3"><a class="reference internal" href="torchdms.loss.weighted_loss.html">torchdms.loss.weighted_loss</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="torchdms.model.html">torchdms.model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="torchdms.plot.html">torchdms.plot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="torchdms.utils.html">torchdms.utils</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">torchdms</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="torchdms.html">torchdms</a> &raquo;</li>
+      <li>torchdms.loss</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-torchdms.loss">
+<span id="torchdms-loss"></span><h1>torchdms.loss<a class="headerlink" href="#module-torchdms.loss" title="Permalink to this headline">¶</a></h1>
+<p>Loss functions and functions relevant to losses.</p>
+<p class="rubric">Functions</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="torchdms.loss.diff_penalty.html#torchdms.loss.diff_penalty" title="torchdms.loss.diff_penalty"><code class="xref py py-obj docutils literal notranslate"><span class="pre">diff_penalty</span></code></a></p></td>
+<td><p>Computes l1 norm of the difference between adjacent betas for each latent dimension.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="torchdms.loss.l1.html#torchdms.loss.l1" title="torchdms.loss.l1"><code class="xref py py-obj docutils literal notranslate"><span class="pre">l1</span></code></a></p></td>
+<td><p>l1_loss, perhaps with loss decay or target exponentiation</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="torchdms.loss.mse.html#torchdms.loss.mse" title="torchdms.loss.mse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mse</span></code></a></p></td>
+<td><p>mse_loss, perhaps with loss decay or target exponentiation</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="torchdms.loss.product_penalty.html#torchdms.loss.product_penalty" title="torchdms.loss.product_penalty"><code class="xref py py-obj docutils literal notranslate"><span class="pre">product_penalty</span></code></a></p></td>
+<td><p>Computes l1 norm of product of betas across latent dimensions.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="torchdms.loss.rmse.html#torchdms.loss.rmse" title="torchdms.loss.rmse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rmse</span></code></a></p></td>
+<td><p>Root mean square error, perhaps with loss decay or target exponentiation.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="torchdms.loss.sitewise_group_lasso.html#torchdms.loss.sitewise_group_lasso" title="torchdms.loss.sitewise_group_lasso"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sitewise_group_lasso</span></code></a></p></td>
+<td><p>The sum of the 2-norm across columns.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="torchdms.loss.sum_diff_penalty.html#torchdms.loss.sum_diff_penalty" title="torchdms.loss.sum_diff_penalty"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sum_diff_penalty</span></code></a></p></td>
+<td><p>Computes l1 norm of the difference between aggregated betas at adjacent sites for each latent dimension.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="torchdms.loss.weighted_loss.html#torchdms.loss.weighted_loss" title="torchdms.loss.weighted_loss"><code class="xref py py-obj docutils literal notranslate"><span class="pre">weighted_loss</span></code></a></p></td>
+<td><p>Generic loss function decorator with loss decay or target exponentiation.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py function">
+<dt class="sig sig-object py" id="torchdms.loss.weighted_loss">
+<span class="sig-prename descclassname"><span class="pre">torchdms.loss.</span></span><span class="sig-name descname"><span class="pre">weighted_loss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_loss</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/loss.html#weighted_loss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.loss.weighted_loss" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generic loss function decorator with loss decay or target
+exponentiation.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="torchdms.loss.l1">
+<span class="sig-prename descclassname"><span class="pre">torchdms.loss.</span></span><span class="sig-name descname"><span class="pre">l1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y_true</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_predicted</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss_decay</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exp_target</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#torchdms.loss.l1" title="Permalink to this definition">¶</a></dt>
+<dd><p>l1_loss, perhaps with loss decay or target exponentiation</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="torchdms.loss.mse">
+<span class="sig-prename descclassname"><span class="pre">torchdms.loss.</span></span><span class="sig-name descname"><span class="pre">mse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y_true</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_predicted</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss_decay</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exp_target</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#torchdms.loss.mse" title="Permalink to this definition">¶</a></dt>
+<dd><p>mse_loss, perhaps with loss decay or target exponentiation</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="torchdms.loss.rmse">
+<span class="sig-prename descclassname"><span class="pre">torchdms.loss.</span></span><span class="sig-name descname"><span class="pre">rmse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/loss.html#rmse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.loss.rmse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Root mean square error, perhaps with loss decay or target
+exponentiation.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="torchdms.loss.sitewise_group_lasso">
+<span class="sig-prename descclassname"><span class="pre">torchdms.loss.</span></span><span class="sig-name descname"><span class="pre">sitewise_group_lasso</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">matrix</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/loss.html#sitewise_group_lasso"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.loss.sitewise_group_lasso" title="Permalink to this definition">¶</a></dt>
+<dd><p>The sum of the 2-norm across columns.</p>
+<p>We omit the square root of the group sizes, as they are all constant
+in our case.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="torchdms.loss.product_penalty">
+<span class="sig-prename descclassname"><span class="pre">torchdms.loss.</span></span><span class="sig-name descname"><span class="pre">product_penalty</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">betas</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/loss.html#product_penalty"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.loss.product_penalty" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes l1 norm of product of betas across latent dimensions.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="torchdms.loss.diff_penalty">
+<span class="sig-prename descclassname"><span class="pre">torchdms.loss.</span></span><span class="sig-name descname"><span class="pre">diff_penalty</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">betas</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/loss.html#diff_penalty"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.loss.diff_penalty" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes l1 norm of the difference between adjacent betas for each
+latent dimension.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="torchdms.loss.sum_diff_penalty">
+<span class="sig-prename descclassname"><span class="pre">torchdms.loss.</span></span><span class="sig-name descname"><span class="pre">sum_diff_penalty</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">betas</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/loss.html#sum_diff_penalty"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.loss.sum_diff_penalty" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes l1 norm of the difference between aggregated betas at adjacent
+sites for each latent dimension.</p>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="torchdms.evaluation.error_summary_of_error_df.html" class="btn btn-neutral float-left" title="torchdms.evaluation.error_summary_of_error_df" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="torchdms.loss.diff_penalty.html" class="btn btn-neutral float-right" title="torchdms.loss.diff_penalty" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,6 @@
+torchdms.plot.plot\_observed\_2d\_scores
+========================================
+
+.. currentmodule:: torchdms.plot
+
+.. autofunction:: plot_observed_2d_scores

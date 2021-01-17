@@ -1,0 +1,38 @@
+torchdms.model
+==============
+
+.. automodule:: torchdms.model
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      Conditional
+      ConditionalSequential
+      Escape
+      FullyConnected
+      Independent
+      Linear
+      TorchdmsModel
+   
+   
+
+   
+   
+   
+
+
+

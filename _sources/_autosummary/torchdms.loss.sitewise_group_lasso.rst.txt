@@ -1,0 +1,6 @@
+torchdms.loss.sitewise\_group\_lasso
+====================================
+
+.. currentmodule:: torchdms.loss
+
+.. autofunction:: sitewise_group_lasso

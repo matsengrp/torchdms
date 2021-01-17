@@ -1,0 +1,6 @@
+torchdms.loss.product\_penalty
+==============================
+
+.. currentmodule:: torchdms.loss
+
+.. autofunction:: product_penalty

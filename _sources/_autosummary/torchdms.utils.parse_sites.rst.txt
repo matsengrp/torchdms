@@ -1,0 +1,6 @@
+torchdms.utils.parse\_sites
+===========================
+
+.. currentmodule:: torchdms.utils
+
+.. autofunction:: parse_sites

@@ -1,0 +1,277 @@
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict(), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 3, 'out_features': 1}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[6.1101e-04, 4.8419e+30, 3.0128e+29]], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 3, 'out_features': 1}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[6.1101e-04, 4.8419e+30, 3.0128e+29]], requires_grad=True)), ('bias', Parameter containing:
+tensor([1.2990e-38], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 3, 'out_features': 1}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[-0.2996,  0.0671, -0.4972]], requires_grad=True)), ('bias', Parameter containing:
+tensor([1.2990e-38], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 3, 'out_features': 1}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[-0.2996,  0.0671, -0.4972]], requires_grad=True)), ('bias', Parameter containing:
+tensor([1.2990e-38], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 3, 'out_features': 1}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[-0.2996,  0.0671, -0.4972]], requires_grad=True)), ('bias', Parameter containing:
+tensor([1.2990e-38], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 3, 'out_features': 1}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict(), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 1, 'out_features': 2}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[-1.9840e+12],
+        [ 3.0709e-41]], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 1, 'out_features': 2}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[-1.9840e+12],
+        [ 3.0709e-41]], requires_grad=True)), ('bias', Parameter containing:
+tensor([-1.9839e+12,  3.0709e-41], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 1, 'out_features': 2}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[ 0.6729],
+        [-0.5793]], requires_grad=True)), ('bias', Parameter containing:
+tensor([-1.9839e+12,  3.0709e-41], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 1, 'out_features': 2}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[ 0.6729],
+        [-0.5793]], requires_grad=True)), ('bias', Parameter containing:
+tensor([-1.9839e+12,  3.0709e-41], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 1, 'out_features': 2}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[ 0.6729],
+        [-0.5793]], requires_grad=True)), ('bias', Parameter containing:
+tensor([-1.9839e+12,  3.0709e-41], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 1, 'out_features': 2}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict(), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 2, 'out_features': 1}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[3.1491e+12, 4.5563e-41]], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 2, 'out_features': 1}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[3.1491e+12, 4.5563e-41]], requires_grad=True)), ('bias', Parameter containing:
+tensor([-1.9838e+12], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 2, 'out_features': 1}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[ 0.2408, -0.3674]], requires_grad=True)), ('bias', Parameter containing:
+tensor([-1.9838e+12], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 2, 'out_features': 1}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[ 0.2408, -0.3674]], requires_grad=True)), ('bias', Parameter containing:
+tensor([-1.9838e+12], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 2, 'out_features': 1}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[ 0.2408, -0.3674]], requires_grad=True)), ('bias', Parameter containing:
+tensor([-1.9838e+12], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 2, 'out_features': 1}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict(), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'input_size': 3, 'target_names': [None, None], 'output_size': 2, 'alphabet': None, 'freeze_betas': False, 'monotonic_sign': None, 'layers': [], 'training_style_sequence': [<bound method TorchdmsModel.default_training_style of Independent()>]}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict(), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 3, 'out_features': 1}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[ 3.1491e+12,  4.5563e-41, -1.9849e+12]], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 3, 'out_features': 1}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[ 3.1491e+12,  4.5563e-41, -1.9849e+12]], requires_grad=True)), ('bias', Parameter containing:
+tensor([3.1491e+12], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 3, 'out_features': 1}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[ 0.1890, -0.0784,  0.4045]], requires_grad=True)), ('bias', Parameter containing:
+tensor([3.1491e+12], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 3, 'out_features': 1}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[ 0.1890, -0.0784,  0.4045]], requires_grad=True)), ('bias', Parameter containing:
+tensor([3.1491e+12], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 3, 'out_features': 1}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[ 0.1890, -0.0784,  0.4045]], requires_grad=True)), ('bias', Parameter containing:
+tensor([3.1491e+12], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 3, 'out_features': 1}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict(), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 1, 'out_features': 2}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[3.1490e+12],
+        [4.5563e-41]], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 1, 'out_features': 2}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[3.1490e+12],
+        [4.5563e-41]], requires_grad=True)), ('bias', Parameter containing:
+tensor([3.1490e+12, 4.5563e-41], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 1, 'out_features': 2}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[ 0.3049],
+        [-0.7055]], requires_grad=True)), ('bias', Parameter containing:
+tensor([3.1490e+12, 4.5563e-41], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 1, 'out_features': 2}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[ 0.3049],
+        [-0.7055]], requires_grad=True)), ('bias', Parameter containing:
+tensor([3.1490e+12, 4.5563e-41], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 1, 'out_features': 2}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[ 0.3049],
+        [-0.7055]], requires_grad=True)), ('bias', Parameter containing:
+tensor([3.1490e+12, 4.5563e-41], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 1, 'out_features': 2}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict(), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 2, 'out_features': 1}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[-1.9860e+12,  3.0709e-41]], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 2, 'out_features': 1}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[-1.9860e+12,  3.0709e-41]], requires_grad=True)), ('bias', Parameter containing:
+tensor([-1.9859e+12], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 2, 'out_features': 1}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[-0.2775, -0.6712]], requires_grad=True)), ('bias', Parameter containing:
+tensor([-1.9859e+12], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 2, 'out_features': 1}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[-0.2775, -0.6712]], requires_grad=True)), ('bias', Parameter containing:
+tensor([-1.9859e+12], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 2, 'out_features': 1}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[-0.2775, -0.6712]], requires_grad=True)), ('bias', Parameter containing:
+tensor([-1.9859e+12], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 2, 'out_features': 1}
+YOOOOOOOOOOOOOOOO YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[-0.2996,  0.0671, -0.4972]], requires_grad=True)), ('bias', Parameter containing:
+tensor([0.0012], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 3, 'out_features': 1}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[ 0.6729],
+        [-0.5793]], requires_grad=True)), ('bias', Parameter containing:
+tensor([-0.7114, -0.7647], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 1, 'out_features': 2}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[ 0.2408, -0.3674]], requires_grad=True)), ('bias', Parameter containing:
+tensor([-0.6789], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 2, 'out_features': 1}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[-0.2996,  0.0671, -0.4972]], requires_grad=True)), ('bias', Parameter containing:
+tensor([0.0012], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 3, 'out_features': 1}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[ 0.6729],
+        [-0.5793]], requires_grad=True)), ('bias', Parameter containing:
+tensor([-0.7114, -0.7647], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 1, 'out_features': 2}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[ 0.2408, -0.3674]], requires_grad=True)), ('bias', Parameter containing:
+tensor([-0.6789], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 2, 'out_features': 1}
+{'training': True, '_parameters': OrderedDict(), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict([('model_bind', FullyConnected(
+  (latent_layer): Linear(in_features=3, out_features=1, bias=True)
+  (nonlinearity_1): Linear(in_features=1, out_features=2, bias=True)
+  (output_layer): Linear(in_features=2, out_features=1, bias=True)
+))]), 'input_size': 3, 'target_names': [None, None], 'output_size': 2, 'alphabet': None, 'freeze_betas': False, 'monotonic_sign': None, 'layers': [], 'training_style_sequence': [<bound method TorchdmsModel.default_training_style of Independent(
+  (model_bind): FullyConnected(
+    (latent_layer): Linear(in_features=3, out_features=1, bias=True)
+    (nonlinearity_1): Linear(in_features=1, out_features=2, bias=True)
+    (output_layer): Linear(in_features=2, out_features=1, bias=True)
+  )
+)>]}
+YOOOOOOOOOOOOOOOO YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[-0.2996,  0.0671, -0.4972]], requires_grad=True)), ('bias', Parameter containing:
+tensor([0.0012], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 3, 'out_features': 1}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[ 0.6729],
+        [-0.5793]], requires_grad=True)), ('bias', Parameter containing:
+tensor([-0.7114, -0.7647], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 1, 'out_features': 2}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[ 0.2408, -0.3674]], requires_grad=True)), ('bias', Parameter containing:
+tensor([-0.6789], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 2, 'out_features': 1}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[ 0.1890, -0.0784,  0.4045]], requires_grad=True)), ('bias', Parameter containing:
+tensor([-0.1260], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 3, 'out_features': 1}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[ 0.3049],
+        [-0.7055]], requires_grad=True)), ('bias', Parameter containing:
+tensor([-0.4639,  0.1109], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 1, 'out_features': 2}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[-0.2775, -0.6712]], requires_grad=True)), ('bias', Parameter containing:
+tensor([0.1105], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 2, 'out_features': 1}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[-0.2996,  0.0671, -0.4972]], requires_grad=True)), ('bias', Parameter containing:
+tensor([0.0012], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 3, 'out_features': 1}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[ 0.6729],
+        [-0.5793]], requires_grad=True)), ('bias', Parameter containing:
+tensor([-0.7114, -0.7647], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 1, 'out_features': 2}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[ 0.2408, -0.3674]], requires_grad=True)), ('bias', Parameter containing:
+tensor([-0.6789], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 2, 'out_features': 1}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[ 0.1890, -0.0784,  0.4045]], requires_grad=True)), ('bias', Parameter containing:
+tensor([-0.1260], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 3, 'out_features': 1}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[ 0.3049],
+        [-0.7055]], requires_grad=True)), ('bias', Parameter containing:
+tensor([-0.4639,  0.1109], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 1, 'out_features': 2}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[-0.2775, -0.6712]], requires_grad=True)), ('bias', Parameter containing:
+tensor([0.1105], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 2, 'out_features': 1}
+{'training': True, '_parameters': OrderedDict(), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict([('model_bind', FullyConnected(
+  (latent_layer): Linear(in_features=3, out_features=1, bias=True)
+  (nonlinearity_1): Linear(in_features=1, out_features=2, bias=True)
+  (output_layer): Linear(in_features=2, out_features=1, bias=True)
+)), ('model_stab', FullyConnected(
+  (latent_layer): Linear(in_features=3, out_features=1, bias=True)
+  (nonlinearity_1): Linear(in_features=1, out_features=2, bias=True)
+  (output_layer): Linear(in_features=2, out_features=1, bias=True)
+))]), 'input_size': 3, 'target_names': [None, None], 'output_size': 2, 'alphabet': None, 'freeze_betas': False, 'monotonic_sign': None, 'layers': [], 'training_style_sequence': [<bound method TorchdmsModel.default_training_style of Independent(
+  (model_bind): FullyConnected(
+    (latent_layer): Linear(in_features=3, out_features=1, bias=True)
+    (nonlinearity_1): Linear(in_features=1, out_features=2, bias=True)
+    (output_layer): Linear(in_features=2, out_features=1, bias=True)
+  )
+  (model_stab): FullyConnected(
+    (latent_layer): Linear(in_features=3, out_features=1, bias=True)
+    (nonlinearity_1): Linear(in_features=1, out_features=2, bias=True)
+    (output_layer): Linear(in_features=2, out_features=1, bias=True)
+  )
+)>]}
+YOOOOOOOOOOOOOOOO YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[-0.2996,  0.0671, -0.4972]], requires_grad=True)), ('bias', Parameter containing:
+tensor([0.0012], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 3, 'out_features': 1}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[ 0.6729],
+        [-0.5793]], requires_grad=True)), ('bias', Parameter containing:
+tensor([-0.7114, -0.7647], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 1, 'out_features': 2}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[ 0.2408, -0.3674]], requires_grad=True)), ('bias', Parameter containing:
+tensor([-0.6789], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 2, 'out_features': 1}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[-0.2996,  0.0671, -0.4972]], requires_grad=True)), ('bias', Parameter containing:
+tensor([0.0012], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 3, 'out_features': 1}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[ 0.6729],
+        [-0.5793]], requires_grad=True)), ('bias', Parameter containing:
+tensor([-0.7114, -0.7647], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 1, 'out_features': 2}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[ 0.2408, -0.3674]], requires_grad=True)), ('bias', Parameter containing:
+tensor([-0.6789], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 2, 'out_features': 1}
+{'training': True, '_parameters': OrderedDict(), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict([('latent_layer', Linear(in_features=3, out_features=1, bias=True)), ('nonlinearity_1', Linear(in_features=1, out_features=2, bias=True)), ('output_layer', Linear(in_features=2, out_features=1, bias=True))]), 'input_size': 3, 'target_names': [None], 'output_size': 1, 'alphabet': None, 'freeze_betas': False, 'monotonic_sign': None, 'layers': ['latent_layer', 'nonlinearity_1', 'output_layer'], 'training_style_sequence': [<bound method TorchdmsModel.default_training_style of FullyConnected(
+  (latent_layer): Linear(in_features=3, out_features=1, bias=True)
+  (nonlinearity_1): Linear(in_features=1, out_features=2, bias=True)
+  (output_layer): Linear(in_features=2, out_features=1, bias=True)
+)>], 'activations': [None, None], 'beta_l1_coefficient': 0.0, 'interaction_l1_coefficient': 0.0, 'latent_idx': 0}
+YOOOOOOOOOOOOOOOO YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[-0.2996,  0.0671, -0.4972]], requires_grad=True)), ('bias', Parameter containing:
+tensor([0.0012], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 3, 'out_features': 1}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[ 0.6729],
+        [-0.5793]], requires_grad=True)), ('bias', Parameter containing:
+tensor([-0.7114, -0.7647], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 1, 'out_features': 2}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[ 0.2408, -0.3674]], requires_grad=True)), ('bias', Parameter containing:
+tensor([-0.6789], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 2, 'out_features': 1}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[ 0.1890, -0.0784,  0.4045]], requires_grad=True)), ('bias', Parameter containing:
+tensor([-0.1260], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 3, 'out_features': 1}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[ 0.3049],
+        [-0.7055]], requires_grad=True)), ('bias', Parameter containing:
+tensor([-0.4639,  0.1109], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 1, 'out_features': 2}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[-0.2775, -0.6712]], requires_grad=True)), ('bias', Parameter containing:
+tensor([0.1105], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 2, 'out_features': 1}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[-0.2996,  0.0671, -0.4972]], requires_grad=True)), ('bias', Parameter containing:
+tensor([0.0012], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 3, 'out_features': 1}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[ 0.6729],
+        [-0.5793]], requires_grad=True)), ('bias', Parameter containing:
+tensor([-0.7114, -0.7647], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 1, 'out_features': 2}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[ 0.2408, -0.3674]], requires_grad=True)), ('bias', Parameter containing:
+tensor([-0.6789], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 2, 'out_features': 1}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[ 0.1890, -0.0784,  0.4045]], requires_grad=True)), ('bias', Parameter containing:
+tensor([-0.1260], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 3, 'out_features': 1}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[ 0.3049],
+        [-0.7055]], requires_grad=True)), ('bias', Parameter containing:
+tensor([-0.4639,  0.1109], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 1, 'out_features': 2}
+YOOOOOOOOOOOOOOOO {'training': True, '_parameters': OrderedDict([('weight', Parameter containing:
+tensor([[-0.2775, -0.6712]], requires_grad=True)), ('bias', Parameter containing:
+tensor([0.1105], requires_grad=True))]), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict(), 'in_features': 2, 'out_features': 1}
+{'training': True, '_parameters': OrderedDict(), '_buffers': OrderedDict(), '_non_persistent_buffers_set': set(), '_backward_hooks': OrderedDict(), '_is_full_backward_hook': None, '_forward_hooks': OrderedDict(), '_forward_pre_hooks': OrderedDict(), '_state_dict_hooks': OrderedDict(), '_load_state_dict_pre_hooks': OrderedDict(), '_modules': OrderedDict([('model_bind', FullyConnected(
+  (latent_layer): Linear(in_features=3, out_features=1, bias=True)
+  (nonlinearity_1): Linear(in_features=1, out_features=2, bias=True)
+  (output_layer): Linear(in_features=2, out_features=1, bias=True)
+)), ('model_stab', FullyConnected(
+  (latent_layer): Linear(in_features=3, out_features=1, bias=True)
+  (nonlinearity_1): Linear(in_features=1, out_features=2, bias=True)
+  (output_layer): Linear(in_features=2, out_features=1, bias=True)
+))]), 'input_size': 3, 'target_names': [None, None], 'output_size': 2, 'alphabet': None, 'freeze_betas': False, 'monotonic_sign': None, 'layers': [], 'training_style_sequence': [<bound method TorchdmsModel.default_training_style of Independent(
+  (model_bind): FullyConnected(
+    (latent_layer): Linear(in_features=3, out_features=1, bias=True)
+    (nonlinearity_1): Linear(in_features=1, out_features=2, bias=True)
+    (output_layer): Linear(in_features=2, out_features=1, bias=True)
+  )
+  (model_stab): FullyConnected(
+    (latent_layer): Linear(in_features=3, out_features=1, bias=True)
+    (nonlinearity_1): Linear(in_features=1, out_features=2, bias=True)
+    (output_layer): Linear(in_features=2, out_features=1, bias=True)
+  )
+)>]}

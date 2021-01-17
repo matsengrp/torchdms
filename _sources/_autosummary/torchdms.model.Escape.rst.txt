@@ -1,0 +1,91 @@
+torchdms.model.Escape
+=====================
+
+.. currentmodule:: torchdms.model
+
+.. autoclass:: Escape
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~Escape.add_module
+      ~Escape.apply
+      ~Escape.beta_coefficients
+      ~Escape.bfloat16
+      ~Escape.buffers
+      ~Escape.children
+      ~Escape.cpu
+      ~Escape.cuda
+      ~Escape.double
+      ~Escape.eval
+      ~Escape.extra_repr
+      ~Escape.fix_gauge
+      ~Escape.float
+      ~Escape.forward
+      ~Escape.from_latent_to_output
+      ~Escape.get_buffer
+      ~Escape.get_extra_state
+      ~Escape.get_parameter
+      ~Escape.get_submodule
+      ~Escape.half
+      ~Escape.load_state_dict
+      ~Escape.modules
+      ~Escape.monotonic_params_from_latent_space
+      ~Escape.named_buffers
+      ~Escape.named_children
+      ~Escape.named_modules
+      ~Escape.named_parameters
+      ~Escape.numpy_single_mutant_predictions
+      ~Escape.parameters
+      ~Escape.randomize_parameters
+      ~Escape.register_backward_hook
+      ~Escape.register_buffer
+      ~Escape.register_forward_hook
+      ~Escape.register_forward_pre_hook
+      ~Escape.register_full_backward_hook
+      ~Escape.register_parameter
+      ~Escape.regularization_loss
+      ~Escape.requires_grad_
+      ~Escape.seq_to_binary
+      ~Escape.set_extra_state
+      ~Escape.set_require_grad_for_all_parameters
+      ~Escape.share_memory
+      ~Escape.single_mutant_predictions
+      ~Escape.state_dict
+      ~Escape.str_summary
+      ~Escape.to
+      ~Escape.to_empty
+      ~Escape.to_latent
+      ~Escape.train
+      ~Escape.type
+      ~Escape.wt_activity
+      ~Escape.xpu
+      ~Escape.zero_grad
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~Escape.T_destination
+      ~Escape.characteristics
+      ~Escape.dump_patches
+      ~Escape.latent_dim
+      ~Escape.sequence_length
+      ~Escape.training
+      ~Escape.output_size
+      ~Escape.layers
+      ~Escape.training_style_sequence
+   
+   

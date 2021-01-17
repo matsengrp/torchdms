@@ -1,0 +1,6 @@
+torchdms.plot.plot\_exploded\_binarymap\_dataframe\_summary
+===========================================================
+
+.. currentmodule:: torchdms.plot
+
+.. autofunction:: plot_exploded_binarymap_dataframe_summary

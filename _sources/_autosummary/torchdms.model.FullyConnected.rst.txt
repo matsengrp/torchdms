@@ -1,0 +1,91 @@
+torchdms.model.FullyConnected
+=============================
+
+.. currentmodule:: torchdms.model
+
+.. autoclass:: FullyConnected
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~FullyConnected.add_module
+      ~FullyConnected.apply
+      ~FullyConnected.beta_coefficients
+      ~FullyConnected.bfloat16
+      ~FullyConnected.buffers
+      ~FullyConnected.children
+      ~FullyConnected.cpu
+      ~FullyConnected.cuda
+      ~FullyConnected.double
+      ~FullyConnected.eval
+      ~FullyConnected.extra_repr
+      ~FullyConnected.fix_gauge
+      ~FullyConnected.float
+      ~FullyConnected.forward
+      ~FullyConnected.from_latent_to_output
+      ~FullyConnected.get_buffer
+      ~FullyConnected.get_extra_state
+      ~FullyConnected.get_parameter
+      ~FullyConnected.get_submodule
+      ~FullyConnected.half
+      ~FullyConnected.load_state_dict
+      ~FullyConnected.modules
+      ~FullyConnected.monotonic_params_from_latent_space
+      ~FullyConnected.named_buffers
+      ~FullyConnected.named_children
+      ~FullyConnected.named_modules
+      ~FullyConnected.named_parameters
+      ~FullyConnected.numpy_single_mutant_predictions
+      ~FullyConnected.parameters
+      ~FullyConnected.randomize_parameters
+      ~FullyConnected.register_backward_hook
+      ~FullyConnected.register_buffer
+      ~FullyConnected.register_forward_hook
+      ~FullyConnected.register_forward_pre_hook
+      ~FullyConnected.register_full_backward_hook
+      ~FullyConnected.register_parameter
+      ~FullyConnected.regularization_loss
+      ~FullyConnected.requires_grad_
+      ~FullyConnected.seq_to_binary
+      ~FullyConnected.set_extra_state
+      ~FullyConnected.set_require_grad_for_all_parameters
+      ~FullyConnected.share_memory
+      ~FullyConnected.single_mutant_predictions
+      ~FullyConnected.state_dict
+      ~FullyConnected.str_summary
+      ~FullyConnected.to
+      ~FullyConnected.to_empty
+      ~FullyConnected.to_latent
+      ~FullyConnected.train
+      ~FullyConnected.type
+      ~FullyConnected.xpu
+      ~FullyConnected.zero_grad
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~FullyConnected.T_destination
+      ~FullyConnected.characteristics
+      ~FullyConnected.dump_patches
+      ~FullyConnected.internal_layer_dimensions
+      ~FullyConnected.latent_dim
+      ~FullyConnected.sequence_length
+      ~FullyConnected.training
+      ~FullyConnected.output_size
+      ~FullyConnected.layers
+      ~FullyConnected.training_style_sequence
+   
+   

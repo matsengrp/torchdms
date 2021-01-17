@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tutorials &mdash; torchdms 0.1 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Command line interface" href="cli.html" />
+    <link rel="prev" title="Installation" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> torchdms
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Tutorials</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#cli-tutorials">CLI tutorials</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">Command line interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="model.html">Specifying models</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="_autosummary/torchdms.html">torchdms</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">torchdms</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Tutorials</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="tutorials">
+<span id="sec-tutorials"></span><h1>Tutorials<a class="headerlink" href="#tutorials" title="Permalink to this headline">¶</a></h1>
+<div class="admonition-todo admonition" id="id1">
+<p class="admonition-title">Todo</p>
+<p>Provide some information on the required data format of <code class="docutils literal notranslate"><span class="pre">torchdms</span></code> and perhaps a tutorial on how to go from a CSV file to a pickled object.</p>
+</div>
+<div class="admonition-todo admonition" id="id2">
+<p class="admonition-title">Todo</p>
+<p>Prepping data for model fitting in <code class="docutils literal notranslate"><span class="pre">torchdms.data</span></code>.</p>
+</div>
+<div class="admonition-todo admonition" id="id3">
+<p class="admonition-title">Todo</p>
+<p>Creating models with <code class="docutils literal notranslate"><span class="pre">torchdms.model</span></code>.</p>
+</div>
+<div class="admonition-todo admonition" id="id4">
+<p class="admonition-title">Todo</p>
+<p>Training models with <code class="docutils literal notranslate"><span class="pre">torchdms.analysis</span></code> and <code class="docutils literal notranslate"><span class="pre">torchdms.loss</span></code>.</p>
+</div>
+<div class="admonition-todo admonition" id="id5">
+<p class="admonition-title">Todo</p>
+<p>Evaluating model performance with <code class="docutils literal notranslate"><span class="pre">torchdms.evaluation</span></code> and <code class="docutils literal notranslate"><span class="pre">torchdms.plot</span></code>.</p>
+</div>
+<section id="cli-tutorials">
+<h2>CLI tutorials<a class="headerlink" href="#cli-tutorials" title="Permalink to this headline">¶</a></h2>
+<p>The command line interface is called <code class="docutils literal notranslate"><span class="pre">tdms</span></code>, and has nested subcommands.</p>
+<div class="admonition-todo admonition" id="id6">
+<p class="admonition-title">Todo</p>
+<p>The link below is broken or private. We also need a demo of how to create the pickle file—Zorian has a notebook we could use?</p>
+</div>
+<p>To use torchdms, first build a dataframe of mutations, and pickle that along with the wildtype sequence as for Tyler’s <a class="reference external" href="https://github.com/jbloomlab/NIH45-46_DMS/blob/torchdms/affinity_expression_merge.ipynb">VRC01 data</a>.</p>
+<p>Then prepare data for use by torchdms (this example partitions by library and has both affinity and expression):</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">tdms prep --per-stratum-variants-for-test 500 \</span>
+<span class="go">    --skip-stratum-if-count-is-smaller-than 2000 \</span>
+<span class="go">    --partition-by library \</span>
+<span class="go">    df_and_wtseq.pkl \</span>
+<span class="go">    prepped \</span>
+<span class="go">    affinity_score expr_score</span>
+</pre></div>
+</div>
+<p>Now we create a model:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">tdms create prepped_libA2.pkl my.model &quot;Conditional;[100, 10, 1, 20];[&quot;relu&quot;, &quot;relu&quot;, None, &quot;relu&quot;]&quot;</span>
+</pre></div>
+</div>
+<p>We can train the model with various settings:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">tdms train my.model prepped_libA2.pkl --independent-starts 0 --epochs 10</span>
+</pre></div>
+</div>
+<p>You now have a trained model which you can evaluate on test data using the <code class="docutils literal notranslate"><span class="pre">error</span></code>, <code class="docutils literal notranslate"><span class="pre">scatter</span></code>, <code class="docutils literal notranslate"><span class="pre">geplot</span></code>, and <code class="docutils literal notranslate"><span class="pre">beta</span></code> subcommands.</p>
+<p>Rather than use command line flags, you can use a JSON-format configuration file that might look like</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;default&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;data_path&quot;</span><span class="p">:</span> <span class="s2">&quot;/path/to/data.pkl&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;loss_fn&quot;</span><span class="p">:</span> <span class="s2">&quot;l1&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;model_string&quot;</span><span class="p">:</span> <span class="s2">&quot;Conditional;[100, 10, 1, 20];[&#39;relu&#39;, &#39;relu&#39;, None, &#39;relu&#39;]&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;prefix&quot;</span><span class="p">:</span> <span class="s2">&quot;run&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;seed&quot;</span><span class="p">:</span> <span class="mi">0</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>If you supply it to one of the subcommands using the <code class="docutils literal notranslate"><span class="pre">--config</span></code> flag, this will use the keys of the JSON as command line flags.
+Note that hyphens in command line arguments become underscores in the JSON, for example <code class="docutils literal notranslate"><span class="pre">loss-fn</span></code> becomes <code class="docutils literal notranslate"><span class="pre">loss_fn</span></code>.</p>
+<p>You can build a model, train, and evaluate using <code class="docutils literal notranslate"><span class="pre">tdms</span> <span class="pre">go</span></code>, which works well with such a JSON configuration file (say it is saved as <code class="docutils literal notranslate"><span class="pre">config.json</span></code>):</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">tdms go --config config.json</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="installation.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="cli.html" class="btn btn-neutral float-right" title="Command line interface" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

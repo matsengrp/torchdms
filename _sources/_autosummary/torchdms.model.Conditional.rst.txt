@@ -1,0 +1,91 @@
+torchdms.model.Conditional
+==========================
+
+.. currentmodule:: torchdms.model
+
+.. autoclass:: Conditional
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~Conditional.add_module
+      ~Conditional.apply
+      ~Conditional.beta_coefficients
+      ~Conditional.bfloat16
+      ~Conditional.buffers
+      ~Conditional.children
+      ~Conditional.cpu
+      ~Conditional.cuda
+      ~Conditional.double
+      ~Conditional.eval
+      ~Conditional.extra_repr
+      ~Conditional.fix_gauge
+      ~Conditional.float
+      ~Conditional.forward
+      ~Conditional.from_latent_to_output
+      ~Conditional.get_buffer
+      ~Conditional.get_extra_state
+      ~Conditional.get_parameter
+      ~Conditional.get_submodule
+      ~Conditional.half
+      ~Conditional.load_state_dict
+      ~Conditional.modules
+      ~Conditional.monotonic_params_from_latent_space
+      ~Conditional.named_buffers
+      ~Conditional.named_children
+      ~Conditional.named_modules
+      ~Conditional.named_parameters
+      ~Conditional.numpy_single_mutant_predictions
+      ~Conditional.parameters
+      ~Conditional.randomize_parameters
+      ~Conditional.register_backward_hook
+      ~Conditional.register_buffer
+      ~Conditional.register_forward_hook
+      ~Conditional.register_forward_pre_hook
+      ~Conditional.register_full_backward_hook
+      ~Conditional.register_parameter
+      ~Conditional.regularization_loss
+      ~Conditional.requires_grad_
+      ~Conditional.seq_to_binary
+      ~Conditional.set_extra_state
+      ~Conditional.set_require_grad_for_all_parameters
+      ~Conditional.share_memory
+      ~Conditional.single_mutant_predictions
+      ~Conditional.state_dict
+      ~Conditional.str_summary
+      ~Conditional.to
+      ~Conditional.to_empty
+      ~Conditional.to_latent
+      ~Conditional.train
+      ~Conditional.type
+      ~Conditional.xpu
+      ~Conditional.zero_grad
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~Conditional.T_destination
+      ~Conditional.characteristics
+      ~Conditional.dump_patches
+      ~Conditional.internal_layer_dimensions
+      ~Conditional.latent_dim
+      ~Conditional.sequence_length
+      ~Conditional.training
+      ~Conditional.output_size
+      ~Conditional.layers
+      ~Conditional.training_style_sequence
+   
+   

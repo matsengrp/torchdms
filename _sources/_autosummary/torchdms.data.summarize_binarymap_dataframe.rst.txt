@@ -1,0 +1,6 @@
+torchdms.data.summarize\_binarymap\_dataframe
+=============================================
+
+.. currentmodule:: torchdms.data
+
+.. autofunction:: summarize_binarymap_dataframe

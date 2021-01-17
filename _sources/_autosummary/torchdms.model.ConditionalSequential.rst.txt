@@ -1,0 +1,91 @@
+torchdms.model.ConditionalSequential
+====================================
+
+.. currentmodule:: torchdms.model
+
+.. autoclass:: ConditionalSequential
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~ConditionalSequential.add_module
+      ~ConditionalSequential.apply
+      ~ConditionalSequential.beta_coefficients
+      ~ConditionalSequential.bfloat16
+      ~ConditionalSequential.buffers
+      ~ConditionalSequential.children
+      ~ConditionalSequential.cpu
+      ~ConditionalSequential.cuda
+      ~ConditionalSequential.double
+      ~ConditionalSequential.eval
+      ~ConditionalSequential.extra_repr
+      ~ConditionalSequential.fix_gauge
+      ~ConditionalSequential.float
+      ~ConditionalSequential.forward
+      ~ConditionalSequential.from_latent_to_output
+      ~ConditionalSequential.get_buffer
+      ~ConditionalSequential.get_extra_state
+      ~ConditionalSequential.get_parameter
+      ~ConditionalSequential.get_submodule
+      ~ConditionalSequential.half
+      ~ConditionalSequential.load_state_dict
+      ~ConditionalSequential.modules
+      ~ConditionalSequential.monotonic_params_from_latent_space
+      ~ConditionalSequential.named_buffers
+      ~ConditionalSequential.named_children
+      ~ConditionalSequential.named_modules
+      ~ConditionalSequential.named_parameters
+      ~ConditionalSequential.numpy_single_mutant_predictions
+      ~ConditionalSequential.parameters
+      ~ConditionalSequential.randomize_parameters
+      ~ConditionalSequential.register_backward_hook
+      ~ConditionalSequential.register_buffer
+      ~ConditionalSequential.register_forward_hook
+      ~ConditionalSequential.register_forward_pre_hook
+      ~ConditionalSequential.register_full_backward_hook
+      ~ConditionalSequential.register_parameter
+      ~ConditionalSequential.regularization_loss
+      ~ConditionalSequential.requires_grad_
+      ~ConditionalSequential.seq_to_binary
+      ~ConditionalSequential.set_extra_state
+      ~ConditionalSequential.set_require_grad_for_all_parameters
+      ~ConditionalSequential.share_memory
+      ~ConditionalSequential.single_mutant_predictions
+      ~ConditionalSequential.state_dict
+      ~ConditionalSequential.str_summary
+      ~ConditionalSequential.to
+      ~ConditionalSequential.to_empty
+      ~ConditionalSequential.to_latent
+      ~ConditionalSequential.train
+      ~ConditionalSequential.type
+      ~ConditionalSequential.xpu
+      ~ConditionalSequential.zero_grad
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~ConditionalSequential.T_destination
+      ~ConditionalSequential.characteristics
+      ~ConditionalSequential.dump_patches
+      ~ConditionalSequential.internal_layer_dimensions
+      ~ConditionalSequential.latent_dim
+      ~ConditionalSequential.sequence_length
+      ~ConditionalSequential.training
+      ~ConditionalSequential.output_size
+      ~ConditionalSequential.layers
+      ~ConditionalSequential.training_style_sequence
+   
+   

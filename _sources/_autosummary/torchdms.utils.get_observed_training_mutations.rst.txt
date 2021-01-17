@@ -1,0 +1,6 @@
+torchdms.utils.get\_observed\_training\_mutations
+=================================================
+
+.. currentmodule:: torchdms.utils
+
+.. autofunction:: get_observed_training_mutations

@@ -1,0 +1,6 @@
+torchdms.utils.get\_mutation\_indicies
+======================================
+
+.. currentmodule:: torchdms.utils
+
+.. autofunction:: get_mutation_indicies

@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>torchdms.model &mdash; torchdms 0.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="torchdms.model.Conditional" href="torchdms.model.Conditional.html" />
+    <link rel="prev" title="torchdms.loss.weighted_loss" href="torchdms.loss.weighted_loss.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> torchdms
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cli.html">Command line interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../model.html">Specifying models</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="torchdms.html">torchdms</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="torchdms.analysis.html">torchdms.analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="torchdms.cli.html">torchdms.cli</a></li>
+<li class="toctree-l2"><a class="reference internal" href="torchdms.data.html">torchdms.data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="torchdms.evaluation.html">torchdms.evaluation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="torchdms.loss.html">torchdms.loss</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">torchdms.model</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="torchdms.model.Conditional.html">torchdms.model.Conditional</a></li>
+<li class="toctree-l3"><a class="reference internal" href="torchdms.model.ConditionalSequential.html">torchdms.model.ConditionalSequential</a></li>
+<li class="toctree-l3"><a class="reference internal" href="torchdms.model.Escape.html">torchdms.model.Escape</a></li>
+<li class="toctree-l3"><a class="reference internal" href="torchdms.model.FullyConnected.html">torchdms.model.FullyConnected</a></li>
+<li class="toctree-l3"><a class="reference internal" href="torchdms.model.Independent.html">torchdms.model.Independent</a></li>
+<li class="toctree-l3"><a class="reference internal" href="torchdms.model.Linear.html">torchdms.model.Linear</a></li>
+<li class="toctree-l3"><a class="reference internal" href="torchdms.model.TorchdmsModel.html">torchdms.model.TorchdmsModel</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="torchdms.plot.html">torchdms.plot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="torchdms.utils.html">torchdms.utils</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">torchdms</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="torchdms.html">torchdms</a> &raquo;</li>
+      <li>torchdms.model</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-torchdms.model">
+<span id="torchdms-model"></span><h1>torchdms.model<a class="headerlink" href="#module-torchdms.model" title="Permalink to this headline">¶</a></h1>
+<p>Generalized global epistasis models.</p>
+<p class="rubric">Classes</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="torchdms.model.Conditional.html#torchdms.model.Conditional" title="torchdms.model.Conditional"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Conditional</span></code></a></p></td>
+<td><p>Allows the latent space for the second output feature (i.e.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="torchdms.model.ConditionalSequential.html#torchdms.model.ConditionalSequential" title="torchdms.model.ConditionalSequential"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ConditionalSequential</span></code></a></p></td>
+<td><p>Conditional with sequential training: stability then binding.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="torchdms.model.Escape.html#torchdms.model.Escape" title="torchdms.model.Escape"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Escape</span></code></a></p></td>
+<td><p>A model of viral escape with multiple epitopes, each with its own latent layer.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="torchdms.model.FullyConnected.html#torchdms.model.FullyConnected" title="torchdms.model.FullyConnected"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FullyConnected</span></code></a></p></td>
+<td><p>A flexible fully connected neural network model.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="torchdms.model.Independent.html#torchdms.model.Independent" title="torchdms.model.Independent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Independent</span></code></a></p></td>
+<td><p>Parallel and independent submodules of type <a class="reference internal" href="torchdms.model.FullyConnected.html#torchdms.model.FullyConnected" title="torchdms.model.FullyConnected"><code class="xref py py-class docutils literal notranslate"><span class="pre">torchdms.model.FullyConnected</span></code></a> for each of two output dimensions.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="torchdms.model.Linear.html#torchdms.model.Linear" title="torchdms.model.Linear"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Linear</span></code></a></p></td>
+<td><p>A linear model, expressed as a single layer neural network with no nonlinear activations.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="torchdms.model.TorchdmsModel.html#torchdms.model.TorchdmsModel" title="torchdms.model.TorchdmsModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TorchdmsModel</span></code></a></p></td>
+<td><p>An abstract superclass for our models to combine shared behavior.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt class="sig sig-object py" id="torchdms.model.TorchdmsModel">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">torchdms.model.</span></span><span class="sig-name descname"><span class="pre">TorchdmsModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_names</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alphabet</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">monotonic_sign</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">non_lin_bias</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_bias</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#TorchdmsModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.TorchdmsModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>An abstract superclass for our models to combine shared behavior.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>) – number of one-hot sequence indicators <span class="math notranslate nohighlight">\(L\times |\mathcal{A}|\)</span>,
+for sequence of length <span class="math notranslate nohighlight">\(L\)</span> and amino acid alphabet <span class="math notranslate nohighlight">\(\mathcal{A}\)</span>.</p></li>
+<li><p><strong>target_names</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]) – output names (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;expression&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;stability&quot;</span></code>).</p></li>
+<li><p><strong>alphabet</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – amino acid alphabet <span class="math notranslate nohighlight">\(\mathcal{A}\)</span>.</p></li>
+<li><p><strong>monotonic_sign</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.10)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>]) – <code class="docutils literal notranslate"><span class="pre">1</span></code> or <code class="docutils literal notranslate"><span class="pre">-1</span></code> for monotonicity, or <code class="docutils literal notranslate"><span class="pre">None</span></code></p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="torchdms.model.TorchdmsModel.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_names</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alphabet</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">monotonic_sign</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">non_lin_bias</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_bias</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#TorchdmsModel.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.TorchdmsModel.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="torchdms.model.TorchdmsModel.output_size">
+<span class="sig-name descname"><span class="pre">output_size</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></em><a class="headerlink" href="#torchdms.model.TorchdmsModel.output_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>output dimension (number of phenotypes)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="torchdms.model.TorchdmsModel.layers">
+<span class="sig-name descname"><span class="pre">layers</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#torchdms.model.TorchdmsModel.layers" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of layer names</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="torchdms.model.TorchdmsModel.training_style_sequence">
+<span class="sig-name descname"><span class="pre">training_style_sequence</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#torchdms.model.TorchdmsModel.training_style_sequence" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of training style functions that (de)activate gradients in submodules</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="torchdms.model.TorchdmsModel.characteristics">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">characteristics</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span></em><a class="headerlink" href="#torchdms.model.TorchdmsModel.characteristics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Salient characteristics of the model that aren’t represented
+in the PyTorch description.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="torchdms.model.TorchdmsModel.latent_dim">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">latent_dim</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></em><a class="headerlink" href="#torchdms.model.TorchdmsModel.latent_dim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of dimensions in latent space.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="torchdms.model.TorchdmsModel.regularization_loss">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">regularization_loss</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#TorchdmsModel.regularization_loss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.TorchdmsModel.regularization_loss" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute regularization penalty, a scalar-valued <a class="reference external" href="https://pytorch.org/docs/master/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.11.0a0+gitef07820 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://pytorch.org/docs/master/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.11.0a0+gitef07820 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="torchdms.model.TorchdmsModel.str_summary">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">str_summary</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#TorchdmsModel.str_summary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.TorchdmsModel.str_summary" title="Permalink to this definition">¶</a></dt>
+<dd><p>A one-line summary of the model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="torchdms.model.TorchdmsModel.beta_coefficients">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">beta_coefficients</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#TorchdmsModel.beta_coefficients"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.TorchdmsModel.beta_coefficients" title="Permalink to this definition">¶</a></dt>
+<dd><p>Single mutant effects <span class="math notranslate nohighlight">\(\beta\)</span></p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://pytorch.org/docs/master/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.11.0a0+gitef07820 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="torchdms.model.TorchdmsModel.to_latent">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">to_latent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#TorchdmsModel.to_latent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.TorchdmsModel.to_latent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Latent space representation <span class="math notranslate nohighlight">\(Z\)</span></p>
+<div class="math notranslate nohighlight">
+\[z \equiv \phi(x) \equiv \beta^\intercal x\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>x</strong> (<a class="reference external" href="https://pytorch.org/docs/master/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.11.0a0+gitef07820 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code></a>) – input data tensor <span class="math notranslate nohighlight">\(X\)</span></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://pytorch.org/docs/master/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.11.0a0+gitef07820 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="torchdms.model.TorchdmsModel.from_latent_to_output">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_latent_to_output</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#TorchdmsModel.from_latent_to_output"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.TorchdmsModel.from_latent_to_output" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluate the mapping from the latent space to output.</p>
+<div class="math notranslate nohighlight">
+\[y = g(z)\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>z</strong> (<a class="reference external" href="https://pytorch.org/docs/master/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.11.0a0+gitef07820 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code></a>) – latent space representation</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://pytorch.org/docs/master/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.11.0a0+gitef07820 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="torchdms.model.TorchdmsModel.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#TorchdmsModel.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.TorchdmsModel.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>data <span class="math notranslate nohighlight">\(X\)</span> <span class="math notranslate nohighlight">\(\rightarrow\)</span> output <span class="math notranslate nohighlight">\(Y\)</span>.</p>
+<div class="math notranslate nohighlight">
+\[y = g(\phi(x))\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>x</strong> (<a class="reference external" href="https://pytorch.org/docs/master/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.11.0a0+gitef07820 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code></a>) – input data tensor <span class="math notranslate nohighlight">\(X\)</span></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://pytorch.org/docs/master/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.11.0a0+gitef07820 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="torchdms.model.TorchdmsModel.fix_gauge">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">fix_gauge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gauge_mask</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#TorchdmsModel.fix_gauge"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.TorchdmsModel.fix_gauge" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform gauge-fixing procedure on latent space parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>gauge_mask</strong> (<a class="reference external" href="https://pytorch.org/docs/master/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.11.0a0+gitef07820 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code></a>) – 0/1 mask array the same shape as latent space input with 1s
+for parameters that should be zeroed</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="torchdms.model.TorchdmsModel.sequence_length">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">sequence_length</span></span><a class="headerlink" href="#torchdms.model.TorchdmsModel.sequence_length" title="Permalink to this definition">¶</a></dt>
+<dd><p>input amino acid sequence length</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="torchdms.model.TorchdmsModel.numpy_single_mutant_predictions">
+<span class="sig-name descname"><span class="pre">numpy_single_mutant_predictions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#TorchdmsModel.numpy_single_mutant_predictions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.TorchdmsModel.numpy_single_mutant_predictions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Single mutant predictions as a numpy array of shape (AAs,
+sites, outputs).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="torchdms.model.TorchdmsModel.single_mutant_predictions">
+<span class="sig-name descname"><span class="pre">single_mutant_predictions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#TorchdmsModel.single_mutant_predictions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.TorchdmsModel.single_mutant_predictions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Single mutant predictions as a list (across output dimensions) of
+Pandas dataframes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="torchdms.model.TorchdmsModel.monotonic_params_from_latent_space">
+<span class="sig-name descname"><span class="pre">monotonic_params_from_latent_space</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#TorchdmsModel.monotonic_params_from_latent_space"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.TorchdmsModel.monotonic_params_from_latent_space" title="Permalink to this definition">¶</a></dt>
+<dd><p>Yields parameters to be floored to zero in a monotonic
+model. This is every parameter after the latent space excluding bias
+parameters.</p>
+<p>We follow the convention that the latent layers of a network are
+named like <code class="docutils literal notranslate"><span class="pre">latent_layer*</span></code> and the weights and bias are denoted
+<code class="docutils literal notranslate"><span class="pre">layer_name*.weight</span></code> and <code class="docutils literal notranslate"><span class="pre">layer_name*.bias</span></code>.</p>
+<p>Layers from nested modules will be prefixed (e.g. with Independent).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Generator" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Generator</span></code></a>[<a class="reference external" href="https://pytorch.org/docs/master/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.11.0a0+gitef07820 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="torchdms.model.TorchdmsModel.randomize_parameters">
+<span class="sig-name descname"><span class="pre">randomize_parameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#TorchdmsModel.randomize_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.TorchdmsModel.randomize_parameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Randomize model parameters.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="torchdms.model.TorchdmsModel.set_require_grad_for_all_parameters">
+<span class="sig-name descname"><span class="pre">set_require_grad_for_all_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#TorchdmsModel.set_require_grad_for_all_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.TorchdmsModel.set_require_grad_for_all_parameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set <code class="docutils literal notranslate"><span class="pre">require_grad</span></code> for all parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>value</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>) – <code class="docutils literal notranslate"><span class="pre">require_grad=value</span></code> for all parameters</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="torchdms.model.TorchdmsModel.seq_to_binary">
+<span class="sig-name descname"><span class="pre">seq_to_binary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seq</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#TorchdmsModel.seq_to_binary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.TorchdmsModel.seq_to_binary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes a string of amino acids and creates an appropriate one-hot
+encoding.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="torchdms.model.Linear">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">torchdms.model.</span></span><span class="sig-name descname"><span class="pre">Linear</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#Linear"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.Linear" title="Permalink to this definition">¶</a></dt>
+<dd><p>A linear model, expressed as a single layer neural network with no nonlinear activations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> – positional arguments, see <a class="reference internal" href="torchdms.model.TorchdmsModel.html#torchdms.model.TorchdmsModel" title="torchdms.model.TorchdmsModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">torchdms.model.TorchdmsModel</span></code></a></p></li>
+<li><p><strong>kwargs</strong> – keyword arguments, see <a class="reference internal" href="torchdms.model.TorchdmsModel.html#torchdms.model.TorchdmsModel" title="torchdms.model.TorchdmsModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">torchdms.model.TorchdmsModel</span></code></a></p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="torchdms.model.Linear.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#Linear.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.Linear.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="torchdms.model.Linear.characteristics">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">characteristics</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span></em><a class="headerlink" href="#torchdms.model.Linear.characteristics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Salient characteristics of the model that aren’t represented
+in the PyTorch description.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="torchdms.model.Linear.latent_dim">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">latent_dim</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></em><a class="headerlink" href="#torchdms.model.Linear.latent_dim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of dimensions in latent space.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="torchdms.model.Linear.beta_coefficients">
+<span class="sig-name descname"><span class="pre">beta_coefficients</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#Linear.beta_coefficients"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.Linear.beta_coefficients" title="Permalink to this definition">¶</a></dt>
+<dd><p>Single mutant effects <span class="math notranslate nohighlight">\(\beta\)</span></p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://pytorch.org/docs/master/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.11.0a0+gitef07820 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="torchdms.model.Linear.from_latent_to_output">
+<span class="sig-name descname"><span class="pre">from_latent_to_output</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#Linear.from_latent_to_output"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.Linear.from_latent_to_output" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluate the mapping from the latent space to output.</p>
+<div class="math notranslate nohighlight">
+\[y = g(z)\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>z</strong> (<a class="reference external" href="https://pytorch.org/docs/master/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.11.0a0+gitef07820 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code></a>) – latent space representation</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://pytorch.org/docs/master/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.11.0a0+gitef07820 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="torchdms.model.Linear.regularization_loss">
+<span class="sig-name descname"><span class="pre">regularization_loss</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#Linear.regularization_loss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.Linear.regularization_loss" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute regularization penalty, a scalar-valued <a class="reference external" href="https://pytorch.org/docs/master/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.11.0a0+gitef07820 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://pytorch.org/docs/master/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.11.0a0+gitef07820 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="torchdms.model.Linear.str_summary">
+<span class="sig-name descname"><span class="pre">str_summary</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#Linear.str_summary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.Linear.str_summary" title="Permalink to this definition">¶</a></dt>
+<dd><p>A one-line summary of the model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="torchdms.model.Linear.to_latent">
+<span class="sig-name descname"><span class="pre">to_latent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#Linear.to_latent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.Linear.to_latent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Latent space representation <span class="math notranslate nohighlight">\(Z\)</span></p>
+<div class="math notranslate nohighlight">
+\[z \equiv \phi(x) \equiv \beta^\intercal x\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>x</strong> (<a class="reference external" href="https://pytorch.org/docs/master/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.11.0a0+gitef07820 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code></a>) – input data tensor <span class="math notranslate nohighlight">\(X\)</span></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://pytorch.org/docs/master/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.11.0a0+gitef07820 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="torchdms.model.Linear.fix_gauge">
+<span class="sig-name descname"><span class="pre">fix_gauge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gauge_mask</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#Linear.fix_gauge"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.Linear.fix_gauge" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform gauge-fixing procedure on latent space parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>gauge_mask</strong> – 0/1 mask array the same shape as latent space input with 1s
+for parameters that should be zeroed</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="torchdms.model.Escape">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">torchdms.model.</span></span><span class="sig-name descname"><span class="pre">Escape</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_epitopes</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta_l1_coefficient</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#Escape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.Escape" title="Permalink to this definition">¶</a></dt>
+<dd><p>A model of viral escape with multiple epitopes, each with its own latent layer.</p>
+<p>The output is assumed to be escape fraction <span class="math notranslate nohighlight">\(\in (0, 1)\)</span>. The nonlinearity is
+fixed as the product of Hill functions for each epitope.</p>
+<div class="admonition-todo admonition" id="id1">
+<p class="admonition-title">Todo</p>
+<p>model math markup, and schematic needed here</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_epitopes</strong> – number of epitopes (latent dimensions)</p></li>
+<li><p><strong>args</strong> – base positional arguments, see <a class="reference internal" href="torchdms.model.TorchdmsModel.html#torchdms.model.TorchdmsModel" title="torchdms.model.TorchdmsModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">torchdms.model.TorchdmsModel</span></code></a></p></li>
+<li><p><strong>beta_l1_coefficient</strong> (<a class="reference internal" href="torchdms.model.Escape.html#torchdms.model.Escape.float" title="torchdms.model.Escape.float"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – lasso penalty on latent space <span class="math notranslate nohighlight">\(beta\)</span> coefficients</p></li>
+<li><p><strong>kwargs</strong> – base keyword arguments, see <a class="reference internal" href="torchdms.model.TorchdmsModel.html#torchdms.model.TorchdmsModel" title="torchdms.model.TorchdmsModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">torchdms.model.TorchdmsModel</span></code></a></p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="torchdms.model.Escape.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_epitopes</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta_l1_coefficient</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#Escape.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.Escape.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="torchdms.model.Escape.characteristics">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">characteristics</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span></em><a class="headerlink" href="#torchdms.model.Escape.characteristics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Salient characteristics of the model that aren’t represented
+in the PyTorch description.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="torchdms.model.Escape.latent_dim">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">latent_dim</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></em><a class="headerlink" href="#torchdms.model.Escape.latent_dim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of dimensions in latent space.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="torchdms.model.Escape.str_summary">
+<span class="sig-name descname"><span class="pre">str_summary</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#Escape.str_summary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.Escape.str_summary" title="Permalink to this definition">¶</a></dt>
+<dd><p>A one-line summary of the model.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="torchdms.model.Escape.to_latent">
+<span class="sig-name descname"><span class="pre">to_latent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#Escape.to_latent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.Escape.to_latent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Latent space representation <span class="math notranslate nohighlight">\(Z\)</span></p>
+<div class="math notranslate nohighlight">
+\[z \equiv \phi(x) \equiv \beta^\intercal x\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>x</strong> (<a class="reference external" href="https://pytorch.org/docs/master/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.11.0a0+gitef07820 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code></a>) – input data tensor <span class="math notranslate nohighlight">\(X\)</span></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://pytorch.org/docs/master/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.11.0a0+gitef07820 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="torchdms.model.Escape.wt_activity">
+<span class="sig-name descname"><span class="pre">wt_activity</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#Escape.wt_activity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.Escape.wt_activity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wild type activity values for each epitope</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://pytorch.org/docs/master/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.11.0a0+gitef07820 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="torchdms.model.Escape.from_latent_to_output">
+<span class="sig-name descname"><span class="pre">from_latent_to_output</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">concentrations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#Escape.from_latent_to_output"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.Escape.from_latent_to_output" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluate the mapping from the latent space to output.</p>
+<div class="math notranslate nohighlight">
+\[y = g(z)\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>z</strong> (<a class="reference external" href="https://pytorch.org/docs/master/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.11.0a0+gitef07820 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code></a>) – latent space representation</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://pytorch.org/docs/master/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.11.0a0+gitef07820 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="torchdms.model.Escape.beta_coefficients">
+<span class="sig-name descname"><span class="pre">beta_coefficients</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#Escape.beta_coefficients"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.Escape.beta_coefficients" title="Permalink to this definition">¶</a></dt>
+<dd><p>Single mutant effects <span class="math notranslate nohighlight">\(\beta\)</span></p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://pytorch.org/docs/master/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.11.0a0+gitef07820 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="torchdms.model.Escape.regularization_loss">
+<span class="sig-name descname"><span class="pre">regularization_loss</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#Escape.regularization_loss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.Escape.regularization_loss" title="Permalink to this definition">¶</a></dt>
+<dd><p>Lasso penalty of single mutant effects, a scalar-valued
+<a class="reference external" href="https://pytorch.org/docs/master/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.11.0a0+gitef07820 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a></p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="torchdms.model.Escape.fix_gauge">
+<span class="sig-name descname"><span class="pre">fix_gauge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gauge_mask</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#Escape.fix_gauge"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.Escape.fix_gauge" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform gauge-fixing procedure on latent space parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>gauge_mask</strong> – 0/1 mask array the same shape as latent space input with 1s
+for parameters that should be zeroed</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="torchdms.model.FullyConnected">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">torchdms.model.</span></span><span class="sig-name descname"><span class="pre">FullyConnected</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layer_sizes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activations</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta_l1_coefficient</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interaction_l1_coefficient</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#FullyConnected"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.FullyConnected" title="Permalink to this definition">¶</a></dt>
+<dd><p>A flexible fully connected neural network model.</p>
+<div class="admonition-todo admonition" id="id2">
+<p class="admonition-title">Todo</p>
+<p>schematic image</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>layer_sizes</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>]) – Sequence of widths for each layer between input and output.</p></li>
+<li><p><strong>activations</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.10)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code></a>]) – <p>Corresponding activation functions for each layer.
+The first layer with <code class="docutils literal notranslate"><span class="pre">None</span></code> or <code class="docutils literal notranslate"><span class="pre">nn.Identity()</span></code> activation
+is the latent space.</p>
+<div class="admonition-todo admonition" id="id3">
+<p class="admonition-title">Todo</p>
+<p>allowable activation function names?</p>
+</div>
+</p></li>
+<li><p><strong>args</strong> – base positional arguments, see <a class="reference internal" href="torchdms.model.TorchdmsModel.html#torchdms.model.TorchdmsModel" title="torchdms.model.TorchdmsModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">torchdms.model.TorchdmsModel</span></code></a></p></li>
+<li><p><strong>beta_l1_coefficient</strong> (<a class="reference internal" href="torchdms.model.FullyConnected.html#torchdms.model.FullyConnected.float" title="torchdms.model.FullyConnected.float"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – lasso penalty on latent space <span class="math notranslate nohighlight">\(\beta\)</span> coefficients</p></li>
+<li><p><strong>interaction_l1_coefficient</strong> (<a class="reference internal" href="torchdms.model.FullyConnected.html#torchdms.model.FullyConnected.float" title="torchdms.model.FullyConnected.float"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – lasso penalty on parameters in the pre-latent
+interaction layer(s)</p></li>
+<li><p><strong>kwargs</strong> – base keyword arguments, see <a class="reference internal" href="torchdms.model.TorchdmsModel.html#torchdms.model.TorchdmsModel" title="torchdms.model.TorchdmsModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">torchdms.model.TorchdmsModel</span></code></a></p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<p>With <code class="docutils literal notranslate"><span class="pre">layer_sizes</span> <span class="pre">=</span> <span class="pre">[10,</span> <span class="pre">2,</span> <span class="pre">10,</span> <span class="pre">10]</span></code> and
+<code class="docutils literal notranslate"><span class="pre">activations</span> <span class="pre">=</span> <span class="pre">[&quot;relu&quot;,</span> <span class="pre">None,</span> <span class="pre">&quot;relu&quot;,</span> <span class="pre">&quot;relu&quot;]</span></code>
+we have a latent space of 2 nodes, feeding into
+two more dense layers, each with 10 nodes, before the output.
+Layers before the latent layer are a nonlinear module for site-wise
+interactions, in this case one layer of 10 nodes.
+The latent space has skip connections directly from the input layer,
+so we always model single mutation effects.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="torchdms.model.FullyConnected.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layer_sizes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activations</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta_l1_coefficient</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interaction_l1_coefficient</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#FullyConnected.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.FullyConnected.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="torchdms.model.FullyConnected.characteristics">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">characteristics</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span></em><a class="headerlink" href="#torchdms.model.FullyConnected.characteristics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Salient characteristics of the model that aren’t represented
+in the PyTorch description.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="torchdms.model.FullyConnected.internal_layer_dimensions">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">internal_layer_dimensions</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#torchdms.model.FullyConnected.internal_layer_dimensions" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of widths of internal layers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="torchdms.model.FullyConnected.latent_dim">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">latent_dim</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></em><a class="headerlink" href="#torchdms.model.FullyConnected.latent_dim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of dimensions in latent space.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="torchdms.model.FullyConnected.str_summary">
+<span class="sig-name descname"><span class="pre">str_summary</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#FullyConnected.str_summary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.FullyConnected.str_summary" title="Permalink to this definition">¶</a></dt>
+<dd><p>A one-line summary of the model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="torchdms.model.FullyConnected.fix_gauge">
+<span class="sig-name descname"><span class="pre">fix_gauge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gauge_mask</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#FullyConnected.fix_gauge"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.FullyConnected.fix_gauge" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform gauge-fixing procedure on latent space parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>gauge_mask</strong> – 0/1 mask array the same shape as latent space input with 1s
+for parameters that should be zeroed</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="torchdms.model.FullyConnected.to_latent">
+<span class="sig-name descname"><span class="pre">to_latent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#FullyConnected.to_latent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.FullyConnected.to_latent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Latent space representation <span class="math notranslate nohighlight">\(Z\)</span></p>
+<div class="math notranslate nohighlight">
+\[z \equiv \phi(x) \equiv \beta^\intercal x\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>x</strong> (<a class="reference external" href="https://pytorch.org/docs/master/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.11.0a0+gitef07820 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code></a>) – input data tensor <span class="math notranslate nohighlight">\(X\)</span></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://pytorch.org/docs/master/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.11.0a0+gitef07820 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="torchdms.model.FullyConnected.from_latent_to_output">
+<span class="sig-name descname"><span class="pre">from_latent_to_output</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#FullyConnected.from_latent_to_output"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.FullyConnected.from_latent_to_output" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluate the mapping from the latent space to output.</p>
+<div class="math notranslate nohighlight">
+\[y = g(z)\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>z</strong> (<a class="reference external" href="https://pytorch.org/docs/master/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.11.0a0+gitef07820 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code></a>) – latent space representation</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://pytorch.org/docs/master/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.11.0a0+gitef07820 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="torchdms.model.FullyConnected.beta_coefficients">
+<span class="sig-name descname"><span class="pre">beta_coefficients</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#FullyConnected.beta_coefficients"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.FullyConnected.beta_coefficients" title="Permalink to this definition">¶</a></dt>
+<dd><p>Beta coefficients (single mutant effects only, no interaction
+terms)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://pytorch.org/docs/master/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.11.0a0+gitef07820 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="torchdms.model.FullyConnected.regularization_loss">
+<span class="sig-name descname"><span class="pre">regularization_loss</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#FullyConnected.regularization_loss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.FullyConnected.regularization_loss" title="Permalink to this definition">¶</a></dt>
+<dd><p>Lasso penalty of single mutant effects and pre-latent interaction
+weights, a scalar-valued <a class="reference external" href="https://pytorch.org/docs/master/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.11.0a0+gitef07820 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://pytorch.org/docs/master/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.11.0a0+gitef07820 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="torchdms.model.Independent">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">torchdms.model.</span></span><span class="sig-name descname"><span class="pre">Independent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layer_sizes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activations</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta_l1_coefficients</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.0,</span> <span class="pre">0.0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interaction_l1_coefficients</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.0,</span> <span class="pre">0.0)</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#Independent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.Independent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parallel and independent submodules of type <a class="reference internal" href="torchdms.model.FullyConnected.html#torchdms.model.FullyConnected" title="torchdms.model.FullyConnected"><code class="xref py py-class docutils literal notranslate"><span class="pre">torchdms.model.FullyConnected</span></code></a>
+for each of two output dimensions.</p>
+<div class="admonition-todo admonition" id="id4">
+<p class="admonition-title">Todo</p>
+<p>schematic image</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>layer_sizes</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>]) – Sequence of widths for each layer between input and output <em>for both
+submodules</em>.</p></li>
+<li><p><strong>activations</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.10)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code></a>]) – <p>Corresponding activation functions for each layer <em>for both submodules</em>.
+The first layer with <code class="docutils literal notranslate"><span class="pre">None</span></code> or <code class="docutils literal notranslate"><span class="pre">nn.Identity()</span></code> activation is the
+latent space.</p>
+<div class="admonition-todo admonition" id="id5">
+<p class="admonition-title">Todo</p>
+<p>allowable activation function names?</p>
+</div>
+</p></li>
+<li><p><strong>args</strong> – base positional arguments, see <a class="reference internal" href="torchdms.model.TorchdmsModel.html#torchdms.model.TorchdmsModel" title="torchdms.model.TorchdmsModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">torchdms.model.TorchdmsModel</span></code></a></p></li>
+<li><p><strong>beta_l1_coefficients</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.10)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code></a>[<a class="reference internal" href="torchdms.model.Independent.html#torchdms.model.Independent.float" title="torchdms.model.Independent.float"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]) – lasso penalties on latent space <span class="math notranslate nohighlight">\(\beta\)</span> coefficients
+<em>for each submodule</em></p></li>
+<li><p><strong>interaction_l1_coefficients</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.10)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code></a>[<a class="reference internal" href="torchdms.model.Independent.html#torchdms.model.Independent.float" title="torchdms.model.Independent.float"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]) – lasso penalty on parameters in the pre-latent
+interaction layer(s) <em>for each submodule</em></p></li>
+<li><p><strong>kwargs</strong> – base keyword arguments, see <a class="reference internal" href="torchdms.model.TorchdmsModel.html#torchdms.model.TorchdmsModel" title="torchdms.model.TorchdmsModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">torchdms.model.TorchdmsModel</span></code></a></p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="torchdms.model.Independent.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layer_sizes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activations</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta_l1_coefficients</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.0,</span> <span class="pre">0.0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interaction_l1_coefficients</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.0,</span> <span class="pre">0.0)</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#Independent.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.Independent.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="torchdms.model.Independent.characteristics">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">characteristics</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span></em><a class="headerlink" href="#torchdms.model.Independent.characteristics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Salient characteristics of the model that aren’t represented
+in the PyTorch description.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="torchdms.model.Independent.latent_dim">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">latent_dim</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></em><a class="headerlink" href="#torchdms.model.Independent.latent_dim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of dimensions in latent space.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="torchdms.model.Independent.str_summary">
+<span class="sig-name descname"><span class="pre">str_summary</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#Independent.str_summary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.Independent.str_summary" title="Permalink to this definition">¶</a></dt>
+<dd><p>A one-line summary of the model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="torchdms.model.Independent.from_latent_to_output">
+<span class="sig-name descname"><span class="pre">from_latent_to_output</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#Independent.from_latent_to_output"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.Independent.from_latent_to_output" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluate the mapping from the latent space to output.</p>
+<div class="math notranslate nohighlight">
+\[y = g(z)\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>z</strong> (<a class="reference external" href="https://pytorch.org/docs/master/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.11.0a0+gitef07820 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code></a>) – latent space representation</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://pytorch.org/docs/master/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.11.0a0+gitef07820 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="torchdms.model.Independent.to_latent">
+<span class="sig-name descname"><span class="pre">to_latent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#Independent.to_latent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.Independent.to_latent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Latent space representation <span class="math notranslate nohighlight">\(Z\)</span></p>
+<div class="math notranslate nohighlight">
+\[z \equiv \phi(x) \equiv \beta^\intercal x\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>x</strong> (<a class="reference external" href="https://pytorch.org/docs/master/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.11.0a0+gitef07820 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code></a>) – input data tensor <span class="math notranslate nohighlight">\(X\)</span></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://pytorch.org/docs/master/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.11.0a0+gitef07820 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="torchdms.model.Independent.beta_coefficients">
+<span class="sig-name descname"><span class="pre">beta_coefficients</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#Independent.beta_coefficients"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.Independent.beta_coefficients" title="Permalink to this definition">¶</a></dt>
+<dd><p>beta coefficients, skip coefficients only if interaction module.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://pytorch.org/docs/master/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.11.0a0+gitef07820 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="torchdms.model.Independent.regularization_loss">
+<span class="sig-name descname"><span class="pre">regularization_loss</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#Independent.regularization_loss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.Independent.regularization_loss" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute regularization penalty, a scalar-valued <a class="reference external" href="https://pytorch.org/docs/master/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.11.0a0+gitef07820 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://pytorch.org/docs/master/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.11.0a0+gitef07820 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="torchdms.model.Independent.fix_gauge">
+<span class="sig-name descname"><span class="pre">fix_gauge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gauge_mask</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#Independent.fix_gauge"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.Independent.fix_gauge" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform gauge-fixing procedure on latent space parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>gauge_mask</strong> – 0/1 mask array the same shape as latent space input with 1s
+for parameters that should be zeroed</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="torchdms.model.Conditional">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">torchdms.model.</span></span><span class="sig-name descname"><span class="pre">Conditional</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#Conditional"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.Conditional" title="Permalink to this definition">¶</a></dt>
+<dd><p>Allows the latent space for the second output feature (i.e. stability)
+to feed forward into the network for the first output feature (i.e.
+binding).</p>
+<p>This requires a one-dimensional latent space (see
+<a class="reference internal" href="torchdms.model.Conditional.html#torchdms.model.Conditional.from_latent_to_output" title="torchdms.model.Conditional.from_latent_to_output"><code class="xref py py-meth docutils literal notranslate"><span class="pre">torchdms.model.Conditional.from_latent_to_output()</span></code></a> to see why).</p>
+<div class="admonition-todo admonition" id="id6">
+<p class="admonition-title">Todo</p>
+<p>schematic image:
+<a class="reference external" href="https://user-images.githubusercontent.com/1173298/89943302-d4524d00-dbd2-11ea-827d-6ad6c238ff52.png">https://user-images.githubusercontent.com/1173298/89943302-d4524d00-dbd2-11ea-827d-6ad6c238ff52.png</a></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> – positional arguments, see <a class="reference internal" href="torchdms.model.Independent.html#torchdms.model.Independent" title="torchdms.model.Independent"><code class="xref py py-class docutils literal notranslate"><span class="pre">torchdms.model.Independent</span></code></a></p></li>
+<li><p><strong>kwargs</strong> – keyword arguments, see <a class="reference internal" href="torchdms.model.Independent.html#torchdms.model.Independent" title="torchdms.model.Independent"><code class="xref py py-class docutils literal notranslate"><span class="pre">torchdms.model.Independent</span></code></a></p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="torchdms.model.Conditional.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#Conditional.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.Conditional.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="torchdms.model.Conditional.from_latent_to_output">
+<span class="sig-name descname"><span class="pre">from_latent_to_output</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#Conditional.from_latent_to_output"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.Conditional.from_latent_to_output" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluate the mapping from the latent space to output.</p>
+<div class="math notranslate nohighlight">
+\[y = g(z)\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>z</strong> (<a class="reference external" href="https://pytorch.org/docs/master/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.11.0a0+gitef07820 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code></a>) – latent space representation</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://pytorch.org/docs/master/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.11.0a0+gitef07820 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="torchdms.model.ConditionalSequential">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">torchdms.model.</span></span><span class="sig-name descname"><span class="pre">ConditionalSequential</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#ConditionalSequential"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.ConditionalSequential" title="Permalink to this definition">¶</a></dt>
+<dd><p>Conditional with sequential training: stability then binding.</p>
+<div class="admonition-todo admonition" id="id7">
+<p class="admonition-title">Todo</p>
+<p>schematic image</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> – positional arguments, see <a class="reference internal" href="torchdms.model.Conditional.html#torchdms.model.Conditional" title="torchdms.model.Conditional"><code class="xref py py-class docutils literal notranslate"><span class="pre">torchdms.model.Conditional</span></code></a></p></li>
+<li><p><strong>kwargs</strong> – keyword arguments, see <a class="reference internal" href="torchdms.model.Conditional.html#torchdms.model.Conditional" title="torchdms.model.Conditional"><code class="xref py py-class docutils literal notranslate"><span class="pre">torchdms.model.Conditional</span></code></a></p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="torchdms.model.ConditionalSequential.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/model.html#ConditionalSequential.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.model.ConditionalSequential.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="torchdms.loss.weighted_loss.html" class="btn btn-neutral float-left" title="torchdms.loss.weighted_loss" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="torchdms.model.Conditional.html" class="btn btn-neutral float-right" title="torchdms.model.Conditional" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

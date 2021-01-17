@@ -1,0 +1,6 @@
+torchdms.data.explode\_binarymap\_dataframe
+===========================================
+
+.. currentmodule:: torchdms.data
+
+.. autofunction:: explode_binarymap_dataframe

@@ -1,0 +1,6 @@
+torchdms.loss.sum\_diff\_penalty
+================================
+
+.. currentmodule:: torchdms.loss
+
+.. autofunction:: sum_diff_penalty

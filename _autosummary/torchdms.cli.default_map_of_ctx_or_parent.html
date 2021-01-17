@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>torchdms.cli.default_map_of_ctx_or_parent &mdash; torchdms 0.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="torchdms.cli.dry_run_option" href="torchdms.cli.dry_run_option.html" />
+    <link rel="prev" title="torchdms.cli" href="torchdms.cli.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> torchdms
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cli.html">Command line interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../model.html">Specifying models</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="torchdms.html">torchdms</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="torchdms.analysis.html">torchdms.analysis</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="torchdms.cli.html">torchdms.cli</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">torchdms.cli.default_map_of_ctx_or_parent</a></li>
+<li class="toctree-l3"><a class="reference internal" href="torchdms.cli.dry_run_option.html">torchdms.cli.dry_run_option</a></li>
+<li class="toctree-l3"><a class="reference internal" href="torchdms.cli.json_provider.html">torchdms.cli.json_provider</a></li>
+<li class="toctree-l3"><a class="reference internal" href="torchdms.cli.print_method_name_and_locals.html">torchdms.cli.print_method_name_and_locals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="torchdms.cli.restrict_dict_to_params.html">torchdms.cli.restrict_dict_to_params</a></li>
+<li class="toctree-l3"><a class="reference internal" href="torchdms.cli.seed_option.html">torchdms.cli.seed_option</a></li>
+<li class="toctree-l3"><a class="reference internal" href="torchdms.cli.set_random_seed.html">torchdms.cli.set_random_seed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="torchdms.data.html">torchdms.data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="torchdms.evaluation.html">torchdms.evaluation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="torchdms.loss.html">torchdms.loss</a></li>
+<li class="toctree-l2"><a class="reference internal" href="torchdms.model.html">torchdms.model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="torchdms.plot.html">torchdms.plot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="torchdms.utils.html">torchdms.utils</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">torchdms</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="torchdms.html">torchdms</a> &raquo;</li>
+          <li><a href="torchdms.cli.html">torchdms.cli</a> &raquo;</li>
+      <li>torchdms.cli.default_map_of_ctx_or_parent</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="torchdms-cli-default-map-of-ctx-or-parent">
+<h1>torchdms.cli.default_map_of_ctx_or_parent<a class="headerlink" href="#torchdms-cli-default-map-of-ctx-or-parent" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="torchdms.cli.default_map_of_ctx_or_parent">
+<span class="sig-prename descclassname"><span class="pre">torchdms.cli.</span></span><span class="sig-name descname"><span class="pre">default_map_of_ctx_or_parent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/torchdms/cli.html#default_map_of_ctx_or_parent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchdms.cli.default_map_of_ctx_or_parent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the default_map from this context or the parent context.</p>
+<p>In our application, the default_map is parsed from the JSON
+configuration file. The parent context can be useful if we are
+invoked from another subcommand.</p>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="torchdms.cli.html" class="btn btn-neutral float-left" title="torchdms.cli" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="torchdms.cli.dry_run_option.html" class="btn btn-neutral float-right" title="torchdms.cli.dry_run_option" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

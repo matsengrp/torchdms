@@ -1,0 +1,6 @@
+torchdms.utils.make\_all\_possible\_mutations
+=============================================
+
+.. currentmodule:: torchdms.utils
+
+.. autofunction:: make_all_possible_mutations

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Specifying models &mdash; torchdms 0.1 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="torchdms" href="_autosummary/torchdms.html" />
+    <link rel="prev" title="Command line interface" href="cli.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> torchdms
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">Command line interface</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Specifying models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#models-for-any-output-dimension">Models for any output dimension</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#fullyconnected">FullyConnected</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#models-for-two-dimensional-output">Models for two-dimensional output</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#independent">Independent</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#conditional">Conditional</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#conditionalsequential">ConditionalSequential</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="_autosummary/torchdms.html">torchdms</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">torchdms</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Specifying models</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="specifying-models">
+<h1>Specifying models<a class="headerlink" href="#specifying-models" title="Permalink to this headline">¶</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">torchdms</span></code> offers multiple network architecture templates to specify models.
+When calling <code class="docutils literal notranslate"><span class="pre">tdms</span> <span class="pre">create</span></code> or specifying a model in a JSON configuration file, you must specify a model string with your desired architecture.
+Different model classes have different model strings, below are a few examples of how to define various types of models.</p>
+<section id="models-for-any-output-dimension">
+<h2>Models for any output dimension<a class="headerlink" href="#models-for-any-output-dimension" title="Permalink to this headline">¶</a></h2>
+<p>The following examples define models capable of predicting output of an arbitrary dimension.</p>
+<section id="fullyconnected">
+<h3>FullyConnected<a class="headerlink" href="#fullyconnected" title="Permalink to this headline">¶</a></h3>
+<p>To build a purely fully connected deep neural network with two layers (i.e., a 20 unit sigmoid activated layer followed by a 10 unit ReLU activated layer):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;FullyConnected(20,sigmoid,10,relu)&quot;</span>
+</pre></div>
+</div>
+<p>To build a typical global epistasis model with a one dimensional, additive latent space and a nonlinearity of 10 sigmoids:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;FullyConnected(1,identity,10,sigmoid)&quot;</span>
+</pre></div>
+</div>
+<p>If you wanted to add a second layer to the nonlinearity, say 15 ReLU units:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;FullyConnected(1,identity,10,sigmoid,15,relu)&quot;</span>
+</pre></div>
+</div>
+<p>To use a two-dimensional latent space in the previous model:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;FullyConnected(2,identity,10,sigmoid,15,relu)&quot;</span>
+</pre></div>
+</div>
+<p>Nonlinear interaction modules can also be added by specifying a sub-architecture before the latent space.
+These modules run parallel from the latent space, and their outputs are concatenated to the latent representation of a sequence and passed to the nonlinearity.</p>
+<p>To add a nonlinear interaction module of 20 ReLU units followed by 10 more ReLU units to the previous architecture:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;FullyConnected(20,relu,10,relu,1,identity,10,sigmoid)&quot;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="models-for-two-dimensional-output">
+<h2>Models for two-dimensional output<a class="headerlink" href="#models-for-two-dimensional-output" title="Permalink to this headline">¶</a></h2>
+<p>The following examples define models specialized to the case of two outputs.
+We have developed these with the idea of the first output being binding and the second being stability.</p>
+<section id="independent">
+<h3>Independent<a class="headerlink" href="#independent" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">Independent</span></code> model replicates two <code class="docutils literal notranslate"><span class="pre">FullyConnected</span></code> models, each with a model string like that given to the <code class="docutils literal notranslate"><span class="pre">FullyConnected</span></code> model.
+So, to build model with parallel and independent tracks of a one-dimensional latent space and 10 sigmoid nonlinearity for each output:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;Independent(1,identity,10,sigmoid)&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="conditional">
+<h3>Conditional<a class="headerlink" href="#conditional" title="Permalink to this headline">¶</a></h3>
+<p>Defining <code class="docutils literal notranslate"><span class="pre">Conditional</span></code> models without an interaction module is similar to defining an <code class="docutils literal notranslate"><span class="pre">Independent</span></code> model:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;Conditional(1,identity,10,sigmoid)&quot;</span>
+</pre></div>
+</div>
+<p>Likewise, adding an interaction module follows the same syntax:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;Conditional(20,relu,10,relu,1,identity,10,sigmoid)&quot;</span>
+</pre></div>
+</div>
+<p>While the model string of <code class="docutils literal notranslate"><span class="pre">Conditional</span></code> and <code class="docutils literal notranslate"><span class="pre">Independent</span></code> are the same, it is important to note that in the <code class="docutils literal notranslate"><span class="pre">Conditional</span></code> architecture, the stability component of the latent space also influences the binding nonlinearity.
+We’ll add something here eventually, but for now see <a class="reference external" href="https://github.com/matsengrp/torchdms/pull/75#issuecomment-672309225">this issue comment for a diagram</a> (in that comment it’s called <code class="docutils literal notranslate"><span class="pre">Sparse2D</span></code> but we thought that <code class="docutils literal notranslate"><span class="pre">Conditional</span></code> was a better name).</p>
+</section>
+<section id="conditionalsequential">
+<h3>ConditionalSequential<a class="headerlink" href="#conditionalsequential" title="Permalink to this headline">¶</a></h3>
+<p>To train the sub-networks of a <code class="docutils literal notranslate"><span class="pre">Conditional</span></code> model sequentially (stability then binding):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;ConditionalSequential(1,identity,10,sigmoid)&quot;</span>
+</pre></div>
+</div>
+<p>And with nonlinear interaction modules:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;ConditionalSequential(20,relu,10,relu,1,identity,10,sigmoid)&quot;</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="cli.html" class="btn btn-neutral float-left" title="Command line interface" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="_autosummary/torchdms.html" class="btn btn-neutral float-right" title="torchdms" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

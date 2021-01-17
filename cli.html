@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Command line interface &mdash; torchdms 0.1 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Specifying models" href="model.html" />
+    <link rel="prev" title="Tutorials" href="tutorials.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> torchdms
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Command line interface</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#tdms">tdms</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#tdms-beta">beta</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tdms-cartesian">cartesian</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tdms-create">create</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tdms-error">error</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tdms-evaluate">evaluate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tdms-geplot">geplot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tdms-go">go</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tdms-heatmap">heatmap</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tdms-prep">prep</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tdms-profiles">profiles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tdms-scatter">scatter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tdms-summarize">summarize</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tdms-svd">svd</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tdms-train">train</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tdms-transfer">transfer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tdms-validate">validate</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="model.html">Specifying models</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="_autosummary/torchdms.html">torchdms</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">torchdms</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Command line interface</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="command-line-interface">
+<h1>Command line interface<a class="headerlink" href="#command-line-interface" title="Permalink to this headline">¶</a></h1>
+<section id="tdms">
+<h2>tdms<a class="headerlink" href="#tdms" title="Permalink to this headline">¶</a></h2>
+<p>Train and evaluate neural networks on deep mutational scanning data.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>tdms <span class="o">[</span>OPTIONS<span class="o">]</span> COMMAND <span class="o">[</span>ARGS<span class="o">]</span>...
+</pre></div>
+</div>
+<p class="rubric">Options</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-v">
+<span id="cmdoption-tdms-version"></span><span class="sig-name descname"><span class="pre">-v</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--version</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tdms-v" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print version and exit. Note that as per <cite>git describe</cite>, the SHA is prefixed by a <cite>g</cite>.</p>
+</dd></dl>
+
+<section id="tdms-beta">
+<h3>beta<a class="headerlink" href="#tdms-beta" title="Permalink to this headline">¶</a></h3>
+<p>Plot beta coefficients as a heatmap.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>tdms beta <span class="o">[</span>OPTIONS<span class="o">]</span> MODEL_PATH DATA_PATH
+</pre></div>
+</div>
+<p class="rubric">Options</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-beta-out">
+<span class="sig-name descname"><span class="pre">--out</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;out&gt;</span></span><a class="headerlink" href="#cmdoption-tdms-beta-out" title="Permalink to this definition">¶</a></dt>
+<dd><p><strong>Required</strong></p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-beta-config">
+<span class="sig-name descname"><span class="pre">--config</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;config&gt;</span></span><a class="headerlink" href="#cmdoption-tdms-beta-config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read configuration from FILE.</p>
+</dd></dl>
+
+<p class="rubric">Arguments</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-beta-arg-MODEL_PATH">
+<span id="cmdoption-tdms-beta-arg-model-path"></span><span class="sig-name descname"><span class="pre">MODEL_PATH</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tdms-beta-arg-MODEL_PATH" title="Permalink to this definition">¶</a></dt>
+<dd><p>Required argument</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-beta-arg-DATA_PATH">
+<span id="cmdoption-tdms-beta-arg-data-path"></span><span class="sig-name descname"><span class="pre">DATA_PATH</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tdms-beta-arg-DATA_PATH" title="Permalink to this definition">¶</a></dt>
+<dd><p>Required argument</p>
+</dd></dl>
+
+</section>
+<section id="tdms-cartesian">
+<h3>cartesian<a class="headerlink" href="#tdms-cartesian" title="Permalink to this headline">¶</a></h3>
+<p>Take the cartesian product of the variable options in a config file, and
+put it all in an _output directory.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>tdms cartesian <span class="o">[</span>OPTIONS<span class="o">]</span> CHOICE_JSON_PATH
+</pre></div>
+</div>
+<p class="rubric">Arguments</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-cartesian-arg-CHOICE_JSON_PATH">
+<span id="cmdoption-tdms-cartesian-arg-choice-json-path"></span><span class="sig-name descname"><span class="pre">CHOICE_JSON_PATH</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tdms-cartesian-arg-CHOICE_JSON_PATH" title="Permalink to this definition">¶</a></dt>
+<dd><p>Required argument</p>
+</dd></dl>
+
+</section>
+<section id="tdms-create">
+<h3>create<a class="headerlink" href="#tdms-create" title="Permalink to this headline">¶</a></h3>
+<p>Create a model.</p>
+<p>See the documentation for each model to see an example model string.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>tdms create <span class="o">[</span>OPTIONS<span class="o">]</span> DATA_PATH OUT_PATH MODEL_STRING
+</pre></div>
+</div>
+<p class="rubric">Options</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-create-monotonic">
+<span class="sig-name descname"><span class="pre">--monotonic</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;monotonic&gt;</span></span><a class="headerlink" href="#cmdoption-tdms-create-monotonic" title="Permalink to this definition">¶</a></dt>
+<dd><p>If this option is used, then the model will be initialized with weights greater than zero. During training with this model then, tdms will put a floor of 0 on all non-bias weights. It will also multiply the output by the value provided  as an option argument here, so use -1.0 if you want your nonlinearity to be monotonically decreasing, or 1.0 if you want it to be increasing.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-create-beta-l1-coefficients">
+<span class="sig-name descname"><span class="pre">--beta-l1-coefficients</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;beta_l1_coefficients&gt;</span></span><a class="headerlink" href="#cmdoption-tdms-create-beta-l1-coefficients" title="Permalink to this definition">¶</a></dt>
+<dd><p>Coefficients with which to l1-regularize beta coefficients, a comma-seperated list of coefficients for each latent dimension.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-create-interaction-l1-coefficients">
+<span class="sig-name descname"><span class="pre">--interaction-l1-coefficients</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;interaction_l1_coefficients&gt;</span></span><a class="headerlink" href="#cmdoption-tdms-create-interaction-l1-coefficients" title="Permalink to this definition">¶</a></dt>
+<dd><p>Coefficients with which to l1-regularize site interaction weights, a comma-seperated list of coefficients for each latent dimension</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-create-non-lin-bias">
+<span id="cmdoption-tdms-create-no-non-lin-bias"></span><span class="sig-name descname"><span class="pre">--non-lin-bias</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--no-non-lin-bias</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tdms-create-non-lin-bias" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-create-output-bias">
+<span id="cmdoption-tdms-create-no-output-bias"></span><span class="sig-name descname"><span class="pre">--output-bias</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--no-output-bias</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tdms-create-output-bias" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-create-seed">
+<span class="sig-name descname"><span class="pre">--seed</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;seed&gt;</span></span><a class="headerlink" href="#cmdoption-tdms-create-seed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set random seed. Seed is uninitialized if not set.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-create-config">
+<span class="sig-name descname"><span class="pre">--config</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;config&gt;</span></span><a class="headerlink" href="#cmdoption-tdms-create-config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read configuration from FILE.</p>
+</dd></dl>
+
+<p class="rubric">Arguments</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-create-arg-DATA_PATH">
+<span id="cmdoption-tdms-create-arg-data-path"></span><span class="sig-name descname"><span class="pre">DATA_PATH</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tdms-create-arg-DATA_PATH" title="Permalink to this definition">¶</a></dt>
+<dd><p>Required argument</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-create-arg-OUT_PATH">
+<span id="cmdoption-tdms-create-arg-out-path"></span><span class="sig-name descname"><span class="pre">OUT_PATH</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tdms-create-arg-OUT_PATH" title="Permalink to this definition">¶</a></dt>
+<dd><p>Required argument</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-create-arg-MODEL_STRING">
+<span id="cmdoption-tdms-create-arg-model-string"></span><span class="sig-name descname"><span class="pre">MODEL_STRING</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tdms-create-arg-MODEL_STRING" title="Permalink to this definition">¶</a></dt>
+<dd><p>Required argument</p>
+</dd></dl>
+
+</section>
+<section id="tdms-error">
+<h3>error<a class="headerlink" href="#tdms-error" title="Permalink to this headline">¶</a></h3>
+<p>Evaluate and produce plot of error.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>tdms error <span class="o">[</span>OPTIONS<span class="o">]</span> MODEL_PATH DATA_PATH
+</pre></div>
+</div>
+<p class="rubric">Options</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-error-out">
+<span class="sig-name descname"><span class="pre">--out</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;out&gt;</span></span><a class="headerlink" href="#cmdoption-tdms-error-out" title="Permalink to this definition">¶</a></dt>
+<dd><p><strong>Required</strong></p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-error-show-points">
+<span class="sig-name descname"><span class="pre">--show-points</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tdms-error-show-points" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show points in addition to LOWESS curves.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-error-device">
+<span class="sig-name descname"><span class="pre">--device</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;device&gt;</span></span><a class="headerlink" href="#cmdoption-tdms-error-device" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-error-include-details">
+<span class="sig-name descname"><span class="pre">--include-details</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tdms-error-include-details" title="Permalink to this definition">¶</a></dt>
+<dd><p>Include details from config file in error summary.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-error-config">
+<span class="sig-name descname"><span class="pre">--config</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;config&gt;</span></span><a class="headerlink" href="#cmdoption-tdms-error-config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read configuration from FILE.</p>
+</dd></dl>
+
+<p class="rubric">Arguments</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-error-arg-MODEL_PATH">
+<span id="cmdoption-tdms-error-arg-model-path"></span><span class="sig-name descname"><span class="pre">MODEL_PATH</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tdms-error-arg-MODEL_PATH" title="Permalink to this definition">¶</a></dt>
+<dd><p>Required argument</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-error-arg-DATA_PATH">
+<span id="cmdoption-tdms-error-arg-data-path"></span><span class="sig-name descname"><span class="pre">DATA_PATH</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tdms-error-arg-DATA_PATH" title="Permalink to this definition">¶</a></dt>
+<dd><p>Required argument</p>
+</dd></dl>
+
+</section>
+<section id="tdms-evaluate">
+<h3>evaluate<a class="headerlink" href="#tdms-evaluate" title="Permalink to this headline">¶</a></h3>
+<p>Evaluate the performance of a model.</p>
+<p>Dump to a dictionary containing the results.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>tdms evaluate <span class="o">[</span>OPTIONS<span class="o">]</span> MODEL_PATH DATA_PATH
+</pre></div>
+</div>
+<p class="rubric">Options</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-evaluate-out">
+<span class="sig-name descname"><span class="pre">--out</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;out&gt;</span></span><a class="headerlink" href="#cmdoption-tdms-evaluate-out" title="Permalink to this definition">¶</a></dt>
+<dd><p><strong>Required</strong></p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-evaluate-device">
+<span class="sig-name descname"><span class="pre">--device</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;device&gt;</span></span><a class="headerlink" href="#cmdoption-tdms-evaluate-device" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-evaluate-config">
+<span class="sig-name descname"><span class="pre">--config</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;config&gt;</span></span><a class="headerlink" href="#cmdoption-tdms-evaluate-config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read configuration from FILE.</p>
+</dd></dl>
+
+<p class="rubric">Arguments</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-evaluate-arg-MODEL_PATH">
+<span id="cmdoption-tdms-evaluate-arg-model-path"></span><span class="sig-name descname"><span class="pre">MODEL_PATH</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tdms-evaluate-arg-MODEL_PATH" title="Permalink to this definition">¶</a></dt>
+<dd><p>Required argument</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-evaluate-arg-DATA_PATH">
+<span id="cmdoption-tdms-evaluate-arg-data-path"></span><span class="sig-name descname"><span class="pre">DATA_PATH</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tdms-evaluate-arg-DATA_PATH" title="Permalink to this definition">¶</a></dt>
+<dd><p>Required argument</p>
+</dd></dl>
+
+</section>
+<section id="tdms-geplot">
+<h3>geplot<a class="headerlink" href="#tdms-geplot" title="Permalink to this headline">¶</a></h3>
+<p>Make a “global epistasis” plot showing the fit to the nonlinearity.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>tdms geplot <span class="o">[</span>OPTIONS<span class="o">]</span> MODEL_PATH DATA_PATH
+</pre></div>
+</div>
+<p class="rubric">Options</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-geplot-steps">
+<span class="sig-name descname"><span class="pre">--steps</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;steps&gt;</span></span><a class="headerlink" href="#cmdoption-tdms-geplot-steps" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Default</dt>
+<dd class="field-odd"><p>100</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-geplot-out">
+<span class="sig-name descname"><span class="pre">--out</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;out&gt;</span></span><a class="headerlink" href="#cmdoption-tdms-geplot-out" title="Permalink to this definition">¶</a></dt>
+<dd><p><strong>Required</strong></p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-geplot-device">
+<span class="sig-name descname"><span class="pre">--device</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;device&gt;</span></span><a class="headerlink" href="#cmdoption-tdms-geplot-device" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-geplot-config">
+<span class="sig-name descname"><span class="pre">--config</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;config&gt;</span></span><a class="headerlink" href="#cmdoption-tdms-geplot-config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read configuration from FILE.</p>
+</dd></dl>
+
+<p class="rubric">Arguments</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-geplot-arg-MODEL_PATH">
+<span id="cmdoption-tdms-geplot-arg-model-path"></span><span class="sig-name descname"><span class="pre">MODEL_PATH</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tdms-geplot-arg-MODEL_PATH" title="Permalink to this definition">¶</a></dt>
+<dd><p>Required argument</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-geplot-arg-DATA_PATH">
+<span id="cmdoption-tdms-geplot-arg-data-path"></span><span class="sig-name descname"><span class="pre">DATA_PATH</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tdms-geplot-arg-DATA_PATH" title="Permalink to this definition">¶</a></dt>
+<dd><p>Required argument</p>
+</dd></dl>
+
+</section>
+<section id="tdms-go">
+<h3>go<a class="headerlink" href="#tdms-go" title="Permalink to this headline">¶</a></h3>
+<p>Run a common sequence of commands: create, train, scatter, and beta.</p>
+<p>Then touch a <cite>.sentinel</cite> file to signal successful completion.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>tdms go <span class="o">[</span>OPTIONS<span class="o">]</span>
+</pre></div>
+</div>
+<p class="rubric">Options</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-go-config">
+<span class="sig-name descname"><span class="pre">--config</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;config&gt;</span></span><a class="headerlink" href="#cmdoption-tdms-go-config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read configuration from FILE.</p>
+</dd></dl>
+
+</section>
+<section id="tdms-heatmap">
+<h3>heatmap<a class="headerlink" href="#tdms-heatmap" title="Permalink to this headline">¶</a></h3>
+<p>Plot single mutant predictions as a heatmap.</p>
+<p>Note/warning: because of the way we have set up the encoding, the heatmap values
+cannot be interpreted in a straightfoward way.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>tdms heatmap <span class="o">[</span>OPTIONS<span class="o">]</span> MODEL_PATH
+</pre></div>
+</div>
+<p class="rubric">Options</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-heatmap-out">
+<span class="sig-name descname"><span class="pre">--out</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;out&gt;</span></span><a class="headerlink" href="#cmdoption-tdms-heatmap-out" title="Permalink to this definition">¶</a></dt>
+<dd><p><strong>Required</strong></p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-heatmap-config">
+<span class="sig-name descname"><span class="pre">--config</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;config&gt;</span></span><a class="headerlink" href="#cmdoption-tdms-heatmap-config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read configuration from FILE.</p>
+</dd></dl>
+
+<p class="rubric">Arguments</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-heatmap-arg-MODEL_PATH">
+<span id="cmdoption-tdms-heatmap-arg-model-path"></span><span class="sig-name descname"><span class="pre">MODEL_PATH</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tdms-heatmap-arg-MODEL_PATH" title="Permalink to this definition">¶</a></dt>
+<dd><p>Required argument</p>
+</dd></dl>
+
+</section>
+<section id="tdms-prep">
+<h3>prep<a class="headerlink" href="#tdms-prep" title="Permalink to this headline">¶</a></h3>
+<p>Prepare data for training.</p>
+<p>IN_PATH should point to a pickle dump’d Pandas DataFrame containing
+the string encoded <cite>aa_substitutions</cite> column along with any TARGETS
+you specify. OUT_PREFIX is the location to dump the prepped data to
+another pickle file.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>tdms prep <span class="o">[</span>OPTIONS<span class="o">]</span> IN_PATH OUT_PREFIX TARGETS...
+</pre></div>
+</div>
+<p class="rubric">Options</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-prep-per-stratum-variants-for-test">
+<span class="sig-name descname"><span class="pre">--per-stratum-variants-for-test</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;per_stratum_variants_for_test&gt;</span></span><a class="headerlink" href="#cmdoption-tdms-prep-per-stratum-variants-for-test" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the number of variants for each stratum to hold out for testing, with the same number used for validation. The rest of the examples will be used for training the model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Default</dt>
+<dd class="field-odd"><p>100</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-prep-skip-stratum-if-count-is-smaller-than">
+<span class="sig-name descname"><span class="pre">--skip-stratum-if-count-is-smaller-than</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;skip_stratum_if_count_is_smaller_than&gt;</span></span><a class="headerlink" href="#cmdoption-tdms-prep-skip-stratum-if-count-is-smaller-than" title="Permalink to this definition">¶</a></dt>
+<dd><p>If the total number of examples for any particular stratum is lower than this number, we throw out the stratum completely.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Default</dt>
+<dd class="field-odd"><p>250</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-prep-drop-nans">
+<span class="sig-name descname"><span class="pre">--drop-nans</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tdms-prep-drop-nans" title="Permalink to this definition">¶</a></dt>
+<dd><p>Drop all rows that contain a nan.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-prep-export-dataframe">
+<span class="sig-name descname"><span class="pre">--export-dataframe</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;export_dataframe&gt;</span></span><a class="headerlink" href="#cmdoption-tdms-prep-export-dataframe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filename prefix for exporting the original dataframe in a .pkl file with an appended in_test column.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-prep-partition-by">
+<span class="sig-name descname"><span class="pre">--partition-by</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;partition_by&gt;</span></span><a class="headerlink" href="#cmdoption-tdms-prep-partition-by" title="Permalink to this definition">¶</a></dt>
+<dd><p>Column name containing a feature by which the data should be split into independent datasets for partitioning; e.g. ‘library’.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-prep-train-on-all-single-mutants">
+<span class="sig-name descname"><span class="pre">--train-on-all-single-mutants</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tdms-prep-train-on-all-single-mutants" title="Permalink to this definition">¶</a></dt>
+<dd><p>Place all single-mutants into training set.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-prep-dry-run">
+<span class="sig-name descname"><span class="pre">--dry-run</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tdms-prep-dry-run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Only print paths and files to be made, rather than actually making them.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-prep-seed">
+<span class="sig-name descname"><span class="pre">--seed</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;seed&gt;</span></span><a class="headerlink" href="#cmdoption-tdms-prep-seed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set random seed. Seed is uninitialized if not set.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-prep-config">
+<span class="sig-name descname"><span class="pre">--config</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;config&gt;</span></span><a class="headerlink" href="#cmdoption-tdms-prep-config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read configuration from FILE.</p>
+</dd></dl>
+
+<p class="rubric">Arguments</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-prep-arg-IN_PATH">
+<span id="cmdoption-tdms-prep-arg-in-path"></span><span class="sig-name descname"><span class="pre">IN_PATH</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tdms-prep-arg-IN_PATH" title="Permalink to this definition">¶</a></dt>
+<dd><p>Required argument</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-prep-arg-OUT_PREFIX">
+<span id="cmdoption-tdms-prep-arg-out-prefix"></span><span class="sig-name descname"><span class="pre">OUT_PREFIX</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tdms-prep-arg-OUT_PREFIX" title="Permalink to this definition">¶</a></dt>
+<dd><p>Required argument</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-prep-arg-TARGETS">
+<span id="cmdoption-tdms-prep-arg-targets"></span><span class="sig-name descname"><span class="pre">TARGETS</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tdms-prep-arg-TARGETS" title="Permalink to this definition">¶</a></dt>
+<dd><p>Required argument(s)</p>
+</dd></dl>
+
+</section>
+<section id="tdms-profiles">
+<h3>profiles<a class="headerlink" href="#tdms-profiles" title="Permalink to this headline">¶</a></h3>
+<p>Plot amino acid and site profiles from low-rank approximation.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>tdms profiles <span class="o">[</span>OPTIONS<span class="o">]</span> MODEL_PATH DATA_PATH
+</pre></div>
+</div>
+<p class="rubric">Options</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-profiles-out">
+<span class="sig-name descname"><span class="pre">--out</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;out&gt;</span></span><a class="headerlink" href="#cmdoption-tdms-profiles-out" title="Permalink to this definition">¶</a></dt>
+<dd><p><strong>Required</strong></p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-profiles-config">
+<span class="sig-name descname"><span class="pre">--config</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;config&gt;</span></span><a class="headerlink" href="#cmdoption-tdms-profiles-config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read configuration from FILE.</p>
+</dd></dl>
+
+<p class="rubric">Arguments</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-profiles-arg-MODEL_PATH">
+<span id="cmdoption-tdms-profiles-arg-model-path"></span><span class="sig-name descname"><span class="pre">MODEL_PATH</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tdms-profiles-arg-MODEL_PATH" title="Permalink to this definition">¶</a></dt>
+<dd><p>Required argument</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-profiles-arg-DATA_PATH">
+<span id="cmdoption-tdms-profiles-arg-data-path"></span><span class="sig-name descname"><span class="pre">DATA_PATH</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tdms-profiles-arg-DATA_PATH" title="Permalink to this definition">¶</a></dt>
+<dd><p>Required argument</p>
+</dd></dl>
+
+</section>
+<section id="tdms-scatter">
+<h3>scatter<a class="headerlink" href="#tdms-scatter" title="Permalink to this headline">¶</a></h3>
+<p>Evaluate and produce scatter plot of observed vs predicted targets on
+the test set provided.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>tdms scatter <span class="o">[</span>OPTIONS<span class="o">]</span> MODEL_PATH DATA_PATH
+</pre></div>
+</div>
+<p class="rubric">Options</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-scatter-out">
+<span class="sig-name descname"><span class="pre">--out</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;out&gt;</span></span><a class="headerlink" href="#cmdoption-tdms-scatter-out" title="Permalink to this definition">¶</a></dt>
+<dd><p><strong>Required</strong></p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-scatter-device">
+<span class="sig-name descname"><span class="pre">--device</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;device&gt;</span></span><a class="headerlink" href="#cmdoption-tdms-scatter-device" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-scatter-config">
+<span class="sig-name descname"><span class="pre">--config</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;config&gt;</span></span><a class="headerlink" href="#cmdoption-tdms-scatter-config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read configuration from FILE.</p>
+</dd></dl>
+
+<p class="rubric">Arguments</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-scatter-arg-MODEL_PATH">
+<span id="cmdoption-tdms-scatter-arg-model-path"></span><span class="sig-name descname"><span class="pre">MODEL_PATH</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tdms-scatter-arg-MODEL_PATH" title="Permalink to this definition">¶</a></dt>
+<dd><p>Required argument</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-scatter-arg-DATA_PATH">
+<span id="cmdoption-tdms-scatter-arg-data-path"></span><span class="sig-name descname"><span class="pre">DATA_PATH</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tdms-scatter-arg-DATA_PATH" title="Permalink to this definition">¶</a></dt>
+<dd><p>Required argument</p>
+</dd></dl>
+
+</section>
+<section id="tdms-summarize">
+<h3>summarize<a class="headerlink" href="#tdms-summarize" title="Permalink to this headline">¶</a></h3>
+<p>Report various summaries of the data.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>tdms summarize <span class="o">[</span>OPTIONS<span class="o">]</span> DATA_PATH
+</pre></div>
+</div>
+<p class="rubric">Options</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-summarize-out-prefix">
+<span class="sig-name descname"><span class="pre">--out-prefix</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;out_prefix&gt;</span></span><a class="headerlink" href="#cmdoption-tdms-summarize-out-prefix" title="Permalink to this definition">¶</a></dt>
+<dd><p>If this flag is set, make pdf plots summarizing the data.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-summarize-config">
+<span class="sig-name descname"><span class="pre">--config</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;config&gt;</span></span><a class="headerlink" href="#cmdoption-tdms-summarize-config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read configuration from FILE.</p>
+</dd></dl>
+
+<p class="rubric">Arguments</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-summarize-arg-DATA_PATH">
+<span id="cmdoption-tdms-summarize-arg-data-path"></span><span class="sig-name descname"><span class="pre">DATA_PATH</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tdms-summarize-arg-DATA_PATH" title="Permalink to this definition">¶</a></dt>
+<dd><p>Required argument</p>
+</dd></dl>
+
+</section>
+<section id="tdms-svd">
+<h3>svd<a class="headerlink" href="#tdms-svd" title="Permalink to this headline">¶</a></h3>
+<p>Plot singular values of beta matricies.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>tdms svd <span class="o">[</span>OPTIONS<span class="o">]</span> MODEL_PATH DATA_PATH
+</pre></div>
+</div>
+<p class="rubric">Options</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-svd-out">
+<span class="sig-name descname"><span class="pre">--out</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;out&gt;</span></span><a class="headerlink" href="#cmdoption-tdms-svd-out" title="Permalink to this definition">¶</a></dt>
+<dd><p><strong>Required</strong></p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-svd-config">
+<span class="sig-name descname"><span class="pre">--config</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;config&gt;</span></span><a class="headerlink" href="#cmdoption-tdms-svd-config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read configuration from FILE.</p>
+</dd></dl>
+
+<p class="rubric">Arguments</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-svd-arg-MODEL_PATH">
+<span id="cmdoption-tdms-svd-arg-model-path"></span><span class="sig-name descname"><span class="pre">MODEL_PATH</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tdms-svd-arg-MODEL_PATH" title="Permalink to this definition">¶</a></dt>
+<dd><p>Required argument</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-svd-arg-DATA_PATH">
+<span id="cmdoption-tdms-svd-arg-data-path"></span><span class="sig-name descname"><span class="pre">DATA_PATH</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tdms-svd-arg-DATA_PATH" title="Permalink to this definition">¶</a></dt>
+<dd><p>Required argument</p>
+</dd></dl>
+
+</section>
+<section id="tdms-train">
+<h3>train<a class="headerlink" href="#tdms-train" title="Permalink to this headline">¶</a></h3>
+<p>Train a model, saving trained model to original location.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>tdms train <span class="o">[</span>OPTIONS<span class="o">]</span> MODEL_PATH DATA_PATH
+</pre></div>
+</div>
+<p class="rubric">Options</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-train-loss-fn">
+<span class="sig-name descname"><span class="pre">--loss-fn</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;loss_fn&gt;</span></span><a class="headerlink" href="#cmdoption-tdms-train-loss-fn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loss function for training.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Default</dt>
+<dd class="field-odd"><p>l1</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-train-loss-weight-span">
+<span class="sig-name descname"><span class="pre">--loss-weight-span</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;loss_weight_span&gt;</span></span><a class="headerlink" href="#cmdoption-tdms-train-loss-weight-span" title="Permalink to this definition">¶</a></dt>
+<dd><p>If this option is used, add a weight to a mean-absolute-deviation loss equal to the exponential of a loss decay times the true score.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-train-batch-size">
+<span class="sig-name descname"><span class="pre">--batch-size</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;batch_size&gt;</span></span><a class="headerlink" href="#cmdoption-tdms-train-batch-size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Batch size for training.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Default</dt>
+<dd class="field-odd"><p>500</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-train-learning-rate">
+<span class="sig-name descname"><span class="pre">--learning-rate</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;learning_rate&gt;</span></span><a class="headerlink" href="#cmdoption-tdms-train-learning-rate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initial learning rate.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Default</dt>
+<dd class="field-odd"><p>0.001</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-train-min-lr">
+<span class="sig-name descname"><span class="pre">--min-lr</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;min_lr&gt;</span></span><a class="headerlink" href="#cmdoption-tdms-train-min-lr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Minimum learning rate before early stopping on training.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Default</dt>
+<dd class="field-odd"><p>1e-05</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-train-patience">
+<span class="sig-name descname"><span class="pre">--patience</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;patience&gt;</span></span><a class="headerlink" href="#cmdoption-tdms-train-patience" title="Permalink to this definition">¶</a></dt>
+<dd><p>Patience for ReduceLROnPlateau.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Default</dt>
+<dd class="field-odd"><p>10</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-train-device">
+<span class="sig-name descname"><span class="pre">--device</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;device&gt;</span></span><a class="headerlink" href="#cmdoption-tdms-train-device" title="Permalink to this definition">¶</a></dt>
+<dd><p>Device used to train nn</p>
+<dl class="field-list simple">
+<dt class="field-odd">Default</dt>
+<dd class="field-odd"><p>cpu</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-train-independent-starts">
+<span class="sig-name descname"><span class="pre">--independent-starts</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;independent_starts&gt;</span></span><a class="headerlink" href="#cmdoption-tdms-train-independent-starts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of independent training starts to use. Each training start gets trained independently and the best start is used for full training.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Default</dt>
+<dd class="field-odd"><p>5</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-train-independent-start-epochs">
+<span class="sig-name descname"><span class="pre">--independent-start-epochs</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;independent_start_epochs&gt;</span></span><a class="headerlink" href="#cmdoption-tdms-train-independent-start-epochs" title="Permalink to this definition">¶</a></dt>
+<dd><p>How long to train each independent start. If not set, 10% of the full number of epochs is used.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-train-simple-training">
+<span class="sig-name descname"><span class="pre">--simple-training</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tdms-train-simple-training" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ignore all fancy training options: do bare-bones training for a fixed number of epochs. Fail if data contains nans.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-train-exp-target">
+<span class="sig-name descname"><span class="pre">--exp-target</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;exp_target&gt;</span></span><a class="headerlink" href="#cmdoption-tdms-train-exp-target" title="Permalink to this definition">¶</a></dt>
+<dd><p>Provide base to be exponentiated by functional scores of variants.Emphasizes fitting highly functional variants. If on, weight decay will be turned off.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-train-beta-rank">
+<span class="sig-name descname"><span class="pre">--beta-rank</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;beta_rank&gt;</span></span><a class="headerlink" href="#cmdoption-tdms-train-beta-rank" title="Permalink to this definition">¶</a></dt>
+<dd><p>What number of dimensions to use in the low-rank reconstructions of betas.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-train-epochs">
+<span class="sig-name descname"><span class="pre">--epochs</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;epochs&gt;</span></span><a class="headerlink" href="#cmdoption-tdms-train-epochs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of epochs for full training.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Default</dt>
+<dd class="field-odd"><p>100</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-train-site-path">
+<span class="sig-name descname"><span class="pre">--site-path</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;site_path&gt;</span></span><a class="headerlink" href="#cmdoption-tdms-train-site-path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Path to .JSON file containing both site numbers and site numbers.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-train-dry-run">
+<span class="sig-name descname"><span class="pre">--dry-run</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tdms-train-dry-run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Only print paths and files to be made, rather than actually making them.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-train-seed">
+<span class="sig-name descname"><span class="pre">--seed</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;seed&gt;</span></span><a class="headerlink" href="#cmdoption-tdms-train-seed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set random seed. Seed is uninitialized if not set.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-train-config">
+<span class="sig-name descname"><span class="pre">--config</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;config&gt;</span></span><a class="headerlink" href="#cmdoption-tdms-train-config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read configuration from FILE.</p>
+</dd></dl>
+
+<p class="rubric">Arguments</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-train-arg-MODEL_PATH">
+<span id="cmdoption-tdms-train-arg-model-path"></span><span class="sig-name descname"><span class="pre">MODEL_PATH</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tdms-train-arg-MODEL_PATH" title="Permalink to this definition">¶</a></dt>
+<dd><p>Required argument</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-train-arg-DATA_PATH">
+<span id="cmdoption-tdms-train-arg-data-path"></span><span class="sig-name descname"><span class="pre">DATA_PATH</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tdms-train-arg-DATA_PATH" title="Permalink to this definition">¶</a></dt>
+<dd><p>Required argument</p>
+</dd></dl>
+
+</section>
+<section id="tdms-transfer">
+<h3>transfer<a class="headerlink" href="#tdms-transfer" title="Permalink to this headline">¶</a></h3>
+<p>Transfer beta coefficients from one tdms model to another.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>tdms transfer <span class="o">[</span>OPTIONS<span class="o">]</span> SOURCE_PATH DEST_PATH
+</pre></div>
+</div>
+<p class="rubric">Arguments</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-transfer-arg-SOURCE_PATH">
+<span id="cmdoption-tdms-transfer-arg-source-path"></span><span class="sig-name descname"><span class="pre">SOURCE_PATH</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tdms-transfer-arg-SOURCE_PATH" title="Permalink to this definition">¶</a></dt>
+<dd><p>Required argument</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-transfer-arg-DEST_PATH">
+<span id="cmdoption-tdms-transfer-arg-dest-path"></span><span class="sig-name descname"><span class="pre">DEST_PATH</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tdms-transfer-arg-DEST_PATH" title="Permalink to this definition">¶</a></dt>
+<dd><p>Required argument</p>
+</dd></dl>
+
+</section>
+<section id="tdms-validate">
+<h3>validate<a class="headerlink" href="#tdms-validate" title="Permalink to this headline">¶</a></h3>
+<p>Validate that a given data set is sane.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>tdms validate <span class="o">[</span>OPTIONS<span class="o">]</span> DATA_PATH
+</pre></div>
+</div>
+<p class="rubric">Arguments</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tdms-validate-arg-DATA_PATH">
+<span id="cmdoption-tdms-validate-arg-data-path"></span><span class="sig-name descname"><span class="pre">DATA_PATH</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tdms-validate-arg-DATA_PATH" title="Permalink to this definition">¶</a></dt>
+<dd><p>Required argument</p>
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="tutorials.html" class="btn btn-neutral float-left" title="Tutorials" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="model.html" class="btn btn-neutral float-right" title="Specifying models" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

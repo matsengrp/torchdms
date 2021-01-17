@@ -1,0 +1,6 @@
+torchdms.plot.plot\_svd\_profiles
+=================================
+
+.. currentmodule:: torchdms.plot
+
+.. autofunction:: plot_svd_profiles

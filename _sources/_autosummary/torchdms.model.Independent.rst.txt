@@ -1,0 +1,91 @@
+torchdms.model.Independent
+==========================
+
+.. currentmodule:: torchdms.model
+
+.. autoclass:: Independent
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~Independent.add_module
+      ~Independent.apply
+      ~Independent.beta_coefficients
+      ~Independent.bfloat16
+      ~Independent.buffers
+      ~Independent.children
+      ~Independent.cpu
+      ~Independent.cuda
+      ~Independent.double
+      ~Independent.eval
+      ~Independent.extra_repr
+      ~Independent.fix_gauge
+      ~Independent.float
+      ~Independent.forward
+      ~Independent.from_latent_to_output
+      ~Independent.get_buffer
+      ~Independent.get_extra_state
+      ~Independent.get_parameter
+      ~Independent.get_submodule
+      ~Independent.half
+      ~Independent.load_state_dict
+      ~Independent.modules
+      ~Independent.monotonic_params_from_latent_space
+      ~Independent.named_buffers
+      ~Independent.named_children
+      ~Independent.named_modules
+      ~Independent.named_parameters
+      ~Independent.numpy_single_mutant_predictions
+      ~Independent.parameters
+      ~Independent.randomize_parameters
+      ~Independent.register_backward_hook
+      ~Independent.register_buffer
+      ~Independent.register_forward_hook
+      ~Independent.register_forward_pre_hook
+      ~Independent.register_full_backward_hook
+      ~Independent.register_parameter
+      ~Independent.regularization_loss
+      ~Independent.requires_grad_
+      ~Independent.seq_to_binary
+      ~Independent.set_extra_state
+      ~Independent.set_require_grad_for_all_parameters
+      ~Independent.share_memory
+      ~Independent.single_mutant_predictions
+      ~Independent.state_dict
+      ~Independent.str_summary
+      ~Independent.to
+      ~Independent.to_empty
+      ~Independent.to_latent
+      ~Independent.train
+      ~Independent.type
+      ~Independent.xpu
+      ~Independent.zero_grad
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~Independent.T_destination
+      ~Independent.characteristics
+      ~Independent.dump_patches
+      ~Independent.internal_layer_dimensions
+      ~Independent.latent_dim
+      ~Independent.sequence_length
+      ~Independent.training
+      ~Independent.output_size
+      ~Independent.layers
+      ~Independent.training_style_sequence
+   
+   

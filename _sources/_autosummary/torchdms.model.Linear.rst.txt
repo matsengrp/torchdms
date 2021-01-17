@@ -1,0 +1,90 @@
+torchdms.model.Linear
+=====================
+
+.. currentmodule:: torchdms.model
+
+.. autoclass:: Linear
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~Linear.add_module
+      ~Linear.apply
+      ~Linear.beta_coefficients
+      ~Linear.bfloat16
+      ~Linear.buffers
+      ~Linear.children
+      ~Linear.cpu
+      ~Linear.cuda
+      ~Linear.double
+      ~Linear.eval
+      ~Linear.extra_repr
+      ~Linear.fix_gauge
+      ~Linear.float
+      ~Linear.forward
+      ~Linear.from_latent_to_output
+      ~Linear.get_buffer
+      ~Linear.get_extra_state
+      ~Linear.get_parameter
+      ~Linear.get_submodule
+      ~Linear.half
+      ~Linear.load_state_dict
+      ~Linear.modules
+      ~Linear.monotonic_params_from_latent_space
+      ~Linear.named_buffers
+      ~Linear.named_children
+      ~Linear.named_modules
+      ~Linear.named_parameters
+      ~Linear.numpy_single_mutant_predictions
+      ~Linear.parameters
+      ~Linear.randomize_parameters
+      ~Linear.register_backward_hook
+      ~Linear.register_buffer
+      ~Linear.register_forward_hook
+      ~Linear.register_forward_pre_hook
+      ~Linear.register_full_backward_hook
+      ~Linear.register_parameter
+      ~Linear.regularization_loss
+      ~Linear.requires_grad_
+      ~Linear.seq_to_binary
+      ~Linear.set_extra_state
+      ~Linear.set_require_grad_for_all_parameters
+      ~Linear.share_memory
+      ~Linear.single_mutant_predictions
+      ~Linear.state_dict
+      ~Linear.str_summary
+      ~Linear.to
+      ~Linear.to_empty
+      ~Linear.to_latent
+      ~Linear.train
+      ~Linear.type
+      ~Linear.xpu
+      ~Linear.zero_grad
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~Linear.T_destination
+      ~Linear.characteristics
+      ~Linear.dump_patches
+      ~Linear.latent_dim
+      ~Linear.sequence_length
+      ~Linear.training
+      ~Linear.output_size
+      ~Linear.layers
+      ~Linear.training_style_sequence
+   
+   

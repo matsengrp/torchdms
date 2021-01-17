@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Introduction &mdash; torchdms 0.1 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation" href="installation.html" />
+    <link rel="prev" title="torchdms documentation home" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> torchdms
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#getting-started">Getting Started</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#background">Background</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">Command line interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="model.html">Specifying models</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="_autosummary/torchdms.html">torchdms</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">torchdms</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Introduction</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="introduction">
+<span id="sec-introduction"></span><h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
+<p>This is the documentation for <code class="docutils literal notranslate"><span class="pre">torchdms</span></code>, a tool for inferring fitness landscapes of proteins from data obtained from Deep Mutational Scanning (DMS) experiments.
+<code class="docutils literal notranslate"><span class="pre">torchdms</span></code> allows for flexible modeling of DMS experiments with biophysically interpretable neural networks implemented in PyTorch.
+This software implements commonly used models for DMS data, and is intended to facilitate and encourage the development of and novel models for learning the sequence-fitness relationships of proteins.</p>
+<section id="getting-started">
+<h2>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>To get started, follow the <code class="docutils literal notranslate"><span class="pre">torchdms</span></code> <a class="reference internal" href="installation.html#sec-installation"><span class="std std-ref">Installation instructions</span></a>.</p></li>
+</ul>
+<div class="admonition-todo admonition" id="id1">
+<p class="admonition-title">Todo</p>
+<p>Create a few tutorials on using the CLI and link to page.</p>
+</div>
+<ul class="simple">
+<li><p>If you’re interested in using the command line interface for <code class="docutils literal notranslate"><span class="pre">torchdms</span></code>, check out the documentation and tutorials here.</p></li>
+</ul>
+<div class="admonition-todo admonition" id="id2">
+<p class="admonition-title">Todo</p>
+<p>Create tutorials for key functionality in <code class="docutils literal notranslate"><span class="pre">torchdms</span></code> API – planning on having notebooks as examples. Think about how to make this work nicely in the tutorials page.</p>
+</div>
+<ul class="simple">
+<li><p>If you’re interested in using <code class="docutils literal notranslate"><span class="pre">torchdms</span></code> in your own python scripts or Jupyter notebooks, check out the <a class="reference internal" href="tutorials.html#sec-tutorials"><span class="std std-ref">Tutorials page</span></a>.</p></li>
+</ul>
+</section>
+<section id="background">
+<h2>Background<a class="headerlink" href="#background" title="Permalink to this headline">¶</a></h2>
+<p>Deep mutational scanning (DMS) is a powerful, high-throughput sequencing technique to obtain fitness measurements for hundreds of thousands of protein variants <a class="footnote-reference brackets" href="#dmsreview" id="id3">1</a>, where <a href="#id4"><span class="problematic" id="id5">`</span></a>fitness is a quantitative measure of some functional capacity i.e.: expression levels, ligand binding, or antibody escape.
+To enhance understanding of how sequence variation impacts protein fitness, several researchers have attempted to model the relationship between genotype and fitness (the fitness landscape) using DMS experiments.
+Most attempts at inferring fitness landscapes fall into two broad categories: 1) simple, biophysically interpretable models and 2) expressive blackbox models.
+Interpretable models of course provide scientists with the explanations for model predictions and allow for discovering new biology, these models are often too simple to accurately model the fitness landscape when multiple mutations are present.
+On the other hand, the recent progress in the field of machine learning has allowed for more complicated and expressive models that are able to more accurately infer the fitness landscape of proteins further away from the original sequence, at the cost of model interpretability.</p>
+<p><code class="docutils literal notranslate"><span class="pre">torchdms</span></code> attempts to find the middle ground between these two approaches, extending the global epistasis modeling framework <a class="footnote-reference brackets" href="#ge" id="id6">5</a>.
+To preserve model interpretability <code class="docutils literal notranslate"><span class="pre">torchdms</span></code> models fit a linear model to DMS data to infer latent mutational effects on fitness.
+<code class="docutils literal notranslate"><span class="pre">torchdms</span></code> then passes the output of this linear model into an arbitrary neural network to provide a more expressive model.
+This modeling approach has been proven effective at inferring mutational effects from DMS data and has been instrumental in understanding the fitness effects of mutations on SARS-CoV-2 <a class="footnote-reference brackets" href="#rbd-dms" id="id7">2</a> <a class="footnote-reference brackets" href="#rbd-abescape" id="id8">3</a> <a class="footnote-reference brackets" href="#rbd-polyescape" id="id9">4</a>.
+<code class="docutils literal notranslate"><span class="pre">torchdms</span></code> is a flexible and modular modeling package that can be ran as its own analysis pipeline, or ported over to larger pipelines and projects.</p>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<dl class="footnote brackets">
+<dt class="label" id="dmsreview"><span class="brackets"><a class="fn-backref" href="#id3">1</a></span></dt>
+<dd><p>Fowler, D., Fields, S. <a class="reference external" href="https://doi.org/10.1038/nmeth.3027">Deep mutational scanning: a new style of protein science</a>. Nat Methods <strong>11</strong>, 801–807 (2014).</p>
+</dd>
+<dt class="label" id="rbd-dms"><span class="brackets"><a class="fn-backref" href="#id7">2</a></span></dt>
+<dd><p>Starr, T. N. et al. <a class="reference external" href="https://doi.org/10.1016/j.cell.2020.08.012">Deep mutational scanning of SARS-CoV-2 receptor binding domain reveals constraints on folding and ACE2 binding</a>. Cell <strong>182</strong>, 1295–1310.e20 (2020)</p>
+</dd>
+<dt class="label" id="rbd-abescape"><span class="brackets"><a class="fn-backref" href="#id8">3</a></span></dt>
+<dd><p>Greaney, A. J. et al. <a class="reference external" href="https://doi.org/10.1016/j.chom.2020.11.007">Complete Mapping of Mutations to the SARS-CoV-2 Spike Receptor-Binding Domain that Escape Antibody Recognition</a>. Cell Host Microbe <strong>29</strong>, 44–57.e9 (2021)</p>
+</dd>
+<dt class="label" id="rbd-polyescape"><span class="brackets"><a class="fn-backref" href="#id9">4</a></span></dt>
+<dd><p>Greaney, A. J. et al. <a class="reference external" href="https://doi.org/10.1016/j.chom.2021.02.003">Comprehensive mapping of mutations in the SARS-CoV-2 receptor-binding domain that affect recognition by polyclonal human plasma antibodies</a>. Cell Host Microbe <strong>29</strong>, 463–476.e6 (2021)</p>
+</dd>
+<dt class="label" id="ge"><span class="brackets"><a class="fn-backref" href="#id6">5</a></span></dt>
+<dd><p>Otwinowski, J., McCandlish, D. M. &amp; Plotkin, J. B. <a class="reference external" href="https://doi.org/10.1073/pnas.1804015115">Inferring the shape of global epistasis</a>. Proc. Natl. Acad. Sci. U. S. A. <strong>115</strong>, E7550–E7558 (2018)</p>
+</dd>
+</dl>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="torchdms documentation home" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="installation.html" class="btn btn-neutral float-right" title="Installation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
