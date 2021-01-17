@@ -1,7 +1,8 @@
 # torchdms
 
 [![build and test](https://github.com/matsengrp/torchdms/workflows/build%20and%20test/badge.svg)](https://github.com/matsengrp/torchdms/actions?query=workflow%3A%22build+and+test%22)
-
+&nbsp;
+[Documentation](https://matsengrp.github.io/torchdms/)
 
 ## What is this?
 
@@ -21,7 +22,6 @@ pip install git+https://github.com/matsengrp/torchdms.git
 ```bash
 git clone git@github.com:matsengrp/torchdms.git
 cd torchdms
-pip install -r requirements.txt
 pip install -e .
 make test
 ```
