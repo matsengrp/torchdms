@@ -320,27 +320,27 @@ def plot_svd(model, test_data, out):
             ax[latent_dim, 0].plot(sing_vals, np.log10(s_matrix), "ro-", linewidth=2)
             ax[latent_dim, 0].set_xlabel("j")
             ax[latent_dim, 0].set_ylabel(r"$log(\sigma_j)$")
-            ax[latent_dim, 0].set_title(f"Singular values for {latent_dim}")
+            ax[latent_dim, 0].set_title(f"Singular values for {latent_dim}, rank={rank}")
 
             ax[latent_dim, 1].plot(sing_vals, sing_vals_cumsum, "ro-", linewidth=2)
             ax[latent_dim, 1].set_xlabel("j")
             ax[latent_dim, 1].set_ylabel("Cummulative value %")
-            ax[latent_dim, 1].set_title(f"Cummulative singular values for {latent_dim}")
+            ax[latent_dim, 1].set_title(f"Cummulative singular values for {latent_dim}, rank={rank}")
         else:
             ax[0].plot(sing_vals, np.log10(s_matrix), "ro-", linewidth=2)
             ax[0].set(
                 xlabel="j",
                 ylabel=r"$log(\sigma_j)$",
-                title=f"Singular values for {latent_dim}",
+                title=f"Singular values for {latent_dim}, rank={rank}",
             )
             ax[1].plot(sing_vals, sing_vals_cumsum, "ro-", linewidth=2)
             ax[1].set(
                 xlabel="j",
                 ylabel="Cummulative value %",
-                title=f"Cummulative singular values for {latent_dim}",
+                title=f"Cummulative singular values for {latent_dim}, rank={rank}",
             )
 
-    plt.tight_layout()
+    #plt.tight_layout()
     fig.suptitle(f"{model.str_summary()}")
     fig.savefig(f"{out}")
 
