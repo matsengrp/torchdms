@@ -1,8 +1,9 @@
 # torchdms
 
 [![build and test](https://github.com/matsengrp/torchdms/workflows/build%20and%20test/badge.svg)](https://github.com/matsengrp/torchdms/actions?query=workflow%3A%22build+and+test%22)
-&nbsp;
-[Documentation](https://matsengrp.github.io/torchdms/)
+
+👉 [Command-line and API documentation](https://matsengrp.github.io/torchdms/) 👈
+
 
 ## What is this?
 
@@ -10,14 +11,16 @@ PyTorch - Deep Mutational Scanning (`torchdms`) is a Python package made to trai
 We use the binary encoding of variants using [BinaryMap Object](https://jbloomlab.github.io/dms_variants/dms_variants.binarymap.html) as input to feed-forward networks.
 
 
+<!--
 ## How do I install it?
 
-<!-- NOTE: revise after publishing to pypi -->
+NOTE: revise after publishing to pypi
 ```bash
 pip install git+https://github.com/matsengrp/torchdms.git
 ```
+-->
 
-## Developer install
+## Developer install (suggested)
 
 ```bash
 git clone git@github.com:matsengrp/torchdms.git
