@@ -531,7 +531,12 @@ class Conditional(Independent):
     def from_latent_to_output(self, x):
         return torch.cat(
             (
+                # The nonlinearity for the binding output gets to see all latent
+                # dimensions.
                 self.model_bind.from_latent_to_output(x),
+                # The nonlinearity for the stability output only sees the latent
+                # information from the stability part of the model.
+                # TODO(e) note that this requires 2d
                 self.model_stab.from_latent_to_output(x[:, 1, None]),
             ),
             1,
