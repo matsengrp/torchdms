@@ -1,9 +1,11 @@
 Welcome to the torchdms documentation!
 ======================================
 
-.. click:: torchdms.cli:cli
-   :prog: tdms
-   :nested: full
+.. toctree::
+   :maxdepth: 1
+
+   cli
+
 
 .. autosummary::
    :toctree: _autosummary
