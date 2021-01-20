@@ -387,8 +387,8 @@ class Independent(TorchdmsModel):
     """Parallel and independent FullyConnected for each of two output
     dimensions.
 
-    `beta_l1_coefficients` and `interaction_l1_coefficients` are each
-    lists with two elements, a penalty parameter for each of the
+    ``beta_l1_coefficients`` and ``interaction_l1_coefficients`` are
+    each lists with two elements, a penalty parameter for each of the
     parallel models.
     """
 
@@ -506,6 +506,8 @@ class Conditional(Independent):
     to feed forward into the network for the first output feature (i.e.
     binding).
 
+    This requires a one-dimensional latent space (see ``from_latent_to_output`` to see why).
+
     Diagram:
     https://user-images.githubusercontent.com/1173298/89943302-d4524d00-dbd2-11ea-827d-6ad6c238ff52.png
     """
@@ -535,7 +537,6 @@ class Conditional(Independent):
                 self.model_bind.from_latent_to_output(x),
                 # The nonlinearity for the stability output only sees the latent
                 # information from the stability part of the model.
-                # TODO(e) note that this requires 2d
                 self.model_stab.from_latent_to_output(x[:, 1, None]),
             ),
             1,
