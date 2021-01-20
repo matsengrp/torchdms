@@ -582,7 +582,8 @@ def heatmap(model_path, out):
     """Plot single mutant predictions as a heatmap.
 
     Note/warning: because of the way we have set up the encoding, the heatmap values
-    cannot be interpreted in a straightfoward way."""
+    cannot be interpreted in a straightfoward way.
+    """
     model = torch.load(model_path)
     plot_heatmap(model, out)
 

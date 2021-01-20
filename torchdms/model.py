@@ -384,11 +384,12 @@ class FullyConnected(TorchdmsModel):
 
 
 class Independent(TorchdmsModel):
-    """Parallel and independent FullyConnected for each of two output dimensions.
+    """Parallel and independent FullyConnected for each of two output
+    dimensions.
 
-    `beta_l1_coefficients` and `interaction_l1_coefficients` are each lists
-    with two elements, a penalty parameter for each of the parallel
-    models
+    `beta_l1_coefficients` and `interaction_l1_coefficients` are each
+    lists with two elements, a penalty parameter for each of the
+    parallel models.
     """
 
     def __init__(
