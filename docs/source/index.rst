@@ -17,7 +17,7 @@ torchdms documentation home
 Quickstart
 ----------
 
-The command line interface is called `tdms`, and has nested subcommands.
+The command line interface is called ``tdms``, and has nested subcommands.
 
 To use torchdms, first build a dataframe of mutations, and pickle that along with the wildtype sequence as for Tyler's `VRC01 data <https://github.com/jbloomlab/NIH45-46_DMS/blob/torchdms/affinity_expression_merge.ipynb>`_.
 
