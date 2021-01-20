@@ -155,14 +155,12 @@ class TorchdmsModel(nn.Module):
 
 
 class LinearModel(TorchdmsModel):
-    """The simplest model."""
+    """The simplest model.
 
-    def __init__(
-        self,
-        input_size,
-        target_names,
-        alphabet,
-    ):
+    TODO make an example model string for each model.
+    """
+
+    def __init__(self, input_size, target_names, alphabet):
         super().__init__(input_size, target_names, alphabet)
         self.latent_layer = nn.Linear(self.input_size, self.output_size)
         self.layers = ["latent_layer"]
@@ -388,7 +386,7 @@ class FullyConnected(TorchdmsModel):
 class Independent(TorchdmsModel):
     """Parallel and independent FullyConnected for each of two output dimensions.
 
-    beta_l1_coefficients and interaction_l1_coefficients are each lists
+    `beta_l1_coefficients` and `interaction_l1_coefficients` are each lists
     with two elements, a penalty parameter for each of the parallel
     models
     """

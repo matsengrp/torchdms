@@ -36,6 +36,7 @@ from torchdms.plot import (
     plot_test_correlation,
 )
 from torchdms.utils import (
+    float_list_of_comma_separated_string,
     from_pickle_file,
     from_json_file,
     make_cartesian_product_hierarchy,
@@ -292,22 +293,24 @@ def create(
 ):
     """Create a model.
 
-    Model string describes the model, such as 'FullyConnected(1,10)'.
+    See the documentation for each model to see an example model string.
     """
     set_random_seed(seed)
-    beta_l1_coefficients = [float(x) for x in beta_l1_coefficients.split(",")]
     kwargs = dict(monotonic_sign=monotonic)
-    if len(beta_l1_coefficients) == 1:
-        kwargs["beta_l1_coefficient"] = beta_l1_coefficients[0]
-    else:
-        kwargs["beta_l1_coefficients"] = beta_l1_coefficients
-    interaction_l1_coefficients = [
-        float(x) for x in interaction_l1_coefficients.split(",")
-    ]
-    if len(interaction_l1_coefficients) == 1:
-        kwargs["interaction_l1_coefficient"] = interaction_l1_coefficients[0]
-    else:
-        kwargs["interaction_l1_coefficients"] = interaction_l1_coefficients
+    beta_l1_coefficients = float_list_of_comma_separated_string(beta_l1_coefficients)
+    if beta_l1_coefficients is not None:
+        if len(beta_l1_coefficients) == 1:
+            kwargs["beta_l1_coefficient"] = beta_l1_coefficients[0]
+        else:
+            kwargs["beta_l1_coefficients"] = beta_l1_coefficients
+    interaction_l1_coefficients = float_list_of_comma_separated_string(
+        interaction_l1_coefficients
+    )
+    if interaction_l1_coefficients is not None:
+        if len(interaction_l1_coefficients) == 1:
+            kwargs["interaction_l1_coefficient"] = interaction_l1_coefficients[0]
+        else:
+            kwargs["interaction_l1_coefficients"] = interaction_l1_coefficients
 
     model = model_of_string(model_string, data_path, **kwargs)
 
@@ -576,7 +579,10 @@ def beta(model_path, data_path, out):
 @click.option("--out", required=True, type=click.Path())
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
 def heatmap(model_path, out):
-    """Plot single mutant predictions as a heatmap."""
+    """Plot single mutant predictions as a heatmap.
+
+    Note/warning: because of the way we have set up the encoding, the heatmap values
+    cannot be interpreted in a straightfoward way."""
     model = torch.load(model_path)
     plot_heatmap(model, out)
 

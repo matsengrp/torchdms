@@ -36,6 +36,14 @@ def to_json_file(obj, path):
         file.write("\n")
 
 
+def float_list_of_comma_separated_string(str):
+    """Parse a string into a list of floats."""
+    if str is None:
+        return None
+    # else
+    return [float(x) for x in str.split(",")]
+
+
 def count_variants_with_a_mutation_towards_an_aa(series_of_aa_substitutions, aa):
     """Count mutations towards a given amino acid.
 
@@ -175,9 +183,7 @@ def build_beta_map(test_data, beta_vec):
     matrix of beta-coefficients and the amino acid alphabet.
     """
 
-    bmap = dms.binarymap.BinaryMap(
-        test_data.original_df,
-    )
+    bmap = dms.binarymap.BinaryMap(test_data.original_df)
 
     wtmask = np.full([len(bmap.alphabet), len(test_data.wtseq)], False, dtype=bool)
     alphabet = bmap.alphabet
