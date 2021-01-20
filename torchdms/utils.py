@@ -36,12 +36,12 @@ def to_json_file(obj, path):
         file.write("\n")
 
 
-def float_list_of_comma_separated_string(str):
+def float_list_of_comma_separated_string(in_str):
     """Parse a string into a list of floats."""
-    if str is None:
+    if in_str is None:
         return None
     # else
-    return [float(x) for x in str.split(",")]
+    return [float(x) for x in in_str.split(",")]
 
 
 def count_variants_with_a_mutation_towards_an_aa(series_of_aa_substitutions, aa):
