@@ -41,11 +41,11 @@ To use a two-dimensional latent space in the previous model:
     "FullyConnected(2,identity,10,sigmoid,15,relu)"
 
 
-********************************
-Models for any output dimension
-********************************
+**********************************
+Models for two-dimensional output
+**********************************
 
-The following examples define models capable of predicting two dimensional output.
+The following examples define models capable of predicting two-dimensional output.
 
 Independent
 ------------
