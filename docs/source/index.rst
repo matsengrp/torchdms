@@ -2,9 +2,10 @@ torchdms documentation home
 ===========================
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    cli
+   model
 
 .. autosummary::
    :toctree: _autosummary
@@ -68,4 +69,3 @@ You can build a model, train, and evaluate using ``tdms go``, which works well w
 .. code-block:: console
 
     tdms go --config config.json
-
