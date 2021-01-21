@@ -396,9 +396,9 @@ def plot_svd_profiles(model, test_data, out):
             aa_profiles = ax[latent_dim, 0].imshow(u_vecs, aspect="auto", cmap=cm.Reds)
             fig.colorbar(aa_profiles, ax=ax[latent_dim, 0], orientation="horizontal")
             ax[latent_dim, 0].set(
-                title=f"Amino acid profiles for latent dim {latent_dim}, rank={rank}",
+                title=f"Profile representation of AAs for latent dim {latent_dim}, rank={rank}",
                 xticks=range(u_vecs.shape[1]),
-                xlabel="Eigenvector number",
+                xlabel="Profile number",
                 yticks=range(0, 21),
                 yticklabels=alphabet,
                 ylabel="Amino acid",
@@ -409,8 +409,8 @@ def plot_svd_profiles(model, test_data, out):
             )
             fig.colorbar(site_profiles, ax=ax[latent_dim, 1], orientation="horizontal")
             ax[latent_dim, 1].set(
-                title=f"Site profiles for latent dim {latent_dim}, rank={rank}",
-                xlabel="Eigenvector number",
+                title=f"Profile representation of sites for latent dim {latent_dim}, rank={rank}",
+                xlabel="Profile number",
                 xticks=range(v_vecs.shape[1]),
                 yticks=range(0, seq_len),
                 ylabel="Site number",
