@@ -1,3 +1,4 @@
+##################
 Specifying models
 ##################
 
@@ -5,7 +6,7 @@ Specifying models
 When calling ``tdms create`` or specifying a model in a JSON configuration file, you must specify a model string with your desired architecture.
 Different model classes have different model strings, below are a few examples of how to define various types of models.
 
-
+********************************
 Models for any output dimension
 ********************************
 
@@ -40,7 +41,7 @@ To use a two-dimensional latent space in the previous model:
     "FullyConnected(2,identity,10,sigmoid,15,relu)"
 
 
-
+**********************************
 Models for two-dimensional output
 **********************************
 
