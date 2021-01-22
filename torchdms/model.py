@@ -26,6 +26,7 @@ class TorchdmsModel(nn.Module):
         self.freeze_betas = freeze_betas
         self.monotonic_sign = None
         self.layers = []
+        self.training_style_sequence = [self.default_training_style]
 
     def __str__(self):
         return super().__str__() + "\n" + self.characteristics.__str__()
@@ -146,12 +147,6 @@ class TorchdmsModel(nn.Module):
         """The default training style."""
         click.echo("Training in default style.")
         self.set_require_grad_for_all_parameters(True)
-
-    @property
-    def training_style_sequence(self):
-        """The sequence of training styles that will be used during
-        training."""
-        return [self.default_training_style]
 
 
 class LinearModel(TorchdmsModel):
@@ -553,13 +548,12 @@ class Conditional(Independent):
 class ConditionalSequential(Conditional):
     """Conditional with sequential training: stab then bind."""
 
-    @property
-    def training_style_sequence(self):
-        """The sequence of training styles that will be used during training.
-
-        Here we just train stab and then train bind.
-        """
-        return [self.only_train_stab_style, self.only_train_bind_style]
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.training_style_sequence = [
+            self.only_train_stab_style,
+            self.only_train_bind_style,
+        ]
 
 
 KNOWN_MODELS = {
