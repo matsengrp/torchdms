@@ -155,10 +155,7 @@ class TorchdmsModel(nn.Module):
 
 
 class LinearModel(TorchdmsModel):
-    """The simplest model.
-
-    TODO make an example model string for each model.
-    """
+    """The simplest model."""
 
     def __init__(self, input_size, target_names, alphabet):
         super().__init__(input_size, target_names, alphabet)
