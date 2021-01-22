@@ -36,6 +36,7 @@ from torchdms.plot import (
     plot_test_correlation,
 )
 from torchdms.utils import (
+    float_list_of_comma_separated_string,
     from_pickle_file,
     from_json_file,
     make_cartesian_product_hierarchy,
@@ -132,11 +133,7 @@ def cli(version):
     help="If the total number of examples for any particular stratum is lower than this "
     "number, we throw out the stratum completely.",
 )
-@click.option(
-    "--drop-nans",
-    is_flag=True,
-    help="Drop all rows that contain a nan.",
-)
+@click.option("--drop-nans", is_flag=True, help="Drop all rows that contain a nan.")
 @click.option(
     "--export-dataframe",
     type=str,
@@ -205,12 +202,7 @@ def prep(
         )
 
         prep_by_stratum_and_export(
-            split_df,
-            wtseq,
-            targets,
-            out_prefix,
-            str(ctx.params),
-            partition_label,
+            split_df, wtseq, targets, out_prefix, str(ctx.params), partition_label
         )
 
     if partition_by in aa_func_scores.columns:
@@ -301,28 +293,26 @@ def create(
 ):
     """Create a model.
 
-    Model string describes the model, such as 'Planifolia(1,10)'.
+    See the documentation for each model to see an example model string.
     """
     set_random_seed(seed)
-    beta_l1_coefficients = [float(x) for x in beta_l1_coefficients.split(",")]
     kwargs = dict(monotonic_sign=monotonic)
-    if len(beta_l1_coefficients) == 1:
-        kwargs["beta_l1_coefficient"] = beta_l1_coefficients[0]
-    else:
-        kwargs["beta_l1_coefficients"] = beta_l1_coefficients
-    interaction_l1_coefficients = [
-        float(x) for x in interaction_l1_coefficients.split(",")
-    ]
-    if len(interaction_l1_coefficients) == 1:
-        kwargs["interaction_l1_coefficient"] = interaction_l1_coefficients[0]
-    else:
-        kwargs["interaction_l1_coefficients"] = interaction_l1_coefficients
-
-    model = model_of_string(
-        model_string,
-        data_path,
-        **kwargs,
+    beta_l1_coefficients = float_list_of_comma_separated_string(beta_l1_coefficients)
+    if beta_l1_coefficients is not None:
+        if len(beta_l1_coefficients) == 1:
+            kwargs["beta_l1_coefficient"] = beta_l1_coefficients[0]
+        else:
+            kwargs["beta_l1_coefficients"] = beta_l1_coefficients
+    interaction_l1_coefficients = float_list_of_comma_separated_string(
+        interaction_l1_coefficients
     )
+    if interaction_l1_coefficients is not None:
+        if len(interaction_l1_coefficients) == 1:
+            kwargs["interaction_l1_coefficient"] = interaction_l1_coefficients[0]
+        else:
+            kwargs["interaction_l1_coefficients"] = interaction_l1_coefficients
+
+    model = model_of_string(model_string, data_path, **kwargs)
 
     torch.save(model, out_path)
     click.echo(f"LOG: Model defined as: {model}")
@@ -343,16 +333,10 @@ def create(
     "to the exponential of a loss decay times the true score.",
 )
 @click.option(
-    "--batch-size",
-    default=500,
-    show_default=True,
-    help="Batch size for training.",
+    "--batch-size", default=500, show_default=True, help="Batch size for training."
 )
 @click.option(
-    "--learning-rate",
-    default=1e-3,
-    show_default=True,
-    help="Initial learning rate.",
+    "--learning-rate", default=1e-3, show_default=True, help="Initial learning rate."
 )
 @click.option(
     "--min-lr",
@@ -361,16 +345,10 @@ def create(
     help="Minimum learning rate before early stopping on training.",
 )
 @click.option(
-    "--patience",
-    default=10,
-    show_default=True,
-    help="Patience for ReduceLROnPlateau.",
+    "--patience", default=10, show_default=True, help="Patience for ReduceLROnPlateau."
 )
 @click.option(
-    "--device",
-    default="cpu",
-    show_default=True,
-    help="Device used to train nn",
+    "--device", default="cpu", show_default=True, help="Device used to train nn"
 )
 @click.option(
     "--independent-starts",
@@ -530,9 +508,7 @@ def default_map_of_ctx_or_parent(ctx):
 @click.argument("data_path", type=click.Path(exists=True))
 @click.option("--out", required=True, type=click.Path())
 @click.option(
-    "--show-points",
-    is_flag=True,
-    help="Show points in addition to LOWESS curves.",
+    "--show-points", is_flag=True, help="Show points in addition to LOWESS curves."
 )
 @click.option("--device", type=str, required=False, default="cpu")
 @click.option(
@@ -603,7 +579,11 @@ def beta(model_path, data_path, out):
 @click.option("--out", required=True, type=click.Path())
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
 def heatmap(model_path, out):
-    """Plot single mutant predictions as a heatmap."""
+    """Plot single mutant predictions as a heatmap.
+
+    Note/warning: because of the way we have set up the encoding, the heatmap values
+    cannot be interpreted in a straightfoward way.
+    """
     model = torch.load(model_path)
     plot_heatmap(model, out)
 
@@ -668,14 +648,10 @@ def go(ctx):
     prefix = ctx.default_map["prefix"]
     model_path = prefix + ".model"
     ctx.invoke(
-        create,
-        out_path=model_path,
-        **restrict_dict_to_params(ctx.default_map, create),
+        create, out_path=model_path, **restrict_dict_to_params(ctx.default_map, create)
     )
     ctx.invoke(
-        train,
-        model_path=model_path,
-        **restrict_dict_to_params(ctx.default_map, train),
+        train, model_path=model_path, **restrict_dict_to_params(ctx.default_map, train)
     )
     error_path = prefix + ".error.pdf"
     ctx.invoke(
