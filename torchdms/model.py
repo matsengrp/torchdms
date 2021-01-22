@@ -438,7 +438,10 @@ class Independent(TorchdmsModel):
 
     @property
     def characteristics(self):
-        return self.model_bind.characteristics
+        return dict(
+            [("bind_" + k, v) for k, v in self.model_bind.characteristics.items()]
+            + [("stab_" + k, v) for k, v in self.model_stab.characteristics.items()]
+        )
 
     @property
     def internal_layer_dimensions(self):
