@@ -1,4 +1,4 @@
-"""Loss functions."""
+"""Loss functions and functions relevant to losses."""
 import torch
 
 
@@ -45,3 +45,13 @@ def mse(y_true, y_predicted, loss_decay=None, exp_target=None):
 def rmse(y_true, y_predicted, loss_decay=None):
     """Root mean square error, perhaps with loss decay."""
     return mse(y_true, y_predicted, loss_decay).sqrt()
+
+
+def group_lasso(matrix):
+    """The sum of the 2-norm across columns."""
+    shape = list(matrix.shape)
+    assert len(shape) == 2
+    total = torch.Tensor([0.0])
+    for i in range(shape[1]):
+        total += matrix[:, i].norm(2)
+    return total
