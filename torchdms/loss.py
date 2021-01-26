@@ -49,9 +49,5 @@ def rmse(y_true, y_predicted, loss_decay=None):
 
 def group_lasso(matrix):
     """The sum of the 2-norm across columns."""
-    shape = list(matrix.shape)
-    assert len(shape) == 2
-    total = torch.Tensor([0.0])
-    for i in range(shape[1]):
-        total += matrix[:, i].norm(2)
-    return total
+    assert len(matrix.shape) == 2
+    return torch.sum(torch.pow(torch.sum(torch.pow(matrix, 2), 0), 0.5))
