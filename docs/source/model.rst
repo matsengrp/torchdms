@@ -12,6 +12,16 @@ Models for any output dimension
 
 The following examples define models capable of predicting output of an arbitrary dimension.
 
+Linear
+---------------
+
+To build a linear model:
+
+.. code-block:: console
+
+    "Linear()"
+
+
 FullyConnected
 ---------------
 
