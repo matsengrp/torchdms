@@ -47,7 +47,11 @@ def rmse(y_true, y_predicted, loss_decay=None):
     return mse(y_true, y_predicted, loss_decay).sqrt()
 
 
-def group_lasso(matrix):
-    """The sum of the 2-norm across columns."""
+def sitewise_group_lasso(matrix):
+    """The sum of the 2-norm across columns.
+
+    We omit the square root of the group sizes, as they are all constant
+    in our case.
+    """
     assert len(matrix.shape) == 2
     return torch.sum(torch.pow(torch.sum(torch.pow(matrix, 2), 0), 0.5))
