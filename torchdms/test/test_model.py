@@ -42,11 +42,13 @@ from torchdms.utils import (
     to_pickle_file,
 )
 
+
 def set_random_seed(seed):
     if seed is not None:
         click.echo(f"LOG: Setting random seed to {seed}.")
         torch.manual_seed(seed)
         random.seed(seed)
+
 
 def train(
     model_path,
@@ -127,26 +129,27 @@ def train(
     click.echo(f"Starting training. {training_params}")
     analysis.multi_train(**training_params)
 
+
 if __name__ == "__main__":
 
     params = {
-    "model_path": '../map-multi-mutants/sim_01292021/escape.model',
-    "data_path": '../map-multi-mutants/sim_01292021/prepped_libsim.pkl',
-    "loss_fn": 'l1',
-    "loss_weight_span": None,
-    "exp_target": None,
-    "batch_size": 500,
-    "learning_rate": 0.001,
-    "min_lr": 1e-5,
-    "patience": 10,
-    "device": 'cpu',
-    "independent_starts": 0,
-    "independent_start_epochs": 5,
-    "simple_training": False,
-    "epochs": 10,
-    "dry_run": False,
-    "seed": 0,
-    "beta_rank": None,
+        "model_path": "../map-multi-mutants/sim_01292021/escape.model",
+        "data_path": "../map-multi-mutants/sim_01292021/prepped_libsim.pkl",
+        "loss_fn": "l1",
+        "loss_weight_span": None,
+        "exp_target": None,
+        "batch_size": 500,
+        "learning_rate": 0.001,
+        "min_lr": 1e-5,
+        "patience": 10,
+        "device": "cpu",
+        "independent_starts": 0,
+        "independent_start_epochs": 5,
+        "simple_training": False,
+        "epochs": 10,
+        "dry_run": False,
+        "seed": 0,
+        "beta_rank": None,
     }
     train(**params)
 

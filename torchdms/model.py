@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
-import copy ### added by Tim ###
+import copy  ### added by Tim ###
 from torchdms.utils import from_pickle_file
 
 
@@ -179,27 +179,27 @@ class LinearModel(TorchdmsModel):
     def to_latent(self, x):
         return self.forward(x)
 
+
 ### THIS SECTION WAS ADDED BY TIM ==============================
 class EscapeModel(TorchdmsModel):
-    """
-    a subclass of TorchdmsModel for modeling viral escape
-    """
+    """a subclass of TorchdmsModel for modeling viral escape."""
+
     def __init__(self, input_size, target_names, alphabet):
         super().__init__(input_size, target_names, alphabet)
-       
+
         # initialize layers
         self.layers = []
 
         # epitope weights: these are fixed for example, but can be loaded in csv file in future
         # note that epitope weights is an (E,S) tensor
-        epitope1 = torch.Tensor([1,1,1,1,0,0,0,0,0,0])
-        epitope2 = torch.Tensor([0,0,0,0,0,0,1,1,1,1])
-        epitope_weights = torch.stack((epitope1,epitope2), axis=0)
+        epitope1 = torch.Tensor([1, 1, 1, 1, 0, 0, 0, 0, 0, 0])
+        epitope2 = torch.Tensor([0, 0, 0, 0, 0, 0, 1, 1, 1, 1])
+        epitope_weights = torch.stack((epitope1, epitope2), axis=0)
 
         # the layer sizes and activations are fixed in this model
         self.epitope_weights = epitope_weights
         layer_sizes = [epitope_weights.size()[0], epitope_weights.size()[0]]
-        #self.activations = ["identity", "sigmoid"] # think this cannot be specified as strings
+        # self.activations = ["identity", "sigmoid"] # think this cannot be specified as strings
 
         # latent layer is always first layer
         self.latent_idx = 0
@@ -208,7 +208,7 @@ class EscapeModel(TorchdmsModel):
         for layer_index, num_nodes in enumerate(layer_sizes):
             if layer_index == self.latent_idx:
                 # build the latent layer
-                layer_name = 'latent_layer' 
+                layer_name = "latent_layer"
                 bias = True
                 self.layers.append(layer_name)
                 # set the output to 1 because we multiply input features by different weights for each node
@@ -216,7 +216,7 @@ class EscapeModel(TorchdmsModel):
                 input_size = layer_sizes[layer_index]
             else:
                 # build the sigmoid-transformed layer
-                layer_name = 'sigmoid_layer'
+                layer_name = "sigmoid_layer"
                 self.layers.append(layer_name)
                 setattr(self, layer_name, "sigmoid")
                 input_size = layer_sizes[layer_index]
@@ -231,13 +231,15 @@ class EscapeModel(TorchdmsModel):
 
     def to_latent(self, x):
         """
-        input features * epitope_weights -> latent space 
+        input features * epitope_weights -> latent space
         """
-        # expand weights to account for all aa alphabet letters 
+        # expand weights to account for all aa alphabet letters
         expanded_weights = torch.repeat_interleave(self.epitope_weights, 21, dim=1)
 
         # create list of E linear models
-        models = [getattr(self, self.layers[self.latent_idx])] * self.epitope_weights.size()[0]
+        models = [
+            getattr(self, self.layers[self.latent_idx])
+        ] * self.epitope_weights.size()[0]
 
         latent_dims = []
         for idx, model in enumerate(models):
@@ -245,21 +247,17 @@ class EscapeModel(TorchdmsModel):
             constrained_input = x * expanded_weights[idx]
             latent_dims.append(model_(constrained_input))
 
-        #print(torch.cat(latent_dims, dim=1).size())
+        # print(torch.cat(latent_dims, dim=1).size())
         return torch.cat(latent_dims, dim=1)
 
     def from_latent_to_output(self, x):
-        """
-        latent space in as 'x' -> escape fraction
-        """
+        """latent space in as 'x' -> escape fraction."""
         b_fractions = torch.sigmoid(x)
-        #print(torch.prod(b_fractions,1).size())
-        return torch.prod(b_fractions,1)
+        # print(torch.prod(b_fractions,1).size())
+        return torch.prod(b_fractions, 1)
 
     def forward(self, x):  # pylint: disable=arguments-differ
-        """
-        Compose data --> latent --> output.
-        """
+        """Compose data --> latent --> output."""
         return self.from_latent_to_output(self.to_latent(x))
 
     def beta_coefficients(self):
@@ -267,6 +265,7 @@ class EscapeModel(TorchdmsModel):
         terms)"""
         # This implementation assumes the single mutant terms are indexed first
         return self.latent_layer.weight.data[:, : self.input_size]
+
 
 class FullyConnected(TorchdmsModel):
     """Make it just how you like it.
@@ -657,7 +656,7 @@ KNOWN_MODELS = {
     "Independent": Independent,
     "Conditional": Conditional,
     "ConditionalSequential": ConditionalSequential,
-    "Escape": EscapeModel ### added by Tim ###
+    "Escape": EscapeModel,  ### added by Tim ###
 }
 
 
@@ -715,7 +714,7 @@ def model_of_string(model_string, data_path, **kwargs):
             test_dataset.target_names,
             alphabet=test_dataset.alphabet,
         )
-    elif model_name == "Escape": ### added by Tim ###
+    elif model_name == "Escape":  ### added by Tim ###
         model = EscapeModel(
             test_dataset.feature_count(),
             test_dataset.target_names,
