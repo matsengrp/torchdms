@@ -76,6 +76,7 @@ def train(
     set_random_seed(seed)
 
     model = torch.load(model_path)
+    print(model)
     data = from_pickle_file(data_path)
 
     analysis_params = {
@@ -146,7 +147,7 @@ if __name__ == "__main__":
         "independent_starts": 0,
         "independent_start_epochs": 5,
         "simple_training": False,
-        "epochs": 10,
+        "epochs": 100,
         "dry_run": False,
         "seed": 0,
         "beta_rank": None,

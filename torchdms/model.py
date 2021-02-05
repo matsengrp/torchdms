@@ -253,8 +253,7 @@ class EscapeModel(TorchdmsModel):
     def from_latent_to_output(self, x):
         """latent space in as 'x' -> escape fraction."""
         b_fractions = torch.sigmoid(x)
-        # print(torch.prod(b_fractions,1).size())
-        return torch.prod(b_fractions, 1)
+        return torch.unsqueeze(torch.prod(b_fractions, 1), 1)
 
     def forward(self, x):  # pylint: disable=arguments-differ
         """Compose data --> latent --> output."""
@@ -265,6 +264,9 @@ class EscapeModel(TorchdmsModel):
         terms)"""
         # This implementation assumes the single mutant terms are indexed first
         return self.latent_layer.weight.data[:, : self.input_size]
+
+    def regularization_loss(self):
+        return 0.0
 
 
 class FullyConnected(TorchdmsModel):

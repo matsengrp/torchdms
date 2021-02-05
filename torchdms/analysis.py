@@ -77,8 +77,6 @@ class Analysis:
         which may contain missing information for a subset of the
         targets.
         """
-        print(targets.shape)
-        print(targets.shape[1])
         per_target_loss = [
             self.loss_of_targets_and_prediction(
                 loss_fn,
@@ -173,6 +171,7 @@ class Analysis:
                     if self.model.monotonic_sign:
                         for param in self.model.monotonic_params_from_latent_space():
                             param.data.clamp_(0)
+
                 optimizer.step()
                 # if k >=1, reconstruct beta matricies with truncated SVD
                 if beta_rank is not None:
@@ -197,6 +196,7 @@ class Analysis:
                 val_predictions,
                 val_loss_decay,
             ).item()
+            breakpoint()
             if val_loss < self.val_loss_record:
                 print(f"\nvalidation loss record: {val_loss}")
                 torch.save(self.model, self.model_path)
