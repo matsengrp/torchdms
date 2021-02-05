@@ -140,11 +140,9 @@ class Analysis:
 
         batch_count = 1 + max(map(len, self.train_datasets)) // self.batch_size
         self.model.train()  # Sets model to training mode.
-        optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
-        scheduler = ReduceLROnPlateau(optimizer, patience=patience, verbose=True)
         self.model.to(self.device)
 
-        def step_model():
+        def step_model(optimizer, scheduler):
             for _ in range(batch_count):
                 optimizer.zero_grad()
                 per_batch_loss = 0.0
@@ -204,10 +202,13 @@ class Analysis:
 
         for training_style in self.model.training_style_sequence:
             training_style()
+            self.val_loss_record = sys.float_info.max
+            optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
+            scheduler = ReduceLROnPlateau(optimizer, patience=patience, verbose=True)
 
             with click.progressbar(range(epoch_count)) as progress_bar:
                 for _ in progress_bar:
-                    step_model()
+                    step_model(optimizer, scheduler)
                     if optimizer.state_dict()["param_groups"][0]["lr"] < min_lr:
                         click.echo(
                             "Learning rate dropped below stated minimum. Stopping."
