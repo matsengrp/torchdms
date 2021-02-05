@@ -365,24 +365,24 @@ def plot_svd_profiles(model, test_data, out):
         rank = np.linalg.matrix_rank(beta_map)
         u_vecs, _, v_vecs = torch.svd(torch.from_numpy(beta_map))
         # Plot amino acid profiles
-        aa_profiles = ax[0].imshow(u_vecs, aspect="auto", cmap=cm.Reds)
+        aa_profiles = ax[0].imshow(u_vecs[:, :rank], aspect="auto", cmap=cm.Reds)
         fig.colorbar(aa_profiles, ax=ax[0], orientation="horizontal")
         ax[0].set(
             title=f"Amino acid profiles for latent dim {latent_dim}, rank={rank}",
-            xticks=range(u_vecs.shape[1]),
-            xlabel="Eigenvector number",
+            xticks=range(rank),
+            xlabel="Profile number",
             yticks=range(0, 21),
             yticklabels=alphabet,
             ylabel="Amino acid",
         )
         # add second heatmap for folding latent space
-        site_profiles = ax[1].imshow(v_vecs, aspect="auto", cmap=cm.Reds)
+        site_profiles = ax[1].imshow(v_vecs[:, :rank], aspect="auto", cmap=cm.Reds)
         fig.colorbar(site_profiles, ax=ax[1], orientation="horizontal")
         ax[1].set(
-            title=f"Site profiles for latent dim {latent_dim}, rank={rank}",
-            xlabel="Eigenvector number",
-            xticks=range(v_vecs.shape[1]),
-            yticks=range(0, seq_len),
+            title=f"Per-site profile usage for latent dim {latent_dim}, rank={rank}",
+            xlabel="Profile number",
+            xticks=range(rank),
+            yticks=range(0, seq_len, 10),
             ylabel="Site number",
         )
     else:
@@ -393,11 +393,11 @@ def plot_svd_profiles(model, test_data, out):
             rank = np.linalg.matrix_rank(beta_map)
             u_vecs, _, v_vecs = torch.svd(torch.from_numpy(beta_map))
             # Plot amino acid profiles
-            aa_profiles = ax[latent_dim, 0].imshow(u_vecs, aspect="auto", cmap=cm.Reds)
+            aa_profiles = ax[latent_dim, 0].imshow(u_vecs[:, :rank], aspect="auto", cmap=cm.Reds)
             fig.colorbar(aa_profiles, ax=ax[latent_dim, 0], orientation="horizontal")
             ax[latent_dim, 0].set(
-                title=f"Profile representation of AAs for latent dim {latent_dim}, rank={rank}",
-                xticks=range(u_vecs.shape[1]),
+                title=f"Amino acid profiles, rank={rank}",
+                xticks=range(rank),
                 xlabel="Profile number",
                 yticks=range(0, 21),
                 yticklabels=alphabet,
@@ -405,14 +405,14 @@ def plot_svd_profiles(model, test_data, out):
             )
             # add second heatmap for folding latent space
             site_profiles = ax[latent_dim, 1].imshow(
-                v_vecs, aspect="auto", cmap=cm.Reds
+                v_vecs[:, :rank], aspect="auto", cmap=cm.Reds
             )
             fig.colorbar(site_profiles, ax=ax[latent_dim, 1], orientation="horizontal")
             ax[latent_dim, 1].set(
-                title=f"Profile representation of sites for latent dim {latent_dim}, rank={rank}",
+                title=f"Per-site profile usage, rank={rank}",
                 xlabel="Profile number",
-                xticks=range(v_vecs.shape[1]),
-                yticks=range(0, seq_len),
+                xticks=range(rank),
+                yticks=range(0, seq_len, 10),
                 ylabel="Site number",
             )
 
