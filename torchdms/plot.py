@@ -393,7 +393,9 @@ def plot_svd_profiles(model, test_data, out):
             rank = np.linalg.matrix_rank(beta_map)
             u_vecs, _, v_vecs = torch.svd(torch.from_numpy(beta_map))
             # Plot amino acid profiles
-            aa_profiles = ax[latent_dim, 0].imshow(u_vecs[:, :rank], aspect="auto", cmap=cm.Reds)
+            aa_profiles = ax[latent_dim, 0].imshow(
+                u_vecs[:, :rank], aspect="auto", cmap=cm.Reds
+            )
             fig.colorbar(aa_profiles, ax=ax[latent_dim, 0], orientation="horizontal")
             ax[latent_dim, 0].set(
                 title=f"Amino acid profiles, rank={rank}",
