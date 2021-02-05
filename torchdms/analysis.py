@@ -77,6 +77,8 @@ class Analysis:
         which may contain missing information for a subset of the
         targets.
         """
+	print(targets.shape)
+	print(targets.shape[1])
         per_target_loss = [
             self.loss_of_targets_and_prediction(
                 loss_fn,
