@@ -187,44 +187,34 @@ class EscapeModel(TorchdmsModel):
     def __init__(self, input_size, target_names, alphabet):
         super().__init__(input_size, target_names, alphabet)
 
-        # initialize layers
-        self.layers = []
-
         # epitope weights: these are fixed for example, but can be loaded in csv file in future
         # note that epitope weights is an (E,S) tensor
         epitope1 = torch.Tensor([1, 1, 1, 1, 0, 0, 0, 0, 0, 0])
         epitope2 = torch.Tensor([0, 0, 0, 0, 0, 0, 1, 1, 1, 1])
         epitope_weights = torch.stack((epitope1, epitope2), axis=0)
 
-        # the layer sizes and activations are fixed in this model
+        # set the epitope weights as an attribute
         self.epitope_weights = epitope_weights
-        layer_sizes = [epitope_weights.size()[0], epitope_weights.size()[0]]
-        # self.activations = ["identity", "sigmoid"] # think this cannot be specified as strings
 
-        # latent layer is always first layer
-        self.latent_idx = 0
+        # build the model
+        for i in range(1, self.epitope_weights.size()[0] + 1):
+            setattr(self, f"latent_layer_epi{i}", nn.Linear(input_size, 1, bias=True))
 
-        # build EscapeModel()
-        for layer_index, num_nodes in enumerate(layer_sizes):
-            if layer_index == self.latent_idx:
-                # build the latent layer
-                layer_name = "latent_layer"
-                bias = True
-                self.layers.append(layer_name)
-                # set the output to 1 because we multiply input features by different weights for each node
-                setattr(self, layer_name, nn.Linear(input_size, 1, bias=bias))
-                input_size = layer_sizes[layer_index]
-            else:
-                # build the sigmoid-transformed layer
-                layer_name = "sigmoid_layer"
-                self.layers.append(layer_name)
-                setattr(self, layer_name, "sigmoid")
-                input_size = layer_sizes[layer_index]
+    @property
+    def characteristics(self):
+        """Return salient characteristics of the model that aren't represented
+        in the PyTorch description."""
+        return {
+            "monotonic": False,
+            "beta_l1_coefficient": 0.0,
+        }
 
-        # build the final layer
-        layer_name = "output_layer"
-        self.layers.append(layer_name)
-        setattr(self, layer_name, "product")
+    @property
+    def latent_dim(self):
+        """
+        number of dimensions in latent space
+        """
+        return self.epitope_weights.size()[0]
 
     def str_summary(self):
         return "Escape"
@@ -236,18 +226,13 @@ class EscapeModel(TorchdmsModel):
         # expand weights to account for all aa alphabet letters
         expanded_weights = torch.repeat_interleave(self.epitope_weights, 21, dim=1)
 
-        # create list of E linear models
-        models = [
-            getattr(self, self.layers[self.latent_idx])
-        ] * self.epitope_weights.size()[0]
-
         latent_dims = []
-        for idx, model in enumerate(models):
-            model_ = copy.deepcopy(model)
-            constrained_input = x * expanded_weights[idx]
-            latent_dims.append(model_(constrained_input))
 
-        # print(torch.cat(latent_dims, dim=1).size())
+        for i in range(1, self.epitope_weights.size()[0] + 1):
+            input_ = x * expanded_weights[i - 1]
+            model_ = getattr(self, f"latent_layer_epi{i}")
+            latent_dims.append(model_(input_))
+
         return torch.cat(latent_dims, dim=1)
 
     def from_latent_to_output(self, x):
@@ -260,10 +245,14 @@ class EscapeModel(TorchdmsModel):
         return self.from_latent_to_output(self.to_latent(x))
 
     def beta_coefficients(self):
-        """Beta coefficients (single mutant effects only, no interaction
-        terms)"""
-        # This implementation assumes the single mutant terms are indexed first
-        return self.latent_layer.weight.data[:, : self.input_size]
+        """beta coefficients"""
+
+        beta_coefficients_data = torch.cat(
+            (
+                [getattr(self, f"latent_layer_epi{i}").weight.data for i in range(1, self.epitope_weights.size()[0] + 1)]
+            )
+        )
+        return beta_coefficients_data[:, : self.input_size]
 
     def regularization_loss(self):
         return 0.0

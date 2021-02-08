@@ -134,13 +134,13 @@ def train(
 if __name__ == "__main__":
 
     params = {
-        "model_path": "../map-multi-mutants/sim_01292021/escape.model",
-        "data_path": "../map-multi-mutants/sim_01292021/prepped_libsim.pkl",
+        "model_path": "exp_data/escape.model",
+        "data_path": "exp_data/prepped_libsim.pkl",
         "loss_fn": "l1",
         "loss_weight_span": None,
         "exp_target": None,
         "batch_size": 500,
-        "learning_rate": 0.001,
+        "learning_rate": 0.03,
         "min_lr": 1e-5,
         "patience": 10,
         "device": "cpu",
