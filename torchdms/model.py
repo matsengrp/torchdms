@@ -184,17 +184,22 @@ class LinearModel(TorchdmsModel):
 class EscapeModel(TorchdmsModel):
     """a subclass of TorchdmsModel for modeling viral escape."""
 
-    def __init__(self, input_size, target_names, alphabet):
+    def __init__(self, 
+        input_size, 
+        target_names, 
+        alphabet,
+        product_l1_coefficient=0.00001):
         super().__init__(input_size, target_names, alphabet)
 
         # epitope weights: these are fixed for example, but can be loaded in csv file in future
         # note that epitope weights is an (E,S) tensor
-        epitope1 = torch.Tensor([1, 1, 1, 1, 0, 0, 0, 0, 0, 0])
-        epitope2 = torch.Tensor([0, 0, 0, 0, 0, 0, 1, 1, 1, 1])
+        epitope1 = torch.Tensor([1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
+        epitope2 = torch.Tensor([1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
         epitope_weights = torch.stack((epitope1, epitope2), axis=0)
-
+   
         # set the epitope weights as an attribute
         self.epitope_weights = epitope_weights
+        self.product_l1_coefficient = product_l1_coefficient
 
         # build the model
         for i in range(1, self.epitope_weights.size()[0] + 1):
@@ -206,7 +211,7 @@ class EscapeModel(TorchdmsModel):
         in the PyTorch description."""
         return {
             "monotonic": False,
-            "beta_l1_coefficient": 0.0,
+            "product_l1_coefficient": self.product_l1_coefficient,
         }
 
     @property
@@ -223,10 +228,10 @@ class EscapeModel(TorchdmsModel):
         """
         input features * epitope_weights -> latent space
         """
+        latent_dims = []
+
         # expand weights to account for all aa alphabet letters
         expanded_weights = torch.repeat_interleave(self.epitope_weights, 21, dim=1)
-
-        latent_dims = []
 
         for i in range(1, self.epitope_weights.size()[0] + 1):
             input_ = x * expanded_weights[i - 1]
@@ -255,8 +260,13 @@ class EscapeModel(TorchdmsModel):
         return beta_coefficients_data[:, : self.input_size]
 
     def regularization_loss(self):
-        return 0.0
-
+        """penalize the beta coefficients"""
+        betas = self.beta_coefficients()
+        penalty = 0.0
+        if self.product_l1_coefficient > 0.0:
+            product = torch.prod(betas, 0).norm(1)
+            penalty += self.product_l1_coefficient * product
+        return penalty
 
 class FullyConnected(TorchdmsModel):
     """Make it just how you like it.
