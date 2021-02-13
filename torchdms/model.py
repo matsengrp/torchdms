@@ -8,6 +8,7 @@ import torch
 import torch.nn as nn
 import copy  ### added by Tim ###
 from torchdms.utils import from_pickle_file
+from torchdms.loss import l1_epitope_product
 
 
 def identity(x):
@@ -188,7 +189,8 @@ class EscapeModel(TorchdmsModel):
         input_size, 
         target_names, 
         alphabet,
-        product_l1_coefficient=0.00001):
+        beta_l1_coefficient=None,
+        monotonic_sign=False):
         super().__init__(input_size, target_names, alphabet)
 
         # epitope weights: these are fixed for example, but can be loaded in csv file in future
@@ -199,7 +201,7 @@ class EscapeModel(TorchdmsModel):
    
         # set the epitope weights as an attribute
         self.epitope_weights = epitope_weights
-        self.product_l1_coefficient = product_l1_coefficient
+        self.beta_l1_coefficient = beta_l1_coefficient
 
         # build the model
         for i in range(1, self.epitope_weights.size()[0] + 1):
@@ -211,7 +213,7 @@ class EscapeModel(TorchdmsModel):
         in the PyTorch description."""
         return {
             "monotonic": False,
-            "product_l1_coefficient": self.product_l1_coefficient,
+            "beta_l1_coefficient": self.beta_l1_coefficient,
         }
 
     @property
@@ -263,9 +265,9 @@ class EscapeModel(TorchdmsModel):
         """penalize the beta coefficients"""
         betas = self.beta_coefficients()
         penalty = 0.0
-        if self.product_l1_coefficient > 0.0:
-            product = torch.prod(betas, 0).norm(1)
-            penalty += self.product_l1_coefficient * product
+        if self.beta_l1_coefficient > 0.0:
+            product = l1_epitope_product(betas)
+            penalty += self.beta_l1_coefficient * product
         return penalty
 
 class FullyConnected(TorchdmsModel):
@@ -720,6 +722,7 @@ def model_of_string(model_string, data_path, **kwargs):
             test_dataset.feature_count(),
             test_dataset.target_names,
             alphabet=test_dataset.alphabet,
+            **kwargs,
         )
     elif model_name in ("Independent", "Conditional", "ConditionalSequential"):
         model = KNOWN_MODELS[model_name](

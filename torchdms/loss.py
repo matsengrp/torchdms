@@ -45,3 +45,7 @@ def mse(y_true, y_predicted, loss_decay=None, exp_target=None):
 def rmse(y_true, y_predicted, loss_decay=None):
     """Root mean square error, perhaps with loss decay."""
     return mse(y_true, y_predicted, loss_decay).sqrt()
+
+def l1_epitope_product(betas):
+    """Computes l1 norm of product of betas across epitopes."""
+    return torch.prod(betas, 0).norm(1)
