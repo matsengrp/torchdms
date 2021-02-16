@@ -33,6 +33,7 @@ from torchdms.plot import (
     plot_2d_geplot,
     plot_heatmap,
     plot_svd,
+    plot_svd_profiles,
     plot_test_correlation,
 )
 from torchdms.utils import (
@@ -626,6 +627,21 @@ def svd(model_path, data_path, out):
     click.echo(f"LOG: Singular values of beta plotted and dumped to {out}")
 
 
+### Plot protein profiles
+@cli.command()
+@click.argument("model_path", type=click.Path(exists=True))
+@click.argument("data_path", type=click.Path(exists=True))
+@click.option("--out", required=True, type=click.Path())
+@click_config_file.configuration_option(implicit=False, provider=json_provider)
+def profiles(model_path, data_path, out):
+    """Plot amino acid and site profiles from low-rank approximation."""
+    model = torch.load(model_path)
+    data = from_pickle_file(data_path)
+    click.echo("LOG: model loaded, plotting amino acid and site profiles.")
+    plot_svd_profiles(model, data.test, out)
+    click.echo(f"LOG: Amino acid and site profiles plotted and dumped to {out}")
+
+
 def restrict_dict_to_params(d_to_restrict, cmd):
     """Restrict the given dictionary to the names of parameters for cmd."""
     param_names = {param.name for param in cmd.params}
@@ -687,6 +703,13 @@ def go(ctx):
         model_path=model_path,
         out=svd_path,
         **restrict_dict_to_params(ctx.default_map, svd),
+    )
+    profiles_path = prefix + ".profiles.pdf"
+    ctx.invoke(
+        profiles,
+        model_path=model_path,
+        out=profiles_path,
+        **restrict_dict_to_params(ctx.default_map, profiles),
     )
     heatmap_path = prefix + ".heat.pdf"
     ctx.invoke(
