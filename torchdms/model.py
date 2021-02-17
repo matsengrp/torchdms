@@ -8,7 +8,7 @@ import torch
 import torch.nn as nn
 import copy  ### added by Tim ###
 from torchdms.utils import from_pickle_file
-from torchdms.loss import l1_epitope_product
+from torchdms.loss import l1_epitope_product, distance_penalty
 
 
 def identity(x):
@@ -266,8 +266,9 @@ class EscapeModel(TorchdmsModel):
         betas = self.beta_coefficients()
         penalty = 0.0
         if self.beta_l1_coefficient > 0.0:
-            product = l1_epitope_product(betas)
-            penalty += self.beta_l1_coefficient * product
+            #product = l1_epitope_product(betas)
+            distance = distance_penalty(betas, len(self.alphabet), self.epitope_weights.size()[1], 30)
+            penalty += self.beta_l1_coefficient * distance
         return penalty
 
 class FullyConnected(TorchdmsModel):
