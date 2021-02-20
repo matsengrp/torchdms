@@ -185,12 +185,14 @@ class LinearModel(TorchdmsModel):
 class EscapeModel(TorchdmsModel):
     """a subclass of TorchdmsModel for modeling viral escape."""
 
-    def __init__(self, 
-        input_size, 
-        target_names, 
+    def __init__(
+        self,
+        input_size,
+        target_names,
         alphabet,
         beta_l1_coefficient=None,
-        monotonic_sign=False):
+        monotonic_sign=False,
+    ):
         super().__init__(input_size, target_names, alphabet)
 
         # epitope weights: these are fixed for example, but can be loaded in csv file in future
@@ -198,7 +200,7 @@ class EscapeModel(TorchdmsModel):
         epitope1 = torch.Tensor([1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
         epitope2 = torch.Tensor([1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
         epitope_weights = torch.stack((epitope1, epitope2), axis=0)
-   
+
         # set the epitope weights as an attribute
         self.epitope_weights = epitope_weights
         self.beta_l1_coefficient = beta_l1_coefficient
@@ -218,9 +220,7 @@ class EscapeModel(TorchdmsModel):
 
     @property
     def latent_dim(self):
-        """
-        number of dimensions in latent space
-        """
+        """number of dimensions in latent space."""
         return self.epitope_weights.size()[0]
 
     def str_summary(self):
@@ -252,24 +252,30 @@ class EscapeModel(TorchdmsModel):
         return self.from_latent_to_output(self.to_latent(x))
 
     def beta_coefficients(self):
-        """beta coefficients"""
+        """beta coefficients."""
 
         beta_coefficients_data = torch.cat(
             (
-                [getattr(self, f"latent_layer_epi{i}").weight.data for i in range(1, self.epitope_weights.size()[0] + 1)]
+                [
+                    getattr(self, f"latent_layer_epi{i}").weight.data
+                    for i in range(1, self.epitope_weights.size()[0] + 1)
+                ]
             )
         )
         return beta_coefficients_data[:, : self.input_size]
 
     def regularization_loss(self):
-        """penalize the beta coefficients"""
+        """penalize the beta coefficients."""
         betas = self.beta_coefficients()
         penalty = 0.0
         if self.beta_l1_coefficient > 0.0:
-            #product = l1_epitope_product(betas)
-            distance = distance_penalty(betas, len(self.alphabet), self.epitope_weights.size()[1], 30)
+            # product = l1_epitope_product(betas)
+            distance = distance_penalty(
+                betas, len(self.alphabet), self.epitope_weights.size()[1], 30
+            )
             penalty += self.beta_l1_coefficient * distance
         return penalty
+
 
 class FullyConnected(TorchdmsModel):
     """Make it just how you like it.

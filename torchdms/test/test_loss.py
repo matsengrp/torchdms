@@ -23,12 +23,9 @@ def test_l1_loss():
     correct_decayed_loss = exp(0.3 * 0.1) * (0.2 - 0.1) + exp(0.3 * 4.0) * (9.0 - 4.0)
     assert l1(y_true, y_predicted, 0.3) == correct_decayed_loss
 
+
 def test_product_sum():
     """Test l1 norm of product of betas across epitopes."""
     betas = Tensor([[0.1, 2, 5], [1, 0, -0.5]])
-    correct_sum = (
-        abs(0.1 * 1) + abs(2 * 0) + abs(5 * -0.5)
-    ) 
+    correct_sum = abs(0.1 * 1) + abs(2 * 0) + abs(5 * -0.5)
     assert l1_epitope_product(betas) == correct_sum
-
-
