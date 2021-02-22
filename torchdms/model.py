@@ -266,14 +266,16 @@ class EscapeModel(TorchdmsModel):
 
     def regularization_loss(self):
         """penalize the beta coefficients."""
-        betas = self.beta_coefficients()
-        penalty = 0.0
+        betas = torch.tensor(self.beta_coefficients(), requires_grad=True)
+        penalty = self.beta_l1_coefficient * l1_epitope_product(betas)
+        '''
         if self.beta_l1_coefficient > 0.0:
-            # product = l1_epitope_product(betas)
-            distance = distance_penalty(
-                betas, len(self.alphabet), self.epitope_weights.size()[1], 30
-            )
-            penalty += self.beta_l1_coefficient * distance
+            #product = l1_epitope_product(betas)
+            #distance = distance_penalty(
+            #    betas, len(self.alphabet), self.epitope_weights.size()[1], 30
+            #)
+            penalty = self.beta_l1_coefficient * product
+        '''
         return penalty
 
 

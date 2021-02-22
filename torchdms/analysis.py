@@ -88,6 +88,9 @@ class Analysis:
                 range(targets.shape[1]), loss_decays
             )
         ]
+        #qqq = sum(per_target_loss)
+        #ppp = self.model.regularization_loss()
+        #breakpoint()
         return sum(per_target_loss) + self.model.regularization_loss()
 
     def train(
