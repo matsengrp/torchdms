@@ -2,17 +2,26 @@
 Testing model module
 """
 import torch
-from torchdms.model import FullyConnected
+from torchdms.model import FullyConnected, identity
 
 
 def test_regularization_loss():
-    """Test regularization loss with l1 penalty on beta coefficients."""
+    """Test regularization loss gradient."""
 
-    model = FullyConnected(10, [10], [None], [None], None,
-                           beta_l1_coefficient=torch.rand(1))
+    model = FullyConnected(
+        10,
+        [10, 2],
+        [None, identity],
+        [None],
+        None,
+        beta_l1_coefficient=torch.rand(1),
+        interaction_l1_coefficient=torch.rand(1),
+    )
 
     loss = model.regularization_loss()
     loss.backward()
 
-    assert torch.equal(model.latent_layer.weight.grad,
-                       model.beta_l1_coefficient * model.latent_layer.weight.sign())
+    beta = model.latent_layer.weight[:, : model.input_size]
+    grad_beta = model.latent_layer.weight.grad[:, : model.input_size]
+
+    assert torch.equal(grad_beta, model.beta_l1_coefficient * beta.sign())
