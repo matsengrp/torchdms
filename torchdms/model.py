@@ -363,15 +363,15 @@ class FullyConnected(TorchdmsModel):
         """L1 penalize single mutant effects, and pre-latent interaction
         weights."""
         if self.beta_l1_coefficient > 0:
+            # NOTE: slice excludes interaction weights in latent layer
             beta_l1_penalty = self.beta_l1_coefficient * self.latent_layer.weight[
                 :, : self.input_size
             ].norm(1)
         else:
             beta_l1_penalty = 0.0
         if self.interaction_l1_coefficient > 0.0:
-            interaction_l1_penalty = sum(
-                self.interaction_l1_coefficient
-                * torch.sum([getattr(self, interaction_layer).weight.norm(1)])
+            interaction_l1_penalty = self.interaction_l1_coefficient * sum(
+                getattr(self, interaction_layer).weight.norm(1)
                 for interaction_layer in self.layers[: self.latent_idx]
             )
         else:
