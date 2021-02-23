@@ -32,5 +32,5 @@ def test_regularization_loss():
             grad_weight = getattr(model, layer).weight.grad
             penalty = model.interaction_l1_coefficient
         else:
-            break
+            continue
         assert torch.equal(grad_weight, penalty * weight.sign())
