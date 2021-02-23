@@ -362,15 +362,21 @@ class FullyConnected(TorchdmsModel):
     def regularization_loss(self):
         """L1 penalize single mutant effects, and pre-latent interaction
         weights."""
-        penalty = self.beta_l1_coefficient * self.latent_layer.weight[
-            :, : self.input_size
-        ].norm(1)
+        if self.beta_l1_coefficient > 0:
+            beta_l1_penalty = self.beta_l1_coefficient * self.latent_layer.weight[
+                :, : self.input_size
+            ].norm(1)
+        else:
+            beta_l1_penalty = 0.0
         if self.interaction_l1_coefficient > 0.0:
-            for interaction_layer in self.layers[: self.latent_idx]:
-                penalty += self.interaction_l1_coefficient * torch.sum(
-                    [getattr(self, interaction_layer).weight.norm(1)]
-                )
-        return penalty
+            interaction_l1_penalty = sum(
+                self.interaction_l1_coefficient
+                * torch.sum([getattr(self, interaction_layer).weight.norm(1)])
+                for interaction_layer in self.layers[: self.latent_idx]
+            )
+        else:
+            interaction_l1_penalty = 0.0
+        return beta_l1_penalty + interaction_l1_penalty
 
 
 class Independent(TorchdmsModel):
