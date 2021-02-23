@@ -21,7 +21,15 @@ def test_regularization_loss():
     loss = model.regularization_loss()
     loss.backward()
 
-    beta = model.latent_layer.weight[:, : model.input_size]
-    grad_beta = model.latent_layer.weight.grad[:, : model.input_size]
-
-    assert torch.equal(grad_beta, model.beta_l1_coefficient * beta.sign())
+    for layer in model.layers:
+        layer_type = layer.split("_")[0]
+        if layer_type == "latent":
+            beta = model.latent_layer.weight[:, : model.input_size]
+            grad_beta = model.latent_layer.weight.grad[:, : model.input_size]
+            assert torch.equal(grad_beta, model.beta_l1_coefficient * beta.sign())
+        elif layer_type == "interaction":
+            weight = getattr(model, layer).weight
+            grad_weight = getattr(model, layer).weight.grad
+            assert torch.equal(
+                grad_weight, model.interaction_l1_coefficient * weight.sign()
+            )
