@@ -8,7 +8,7 @@ import torch
 import torch.nn as nn
 import copy  ### added by Tim ###
 from torchdms.utils import from_pickle_file
-from torchdms.loss import l1_epitope_product, distance_penalty
+from torchdms.loss import fused_lasso_penalty
 
 
 def identity(x):
@@ -201,6 +201,9 @@ class EscapeModel(TorchdmsModel):
         epitope2 = torch.Tensor([1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
         epitope_weights = torch.stack((epitope1, epitope2), axis=0)
 
+        # think about trying ===
+        #epitope_weights = torch.ones((2,10), requires_grad=True)
+
         # set the epitope weights as an attribute
         self.epitope_weights = epitope_weights
         self.beta_l1_coefficient = beta_l1_coefficient
@@ -265,19 +268,16 @@ class EscapeModel(TorchdmsModel):
         return beta_coefficients_data[:, : self.input_size]
 
     def regularization_loss(self):
-        """penalize the beta coefficients."""
-        betas = torch.tensor(self.beta_coefficients(), requires_grad=True)
-        penalty = self.beta_l1_coefficient * l1_epitope_product(betas)
-        '''
-        if self.beta_l1_coefficient > 0.0:
-            #product = l1_epitope_product(betas)
-            #distance = distance_penalty(
-            #    betas, len(self.alphabet), self.epitope_weights.size()[1], 30
-            #)
-            penalty = self.beta_l1_coefficient * product
-        '''
+        """penalize the beta coefficients to facilitate learning meaningful epitopes"""
+        penalty = self.beta_l1_coefficient * fused_lasso_penalty(torch.cat(
+            (
+                [
+                    getattr(self, f"latent_layer_epi{i}").weight
+                    for i in range(1, self.epitope_weights.size()[0] + 1)
+                ]
+            )
+        ))
         return penalty
-
 
 class FullyConnected(TorchdmsModel):
     """Make it just how you like it.

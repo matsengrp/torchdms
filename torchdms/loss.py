@@ -41,20 +41,57 @@ def mse(y_true, y_predicted, loss_decay=None, exp_target=None):
     # else:
     return torch.nn.functional.mse_loss(y_true_squoze, y_predicted_squoze)
 
-
 def rmse(y_true, y_predicted, loss_decay=None):
     """Root mean square error, perhaps with loss decay."""
     return mse(y_true, y_predicted, loss_decay).sqrt()
 
+### THESE WERE ADDED BY TIM ====================================================
 
-def l1_epitope_product(betas):
+def product_penalty(betas):
     """Computes l1 norm of product of betas across epitopes."""
     return torch.prod(betas, 0).norm(1)
 
+def vanilla_lasso(betas):
+    """textbook L1-regularization"""
+    penalty = torch.zeros(1)
+    for i in range(betas.size()[0]):
+        penalty += betas[i].norm(1)
+    return penalty
 
+def diff_penalty(betas):
+    """Computes l1 norm of the difference between 
+    adjacent betas for each epitope"""
+    penalty = torch.zeros(1)
+    for i in range(betas.size()[0]):
+        penalty += (betas[i][1:] - betas[i][:-1]).norm(1)
+    return penalty
+
+def sum_diff_penalty(betas):
+    """Computes l1 norm of the difference between aggregated betas 
+    at adjacent sites for each epitope"""
+    penalty = torch.zeros(1)
+    site_sums = torch.sum(
+        torch.abs(
+            betas.view(betas.size()[0], int(betas.size()[1]/21), 21)
+            ), 2)
+    for i in range(betas.size()[0]): 
+        penalty += (site_sums[i][1:] - site_sums[i][:-1]).norm(1)
+    return penalty
+
+def fused_lasso_penalty(betas):
+    """Fused LASSO: penalize product of betas across epitopes + 
+    the differences between adjacent coefficients"""
+    #return 0
+    #return product_penalty(betas)
+    #return vanilla_lasso(betas)
+    #return diff_penalty(betas)
+    #return sum_diff_penalty(betas)
+    return 0.01*product_penalty(betas) + 0.0001*diff_penalty(betas)
+
+
+'''
 def distance_penalty(betas, num_aa, num_sites, num_nbrs):
     """Computes a distance-based penalty score.
-
     Prioritizes having large betas closer together in distance.
     """
     ranked_betas = torch.argsort(betas, descending=True)
@@ -68,3 +105,4 @@ def distance_penalty(betas, num_aa, num_sites, num_nbrs):
                 if idx1 != idx2:
                     penalty += (j - k) ** 2
     return penalty
+'''
