@@ -1,5 +1,6 @@
 """A wrapper class for training models."""
 import math
+import numpy as np ###
 import itertools
 import sys
 import click
@@ -149,6 +150,7 @@ class Analysis:
         self.model.to(self.device)
 
         def step_model():
+            training_losses = [] ###
             for _ in range(batch_count):
                 optimizer.zero_grad()
                 per_batch_loss = 0.0
@@ -159,11 +161,11 @@ class Analysis:
                     batch = next(train_infinite_loader)
                     samples = batch["samples"].to(self.device)
                     predictions = self.model(samples)
-
                     loss = self.complete_loss(
                         loss_fn, batch["targets"], predictions, per_stratum_loss_decays
                     )
                     per_batch_loss += loss.item()
+                    training_losses.append(per_batch_loss) ###
 
                     # Note that here we are using gradient accumulation: calling
                     # backward for each loader before clearing the gradient via
@@ -206,6 +208,7 @@ class Analysis:
                 self.val_loss_record = val_loss
 
             scheduler.step(val_loss)
+            print("training loss record:" + str(np.mean(training_losses))) ###
 
         for training_style in self.model.training_style_sequence:
             training_style()

@@ -199,7 +199,8 @@ class EscapeModel(TorchdmsModel):
         # note that epitope weights is an (E,S) tensor
         epitope1 = torch.Tensor([1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
         epitope2 = torch.Tensor([1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
-        epitope_weights = torch.stack((epitope1, epitope2), axis=0)
+        epitope3 = torch.Tensor([1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
+        epitope_weights = torch.stack((epitope1, epitope2, epitope3, epitope3), axis=0)
 
         # think about trying ===
         #epitope_weights = torch.ones((2,10), requires_grad=True)
@@ -212,6 +213,43 @@ class EscapeModel(TorchdmsModel):
         for i in range(1, self.epitope_weights.size()[0] + 1):
             setattr(self, f"latent_layer_epi{i}", nn.Linear(input_size, 1, bias=True))
 
+        # set exactly correct betas a priori (this works)
+        '''
+        self.latent_layer_epi1.weight = nn.Parameter(
+            torch.unsqueeze(torch.cat((
+                torch.ones(4), 
+                torch.zeros(17),
+                torch.ones(4),
+                torch.zeros(17),
+                torch.ones(4),
+                torch.zeros(17 + 7*21)
+                )), 0)
+            )
+        self.latent_layer_epi2.weight = nn.Parameter(
+            torch.unsqueeze(torch.cat((
+                torch.zeros(21*7 + 16),
+                torch.ones(4),
+                torch.zeros(1 + 21 + 16),
+                torch.ones(4),
+                torch.zeros(1)
+                )), 0)
+            )
+        '''
+        '''
+        # set betas a priori
+        self.latent_layer_epi1.weight = nn.Parameter(
+            torch.unsqueeze(torch.cat((
+                torch.ones(4 * 21), 
+                torch.zeros(21 * 6)
+                )), 0)
+            )
+        self.latent_layer_epi2.weight = nn.Parameter(
+            torch.unsqueeze(torch.cat((
+                torch.zeros(21 * 6), 
+                torch.ones(21 * 4)
+                )), 0)
+            )
+        '''
     @property
     def characteristics(self):
         """Return salient characteristics of the model that aren't represented

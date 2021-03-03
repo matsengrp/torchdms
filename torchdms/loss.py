@@ -81,12 +81,12 @@ def sum_diff_penalty(betas):
 def fused_lasso_penalty(betas):
     """Fused LASSO: penalize product of betas across epitopes + 
     the differences between adjacent coefficients"""
-    #return 0
+    return 0
     #return product_penalty(betas)
     #return vanilla_lasso(betas)
     #return diff_penalty(betas)
     #return sum_diff_penalty(betas)
-    return 0.01*product_penalty(betas) + 0.0001*diff_penalty(betas)
+    #return 0.01*product_penalty(betas) + 0.0001*diff_penalty(betas)
 
 
 '''
