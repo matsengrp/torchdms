@@ -211,4 +211,7 @@ def make_mutation_directory(test_data):
         for alt_aa in test_data.alphabet
         if alt_aa != wt_aa
     ]
+    # make sure all mutations from WT are stored.
+    assert len(all_possible_mutations) == 20*len(wtseq)
+    assert len(set(all_possible_mutations)) == len(all_possible_mutations)
     return set(all_possible_mutations)
