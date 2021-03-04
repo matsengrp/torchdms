@@ -7,7 +7,7 @@ import torch
 from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torchdms.data import BinaryMapDataset
-from torchdms.utils import build_beta_map
+from torchdms.utils import build_beta_map, make_mutation_directory
 
 
 def make_data_loader_infinite(data_loader):
@@ -58,6 +58,7 @@ class Analysis:
             for train_loader in self.train_loaders
         ]
         self.val_loss_record = sys.float_info.max
+        self.mutation_map = make_mutation_directory(self.val_data)
 
     def loss_of_targets_and_prediction(
         self, loss_fn, targets, predictions, per_target_loss_decay
@@ -141,6 +142,14 @@ class Analysis:
         batch_count = 1 + max(map(len, self.train_datasets)) // self.batch_size
         self.model.train()  # Sets model to training mode.
         self.model.to(self.device)
+        # before training -- store unseen mutations in training sets in model
+        if self.model.unseen_mutations is None:
+            observed_mutations = set()
+            for i in range(len(self.train_datasets)):
+                train_muts = self.train_datasets[i].original_df['aa_substitutions']
+                train_muts_split = [sub for muts in train_muts for sub in muts.split()]
+                observed_mutations.update(train_muts_split)
+            self.model.update_unseen_mutations(self.mutation_map.difference(observed_mutations))
 
         def step_model(optimizer, scheduler):
             for _ in range(batch_count):
