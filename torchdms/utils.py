@@ -196,3 +196,19 @@ def build_beta_map(test_data, beta_vec):
         beta_vec.reshape(len(test_data.wtseq), len(bmap.alphabet)).transpose(),
         alphabet,
     )
+
+
+def make_mutation_directory(test_data):
+    """This function creates a list of all possible amino acid substitutions.
+
+    Takes a data set (preferable the validation data). Returns a 20*L
+    list of possible mutations.
+    """
+    wtseq = test_data.wtseq
+    all_possible_mutations = [
+        wt_aa + str(site + 1) + alt_aa
+        for site, wt_aa in enumerate(wtseq)
+        for alt_aa in test_data.alphabet
+        if alt_aa != wt_aa
+    ]
+    return set(all_possible_mutations)
