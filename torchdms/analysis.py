@@ -66,11 +66,15 @@ class Analysis:
         if self.model.unseen_mutations is None:
             observed_mutations = set()
             for i in range(len(self.train_datasets)):
-                train_muts = self.train_datasets[i].original_df['aa_substitutions']
+                train_muts = self.train_datasets[i].original_df["aa_substitutions"]
                 train_muts_split = [sub for muts in train_muts for sub in muts.split()]
                 observed_mutations.update(train_muts_split)
-            self.model.update_unseen_mutations(self.mutation_map.difference(observed_mutations))
-            assert len(self.model.unseen_mutations) + len(observed_mutations) == len(self.mutation_map), "Unseen and observed mutation numbers don't add up!"
+            self.model.update_unseen_mutations(
+                self.mutation_map.difference(observed_mutations)
+            )
+            assert len(self.model.unseen_mutations) + len(observed_mutations) == len(
+                self.mutation_map
+            ), "Unseen and observed mutation numbers don't add up!"
 
     def loss_of_targets_and_prediction(
         self, loss_fn, targets, predictions, per_target_loss_decay
