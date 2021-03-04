@@ -27,6 +27,7 @@ class TorchdmsModel(nn.Module):
         self.monotonic_sign = None
         self.layers = []
         self.training_style_sequence = [self.default_training_style]
+        self.unseen_mutations = None
 
     def __str__(self):
         return super().__str__() + "\n" + self.characteristics.__str__()
@@ -147,6 +148,11 @@ class TorchdmsModel(nn.Module):
         """The default training style."""
         click.echo("Training in default style.")
         self.set_require_grad_for_all_parameters(True)
+
+    def update_unseen_mutations(self, mutations):
+        """Update unseen mutations attirbute after a training pass. """
+        if self.unseen_mutations is None:
+            self.unseen_mutations = mutations
 
 
 class LinearModel(TorchdmsModel):
