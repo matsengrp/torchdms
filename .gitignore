@@ -9,4 +9,3 @@ __pycache__/
 *.egg-info/
 .ipynb_checkpoints/
 .DS_Store
-torchdms/data/two-phenotype-sim.pkl
