@@ -149,8 +149,8 @@ class TorchdmsModel(nn.Module):
         click.echo("Training in default style.")
         self.set_require_grad_for_all_parameters(True)
 
-    def update_unseen_mutations(self, mutations):
-        """Update unseen mutations attirbute after a training pass."""
+    def set_unseen_mutations(self, mutations):
+        """Update unseen mutations attribute after a training pass."""
         if self.unseen_mutations is None:
             self.unseen_mutations = mutations
 
