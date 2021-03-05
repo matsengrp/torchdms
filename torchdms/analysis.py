@@ -7,7 +7,7 @@ import torch
 from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torchdms.data import BinaryMapDataset
-from torchdms.utils import build_beta_map
+from torchdms.utils import build_beta_map, make_all_possible_mutations
 
 
 def make_data_loader_infinite(data_loader):
@@ -58,6 +58,22 @@ class Analysis:
             for train_loader in self.train_loaders
         ]
         self.val_loss_record = sys.float_info.max
+        self.all_possible_mutations = make_all_possible_mutations(self.val_data)
+        self.set_unseen_training_mutations()
+
+    def set_unseen_training_mutations(self):
+        """Store unseen training mutations in model."""
+        observed_mutations = set()
+        for train_dataset in self.train_datasets:
+            train_muts = train_dataset.original_df["aa_substitutions"]
+            train_muts_split = [sub for muts in train_muts for sub in muts.split()]
+            observed_mutations.update(train_muts_split)
+        self.model.set_unseen_mutations(
+            self.all_possible_mutations.difference(observed_mutations)
+        )
+        assert len(self.model.unseen_mutations) + len(observed_mutations) == len(
+            self.all_possible_mutations
+        ), "Unseen and observed mutation numbers don't add up!"
 
     def loss_of_targets_and_prediction(
         self, loss_fn, targets, predictions, per_target_loss_decay
