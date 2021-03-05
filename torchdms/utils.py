@@ -201,8 +201,8 @@ def build_beta_map(test_data, beta_vec):
 def make_all_possible_mutations(test_data):
     """This function creates a set of all possible amino acid substitutions.
 
-    Takes a data set (preferably the testing data). Returns a 20*L
-    list of possible mutations.
+    Takes a data set (preferably the testing data). Returns a 20*L list
+    of possible mutations.
     """
     wtseq = test_data.wtseq
     all_possible_mutations = [
@@ -212,6 +212,6 @@ def make_all_possible_mutations(test_data):
         if alt_aa != wt_aa
     ]
     # make sure all mutations from WT are stored.
-    assert len(all_possible_mutations) == (len(test_data.alphabet)-1) * len(wtseq)
+    assert len(all_possible_mutations) == (len(test_data.alphabet) - 1) * len(wtseq)
     assert len(set(all_possible_mutations)) == len(all_possible_mutations)
     return set(all_possible_mutations)
