@@ -6,9 +6,8 @@ import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
-import copy  ### added by Tim ###
 from torchdms.utils import from_pickle_file
-from torchdms.loss import fused_lasso_penalty
+from torchdms.loss import l1_penalty
 
 
 def identity(x):
@@ -181,7 +180,6 @@ class LinearModel(TorchdmsModel):
         return self.forward(x)
 
 
-### THIS SECTION WAS ADDED BY TIM ==============================
 class EscapeModel(TorchdmsModel):
     """a subclass of TorchdmsModel for modeling viral escape."""
 
@@ -190,96 +188,46 @@ class EscapeModel(TorchdmsModel):
         input_size,
         target_names,
         alphabet,
+        num_epitopes=None,
         beta_l1_coefficient=None,
         monotonic_sign=False,
     ):
         super().__init__(input_size, target_names, alphabet)
 
-        # epitope weights: these are fixed for example, but can be loaded in csv file in future
-        # note that epitope weights is an (E,S) tensor
-        epitope1 = torch.Tensor([1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
-        epitope2 = torch.Tensor([1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
-        epitope3 = torch.Tensor([1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
-        epitope_weights = torch.stack((epitope1, epitope2, epitope3, epitope3), axis=0)
-
-        # think about trying ===
-        #epitope_weights = torch.ones((2,10), requires_grad=True)
-
-        # set the epitope weights as an attribute
-        self.epitope_weights = epitope_weights
+        # set model attributes
+        self.num_epitopes = num_epitopes
         self.beta_l1_coefficient = beta_l1_coefficient
 
         # build the model
-        for i in range(1, self.epitope_weights.size()[0] + 1):
-            setattr(self, f"latent_layer_epi{i}", nn.Linear(input_size, 1, bias=True))
+        for i in range(self.num_epitopes):
+            setattr(self, f"latent_layer_epi{i+1}", nn.Linear(input_size, 1, bias=True))
 
-        # set exactly correct betas a priori (this works)
-        '''
-        self.latent_layer_epi1.weight = nn.Parameter(
-            torch.unsqueeze(torch.cat((
-                torch.ones(4), 
-                torch.zeros(17),
-                torch.ones(4),
-                torch.zeros(17),
-                torch.ones(4),
-                torch.zeros(17 + 7*21)
-                )), 0)
-            )
-        self.latent_layer_epi2.weight = nn.Parameter(
-            torch.unsqueeze(torch.cat((
-                torch.zeros(21*7 + 16),
-                torch.ones(4),
-                torch.zeros(1 + 21 + 16),
-                torch.ones(4),
-                torch.zeros(1)
-                )), 0)
-            )
-        '''
-        '''
-        # set betas a priori
-        self.latent_layer_epi1.weight = nn.Parameter(
-            torch.unsqueeze(torch.cat((
-                torch.ones(4 * 21), 
-                torch.zeros(21 * 6)
-                )), 0)
-            )
-        self.latent_layer_epi2.weight = nn.Parameter(
-            torch.unsqueeze(torch.cat((
-                torch.zeros(21 * 6), 
-                torch.ones(21 * 4)
-                )), 0)
-            )
-        '''
     @property
     def characteristics(self):
         """Return salient characteristics of the model that aren't represented
         in the PyTorch description."""
         return {
             "monotonic": False,
+            "num_epitopes": self.num_epitopes,
             "beta_l1_coefficient": self.beta_l1_coefficient,
         }
 
     @property
     def latent_dim(self):
         """number of dimensions in latent space."""
-        return self.epitope_weights.size()[0]
+        return self.num_epitopes
 
     def str_summary(self):
         return "Escape"
 
     def to_latent(self, x):
         """
-        input features * epitope_weights -> latent space
+        input features -> latent space
         """
         latent_dims = []
-
-        # expand weights to account for all aa alphabet letters
-        expanded_weights = torch.repeat_interleave(self.epitope_weights, 21, dim=1)
-
-        for i in range(1, self.epitope_weights.size()[0] + 1):
-            input_ = x * expanded_weights[i - 1]
-            model_ = getattr(self, f"latent_layer_epi{i}")
-            latent_dims.append(model_(input_))
+        for i in range(self.num_epitopes):
+            model_ = getattr(self, f"latent_layer_epi{i+1}")
+            latent_dims.append(model_(x))
 
         return torch.cat(latent_dims, dim=1)
 
@@ -294,24 +242,23 @@ class EscapeModel(TorchdmsModel):
 
     def beta_coefficients(self):
         """beta coefficients."""
-
         beta_coefficients_data = torch.cat(
             (
                 [
-                    getattr(self, f"latent_layer_epi{i}").weight.data
-                    for i in range(1, self.epitope_weights.size()[0] + 1)
+                    getattr(self, f"latent_layer_epi{i+1}").weight.data
+                    for i in range(self.num_epitopes)
                 ]
             )
         )
         return beta_coefficients_data[:, : self.input_size]
 
     def regularization_loss(self):
-        """penalize the beta coefficients to facilitate learning meaningful epitopes"""
-        penalty = self.beta_l1_coefficient * fused_lasso_penalty(torch.cat(
+        """penalize the beta coefficients"""
+        penalty = self.beta_l1_coefficient * l1_penalty(torch.cat(
             (
                 [
-                    getattr(self, f"latent_layer_epi{i}").weight
-                    for i in range(1, self.epitope_weights.size()[0] + 1)
+                    getattr(self, f"latent_layer_epi{i+1}").weight
+                    for i in range(self.num_epitopes)
                 ]
             )
         ))

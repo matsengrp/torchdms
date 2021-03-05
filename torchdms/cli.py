@@ -280,6 +280,12 @@ def validate(data_path):
     help="Coefficients with which to l1-regularize site interaction weights, "
     "a comma-seperated list of coefficients for each latent dimension",
 )
+@click.option(
+    "--num-epitopes",
+    type=str,
+    help="Number of epitopes or latent dimensions to include in escape model, "
+    "an integer value",
+)
 @seed_option
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
 def create(
@@ -289,6 +295,7 @@ def create(
     monotonic,
     beta_l1_coefficients,
     interaction_l1_coefficients,
+    num_epitopes, 
     seed,
 ):
     """Create a model.
@@ -311,6 +318,10 @@ def create(
             kwargs["interaction_l1_coefficient"] = interaction_l1_coefficients[0]
         else:
             kwargs["interaction_l1_coefficients"] = interaction_l1_coefficients
+
+    num_epitopes = int(num_epitopes)
+    if num_epitopes is not None:
+        kwargs["num_epitopes"] = num_epitopes
 
     model = model_of_string(model_string, data_path, **kwargs)
 

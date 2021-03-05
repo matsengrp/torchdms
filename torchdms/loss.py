@@ -45,18 +45,16 @@ def rmse(y_true, y_predicted, loss_decay=None):
     """Root mean square error, perhaps with loss decay."""
     return mse(y_true, y_predicted, loss_decay).sqrt()
 
-### THESE WERE ADDED BY TIM ====================================================
-
-def product_penalty(betas):
-    """Computes l1 norm of product of betas across epitopes."""
-    return torch.prod(betas, 0).norm(1)
-
-def vanilla_lasso(betas):
+def l1_penalty(betas):
     """textbook L1-regularization"""
     penalty = torch.zeros(1)
     for i in range(betas.size()[0]):
         penalty += betas[i].norm(1)
     return penalty
+
+def product_penalty(betas):
+    """Computes l1 norm of product of betas across epitopes."""
+    return torch.prod(betas, 0).norm(1)
 
 def diff_penalty(betas):
     """Computes l1 norm of the difference between 
@@ -77,32 +75,3 @@ def sum_diff_penalty(betas):
     for i in range(betas.size()[0]): 
         penalty += (site_sums[i][1:] - site_sums[i][:-1]).norm(1)
     return penalty
-
-def fused_lasso_penalty(betas):
-    """Fused LASSO: penalize product of betas across epitopes + 
-    the differences between adjacent coefficients"""
-    return 0
-    #return product_penalty(betas)
-    #return vanilla_lasso(betas)
-    #return diff_penalty(betas)
-    #return sum_diff_penalty(betas)
-    #return 0.01*product_penalty(betas) + 0.0001*diff_penalty(betas)
-
-
-'''
-def distance_penalty(betas, num_aa, num_sites, num_nbrs):
-    """Computes a distance-based penalty score.
-    Prioritizes having large betas closer together in distance.
-    """
-    ranked_betas = torch.argsort(betas, descending=True)
-    ranked_betas_by_site = ranked_betas / num_aa  # index by site instead of site * AA
-    top_betas = ranked_betas_by_site.index_select(1, torch.arange(0, num_nbrs))
-
-    penalty = 0
-    for i in range(betas.size()[0]):
-        for idx1, j in enumerate(top_betas[i]):
-            for idx2, k in enumerate(top_betas[i]):
-                if idx1 != idx2:
-                    penalty += (j - k) ** 2
-    return penalty
-'''
