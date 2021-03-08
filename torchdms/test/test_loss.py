@@ -7,7 +7,6 @@ from torchdms.loss import (
     l1,
     mse,
     sitewise_group_lasso,
-    l1_penalty,
     product_penalty,
     diff_penalty,
 )
@@ -37,13 +36,6 @@ def test_sitewise_group_lasso():
     matrix = Tensor([[0.1, 3.0], [0.2, 4.0]])
     correct = np.sqrt(0.1 * 0.1 + 0.2 * 0.2) + np.sqrt(3.0 * 3.0 + 4.0 * 4.0)
     assert sitewise_group_lasso(matrix) == correct
-
-
-def test_l1_penalty():
-    """Test l1 norm of betas"""
-    betas = Tensor([[0.1, 2, 5], [1, 0, -0.5]])
-    correct_sum = abs(0.1) + abs(2) + abs(5) + abs(1) + abs(0) + abs(-0.5)
-    assert l1_penalty(betas) == correct_sum
 
 
 def test_product_penalty():

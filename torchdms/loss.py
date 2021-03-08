@@ -57,17 +57,9 @@ def sitewise_group_lasso(matrix):
     return torch.sum(torch.pow(torch.sum(torch.pow(matrix, 2), 0), 0.5))
 
 
-def l1_penalty(betas):
-    """textbook L1-regularization."""
-    penalty = torch.zeros(1)
-    for i in range(betas.size()[0]):
-        penalty += torch.sum(torch.abs(betas[i]))
-    return penalty
-
-
 def product_penalty(betas):
     """Computes l1 norm of product of betas across latent dimensions."""
-    return torch.sum(torch.abs(torch.prod(betas, 0)))
+    return torch.prod(betas, 0).norm(1)
 
 
 def diff_penalty(betas):
@@ -75,7 +67,7 @@ def diff_penalty(betas):
     latent dimension."""
     penalty = torch.zeros(1)
     for i in range(betas.size()[0]):
-        penalty += torch.sum(torch.abs(betas[i][1:] - betas[i][:-1]))
+        penalty += (betas[i][1:] - betas[i][:-1]).norm(1)
     return penalty
 
 
@@ -87,5 +79,5 @@ def sum_diff_penalty(betas):
         torch.abs(betas.view(betas.size()[0], int(betas.size()[1] / 21), 21)), 2
     )
     for i in range(betas.size()[0]):
-        penalty += torch.sum(torch.abs(site_sums[i][1:] - site_sums[i][:-1]))
+        penalty += (site_sums[i][1:] - site_sums[i][:-1]).norm(1)
     return penalty

@@ -6,7 +6,7 @@ import torch
 import os
 import pkg_resources
 from torchdms.analysis import Analysis
-from torchdms.analysis import low_rank_approximation
+from torchdms.analysis import _low_rank_approximation
 from torchdms.utils import (
     from_pickle_file,
     to_pickle_file,
@@ -36,7 +36,7 @@ def test_low_rank_approximation():
     ).flatten("F")
 
     # take low-rank (1) approximation
-    approx_est = low_rank_approximation(test_matrix, 1)
+    approx_est = _low_rank_approximation(test_matrix, 1)
     # assert that values match up
     assert torch.allclose(torch.from_numpy(approx_true), approx_est, rtol=0.001)
 

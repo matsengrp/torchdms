@@ -25,6 +25,6 @@ pip install git+https://github.com/matsengrp/torchdms.git
 ```bash
 git clone git@github.com:matsengrp/torchdms.git
 cd torchdms
-pip install -e .
+make install
 make test
 ```

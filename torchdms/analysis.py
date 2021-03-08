@@ -10,7 +10,7 @@ from torchdms.data import BinaryMapDataset
 from torchdms.utils import build_beta_map, make_all_possible_mutations
 
 
-def make_data_loader_infinite(data_loader):
+def _make_data_loader_infinite(data_loader):
     """With this we can always just ask for more data with next(), going
     through minibatches as guided by DataLoader."""
     for loader in itertools.repeat(data_loader):
@@ -18,7 +18,7 @@ def make_data_loader_infinite(data_loader):
             yield data
 
 
-def low_rank_approximation(beta_map, beta_rank):
+def _low_rank_approximation(beta_map, beta_rank):
     """Returns low-rank approximation of beta matrix."""
     assert beta_rank > 0
     u_vecs, s_vals, v_vecs = torch.svd(torch.from_numpy(beta_map))
@@ -33,7 +33,7 @@ def _make_beta_matrix_low_rank(model, latent_dim, beta_rank, wtseq, alphabet):
     """Assigns low-rank beta approximations to tdms models."""
     beta_vec = model.beta_coefficients()[latent_dim].detach().clone().numpy()
     beta_map = build_beta_map(wtseq, alphabet, beta_vec)
-    model.beta_coefficients()[latent_dim] = low_rank_approximation(beta_map, beta_rank)
+    model.beta_coefficients()[latent_dim] = _low_rank_approximation(beta_map, beta_rank)
 
 
 class Analysis:
@@ -61,23 +61,23 @@ class Analysis:
             for train_dataset in train_data_list
         ]
         self.train_infinite_loaders = [
-            make_data_loader_infinite(train_loader)
+            _make_data_loader_infinite(train_loader)
             for train_loader in self.train_loaders
         ]
         self.val_loss_record = sys.float_info.max
-        self.all_possible_mutations = make_all_possible_mutations(self.val_data)
-        self.set_unseen_training_mutations()
+        self.all_possible_mutations = make_all_possible_mutations(
+            self.val_data.wtseq, self.val_data.alphabet
+        )
         self._zero_wildtype_betas()
-
-    def set_unseen_training_mutations(self):
-        """Store unseen training mutations in model."""
+        # set unseen training mutations
         observed_mutations = set()
         for train_dataset in self.train_datasets:
             train_muts = train_dataset.original_df["aa_substitutions"]
             train_muts_split = [sub for muts in train_muts for sub in muts.split()]
             observed_mutations.update(train_muts_split)
-        self.model.set_unseen_mutations(
-            self.all_possible_mutations.difference(observed_mutations)
+        assert len(self.model.unseen_mutations) == 0
+        self.model.unseen_mutations = self.all_possible_mutations.difference(
+            observed_mutations
         )
         assert len(self.model.unseen_mutations) + len(observed_mutations) == len(
             self.all_possible_mutations
@@ -332,7 +332,7 @@ class Analysis:
         self.model.to(self.device)
 
         train_infinite_loaders = [
-            make_data_loader_infinite(
+            _make_data_loader_infinite(
                 DataLoader(
                     BinaryMapDataset.cat(self.train_datasets),
                     batch_size=self.batch_size,

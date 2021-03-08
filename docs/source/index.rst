@@ -20,6 +20,9 @@ Quickstart
 
 The command line interface is called ``tdms``, and has nested subcommands.
 
+.. todo::
+  The link below is broken or private. We also need a demo of how to create the pickle file—Zorian has a notebook we could use?
+
 To use torchdms, first build a dataframe of mutations, and pickle that along with the wildtype sequence as for Tyler's `VRC01 data <https://github.com/jbloomlab/NIH45-46_DMS/blob/torchdms/affinity_expression_merge.ipynb>`_.
 
 Then prepare data for use by torchdms (this example partitions by library and has both affinity and expression):
@@ -69,3 +72,9 @@ You can build a model, train, and evaluate using ``tdms go``, which works well w
 .. code-block:: console
 
     tdms go --config config.json
+
+
+To do list
+----------
+
+.. todolist::
