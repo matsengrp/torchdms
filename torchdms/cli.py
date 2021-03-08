@@ -32,6 +32,7 @@ from torchdms.plot import (
     plot_geplot,
     plot_2d_geplot,
     plot_heatmap,
+    plot_observed_2d_scores,
     plot_svd,
     plot_svd_profiles,
     plot_test_correlation,
@@ -186,7 +187,13 @@ def prep(
         aa_func_scores.dropna(inplace=True)
     total_variants = len(aa_func_scores.iloc[:, 1])
     click.echo(f"LOG: There are {total_variants} total variants in this dataset")
-
+    if len(targets) == 2:
+        variants_with_both_measurements = aa_func_scores[
+            aa_func_scores[targets[0]].notnull() & aa_func_scores[targets[1]].notnull()
+        ]
+        plot_observed_2d_scores(
+            variants_with_both_measurements, targets, out_prefix + ".measurements.pdf"
+        )
     if partition_by is None and "library" in aa_func_scores.columns:
         click.echo(
             "WARNING: you have a 'library' column but haven't specified a partition "
