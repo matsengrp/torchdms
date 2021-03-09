@@ -674,21 +674,22 @@ def model_of_string(model_string, data_path, **kwargs):
         arguments = match.group(2).split(",")
         if arguments == [""]:
             arguments = []
-        if model_name != "Escape":
+        if model_name == "Escape":
+            if len(arguments) != 1:
+                raise IOError(
+                    "The Escape model expects exactly one argument: the number of epitopes."
+                )
+            num_epitopes = int(arguments[0])
+        else:
             if len(arguments) % 2 != 0:
-                raise IOError
+                raise IOError(
+                    "The number of arguments to your model specification must be "
+                    "even, alternating between layer sizes and activations."
+                )
             layers = list(map(int, arguments[0::2]))
             activations = list(map(activation_of_string, arguments[1::2]))
-        else:
-            if len(arguments) != 1:
-                raise IOError
-            num_epitopes = int(arguments[0])
     except Exception:
-        click.echo(
-            f"ERROR: Couldn't parse model description: '{model_string}'."
-            "The number of arguments to a model specification must be "
-            "even, alternating between layer sizes and activations."
-        )
+        click.echo(f"ERROR: Couldn't parse model description: '{model_string}'.")
         raise
     if model_name not in KNOWN_MODELS:
         raise IOError(model_name + " not known")
