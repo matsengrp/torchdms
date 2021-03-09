@@ -13,7 +13,9 @@ from torchdms.utils import (
 )
 
 TEST_DATA_PATH = pkg_resources.resource_filename("torchdms", "data/test_df.pkl")
-split_data_path = pkg_resources.resource_filename("torchdms", "data/_ignore/test_df.prepped.pkl")
+split_data_path = pkg_resources.resource_filename(
+    "torchdms", "data/_ignore/test_df.prepped.pkl"
+)
 
 
 def test_partition_is_clean():
@@ -60,11 +62,12 @@ def test_summarize():
         aa_substitutions, "K"
     )
 
+
 def test_wt_idx():
     """
     Ensure that the indicies for the WT-seq are correct.
     """
     data = from_pickle_file(split_data_path)
-    actual_idx = torch.Tensor([11,28,58])
-    assert data.val.wtseq == 'NIT'
+    actual_idx = torch.Tensor([11, 28, 58])
+    assert data.val.wtseq == "NIT"
     assert torch.all(torch.eq(actual_idx, data.val.wt_idxs))

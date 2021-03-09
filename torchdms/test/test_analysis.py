@@ -9,8 +9,11 @@ from torchdms.analysis import low_rank_approximation
 from torchdms.utils import from_pickle_file
 from torchdms.loss import l1
 
-split_data_path = pkg_resources.resource_filename("torchdms", "data/_ignore/test_df.prepped.pkl")
+split_data_path = pkg_resources.resource_filename(
+    "torchdms", "data/_ignore/test_df.prepped.pkl"
+)
 model_path = pkg_resources.resource_filename("torchdms", "data/_ignore/run.model")
+
 
 def test_low_rank_approximation():
     """ Tests low-rank approximation function."""
@@ -31,21 +34,19 @@ def test_low_rank_approximation():
     # assert that values match up
     assert torch.allclose(torch.from_numpy(approx_true), approx_est, rtol=0.001)
 
+
 def test_zeroed_wt_betas():
     """Test to ensure WT betas of a model are (and remain) 0. """
     model = torch.load(model_path)
     data = from_pickle_file(split_data_path)
     wt_idxs = data.val.wt_idxs
     analysis_params = {
-        'model': model,
-        'model_path': model_path,
-        'val_data': data.val,
-        'train_data_list': data.train
+        "model": model,
+        "model_path": model_path,
+        "val_data": data.val,
+        "train_data_list": data.train,
     }
-    training_params = {
-        "epoch_count": 1,
-        "loss_fn": l1
-    }
+    training_params = {"epoch_count": 1, "loss_fn": l1}
     analysis = Analysis(**analysis_params)
     assert analysis.val_data.wtseq == "NIT"
     # Assert that wt betas are 0 upon initializaiton.
