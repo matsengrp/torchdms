@@ -188,7 +188,7 @@ class EscapeModel(TorchdmsModel):
         input_size,
         target_names,
         alphabet,
-        num_epitopes=None,
+        num_epitopes,
         beta_l1_coefficient=None,
         monotonic_sign=False,
     ):
@@ -200,14 +200,13 @@ class EscapeModel(TorchdmsModel):
 
         # build the model
         for i in range(self.num_epitopes):
-            setattr(self, f"latent_layer_epi{i+1}", nn.Linear(input_size, 1, bias=True))
+            setattr(self, f"latent_layer_epi{i}", nn.Linear(input_size, 1, bias=True))
 
     @property
     def characteristics(self):
         """Return salient characteristics of the model that aren't represented
         in the PyTorch description."""
         return {
-            "monotonic": False,
             "num_epitopes": self.num_epitopes,
             "beta_l1_coefficient": self.beta_l1_coefficient,
         }
@@ -221,12 +220,10 @@ class EscapeModel(TorchdmsModel):
         return "Escape"
 
     def to_latent(self, x):
-        """
-        input features -> latent space
-        """
+        """input features -> latent space."""
         latent_dims = []
         for i in range(self.num_epitopes):
-            model_ = getattr(self, f"latent_layer_epi{i+1}")
+            model_ = getattr(self, f"latent_layer_epi{i}")
             latent_dims.append(model_(x))
 
         return torch.cat(latent_dims, dim=1)
@@ -240,29 +237,27 @@ class EscapeModel(TorchdmsModel):
         """Compose data --> latent --> output."""
         return self.from_latent_to_output(self.to_latent(x))
 
-    def beta_coefficients(self):
-        """beta coefficients."""
+    def betas_with_grad(self):
+        """Accessory method for retrieving beta coefficients."""
         beta_coefficients_data = torch.cat(
             (
                 [
-                    getattr(self, f"latent_layer_epi{i+1}").weight.data
+                    getattr(self, f"latent_layer_epi{i}").weight
                     for i in range(self.num_epitopes)
                 ]
             )
         )
         return beta_coefficients_data[:, : self.input_size]
 
+    def beta_coefficients(self):
+        """beta coefficients."""
+        return self.betas_with_grad().data
+
     def regularization_loss(self):
-        """penalize the beta coefficients"""
-        penalty = self.beta_l1_coefficient * l1_penalty(torch.cat(
-            (
-                [
-                    getattr(self, f"latent_layer_epi{i+1}").weight
-                    for i in range(self.num_epitopes)
-                ]
-            )
-        ))
+        """penalize the beta coefficients."""
+        penalty = self.beta_l1_coefficient * l1_penalty(self.betas_with_grad())
         return penalty
+
 
 class FullyConnected(TorchdmsModel):
     """Make it just how you like it.
@@ -653,7 +648,7 @@ KNOWN_MODELS = {
     "Independent": Independent,
     "Conditional": Conditional,
     "ConditionalSequential": ConditionalSequential,
-    "Escape": EscapeModel,  ### added by Tim ###
+    "Escape": EscapeModel,
 }
 
 
@@ -679,10 +674,15 @@ def model_of_string(model_string, data_path, **kwargs):
         arguments = match.group(2).split(",")
         if arguments == [""]:
             arguments = []
-        if len(arguments) % 2 != 0:
-            raise IOError
-        layers = list(map(int, arguments[0::2]))
-        activations = list(map(activation_of_string, arguments[1::2]))
+        if model_name != "Escape":
+            if len(arguments) % 2 != 0:
+                raise IOError
+            layers = list(map(int, arguments[0::2]))
+            activations = list(map(activation_of_string, arguments[1::2]))
+        else:
+            if len(arguments) != 1:
+                raise IOError
+            num_epitopes = int(arguments[0])
     except Exception:
         click.echo(
             f"ERROR: Couldn't parse model description: '{model_string}'."
@@ -711,11 +711,12 @@ def model_of_string(model_string, data_path, **kwargs):
             test_dataset.target_names,
             alphabet=test_dataset.alphabet,
         )
-    elif model_name == "Escape":  ### added by Tim ###
+    elif model_name == "Escape":
         model = EscapeModel(
             test_dataset.feature_count(),
             test_dataset.target_names,
             alphabet=test_dataset.alphabet,
+            num_epitopes=num_epitopes,
             **kwargs,
         )
     elif model_name in ("Independent", "Conditional", "ConditionalSequential"):

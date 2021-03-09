@@ -141,7 +141,6 @@ class Analysis:
         batch_count = 1 + max(map(len, self.train_datasets)) // self.batch_size
         self.model.train()  # Sets model to training mode.
         optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
-        # breakpoint()
         scheduler = ReduceLROnPlateau(optimizer, patience=patience, verbose=True)
         self.model.to(self.device)
 

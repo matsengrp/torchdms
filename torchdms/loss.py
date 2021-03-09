@@ -41,37 +41,41 @@ def mse(y_true, y_predicted, loss_decay=None, exp_target=None):
     # else:
     return torch.nn.functional.mse_loss(y_true_squoze, y_predicted_squoze)
 
+
 def rmse(y_true, y_predicted, loss_decay=None):
     """Root mean square error, perhaps with loss decay."""
     return mse(y_true, y_predicted, loss_decay).sqrt()
 
+
 def l1_penalty(betas):
-    """textbook L1-regularization"""
+    """textbook L1-regularization."""
     penalty = torch.zeros(1)
     for i in range(betas.size()[0]):
-        penalty += betas[i].norm(1)
+        penalty += torch.sum(torch.abs(betas[i]))
     return penalty
+
 
 def product_penalty(betas):
-    """Computes l1 norm of product of betas across epitopes."""
-    return torch.prod(betas, 0).norm(1)
+    """Computes l1 norm of product of betas across latent dimensions."""
+    return torch.sum(torch.abs(torch.prod(betas, 0)))
+
 
 def diff_penalty(betas):
-    """Computes l1 norm of the difference between 
-    adjacent betas for each epitope"""
+    """Computes l1 norm of the difference between adjacent betas for each
+    latent dimension."""
     penalty = torch.zeros(1)
     for i in range(betas.size()[0]):
-        penalty += (betas[i][1:] - betas[i][:-1]).norm(1)
+        penalty += torch.sum(torch.abs(betas[i][1:] - betas[i][:-1]))
     return penalty
 
+
 def sum_diff_penalty(betas):
-    """Computes l1 norm of the difference between aggregated betas 
-    at adjacent sites for each epitope"""
+    """Computes l1 norm of the difference between aggregated betas at adjacent
+    sites for each latent dimension."""
     penalty = torch.zeros(1)
     site_sums = torch.sum(
-        torch.abs(
-            betas.view(betas.size()[0], int(betas.size()[1]/21), 21)
-            ), 2)
-    for i in range(betas.size()[0]): 
-        penalty += (site_sums[i][1:] - site_sums[i][:-1]).norm(1)
+        torch.abs(betas.view(betas.size()[0], int(betas.size()[1] / 21), 21)), 2
+    )
+    for i in range(betas.size()[0]):
+        penalty += torch.sum(torch.abs(site_sums[i][1:] - site_sums[i][:-1]))
     return penalty
