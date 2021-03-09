@@ -60,6 +60,7 @@ class Analysis:
         self.val_loss_record = sys.float_info.max
         self.all_possible_mutations = make_all_possible_mutations(self.val_data)
         self.set_unseen_training_mutations()
+        self._zero_wildtype_betas()
 
     def set_unseen_training_mutations(self):
         """Store unseen training mutations in model."""
@@ -105,6 +106,13 @@ class Analysis:
             )
         ]
         return sum(per_target_loss) + self.model.regularization_loss()
+
+    def _zero_wildtype_betas(self):
+        wt_idxs = self.val_data.wt_idxs
+        # here we set the WT betas to zero before the forward pass
+        for latent_dim in range(self.model.latent_dim):
+            for idx in wt_idxs:
+                self.model.beta_coefficients()[latent_dim, int(idx)] = 0
 
     def train(
         self,
@@ -157,15 +165,7 @@ class Analysis:
         batch_count = 1 + max(map(len, self.train_datasets)) // self.batch_size
         self.model.train()  # Sets model to training mode.
         self.model.to(self.device)
-        self._zero_wildtype_betas()
 
-    def _zero_wildtype_betas(self):
-        wt_idxs = self.val_data.wt_idxs
-        # here we set the WT betas to zero before the forward pass
-        for latent_dim in range(self.model.latent_dim):
-            for idx in wt_idxs:
-                self.model.beta_coefficients()[latent_dim, int(idx)] = 0
-                
         def step_model(optimizer, scheduler):
             for _ in range(batch_count):
                 optimizer.zero_grad()
@@ -194,6 +194,7 @@ class Analysis:
                         for param in self.model.monotonic_params_from_latent_space():
                             param.data.clamp_(0)
                 optimizer.step()
+                self._zero_wildtype_betas()
                 # if k >=1, reconstruct beta matricies with truncated SVD
                 if beta_rank is not None:
                     num_latent_dims = self.model.latent_dim
