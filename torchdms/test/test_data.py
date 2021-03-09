@@ -4,6 +4,7 @@ Testing for data.py.
 
 import random
 import pandas as pd
+import torch
 import pkg_resources
 from torchdms.data import partition
 from torchdms.utils import (
@@ -12,6 +13,7 @@ from torchdms.utils import (
 )
 
 TEST_DATA_PATH = pkg_resources.resource_filename("torchdms", "data/test_df.pkl")
+split_data_path = pkg_resources.resource_filename("torchdms", "data/_ignore/test_df.prepped.pkl")
 
 
 def test_partition_is_clean():
