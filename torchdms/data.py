@@ -78,7 +78,7 @@ class BinaryMapDataset(Dataset):
         wt_idx =  [alphabet_dict[aa] for aa in wtseq]
         site_count = len(wtseq)
         alphabet_length = len(alphabet)
-        wt_encoding_idx = np.empty(site_count)
+        wt_encoding_idx = torch.zeros(site_count)
         for site, _ in enumerate(wtseq):
             wt_encoding_idx[site] = (site*alphabet_length) + wt_idx[site]
         return wt_encoding_idx
