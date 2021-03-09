@@ -57,3 +57,12 @@ def test_summarize():
     assert alt_count == count_variants_with_a_mutation_towards_an_aa(
         aa_substitutions, "K"
     )
+
+def test_wt_idx():
+    """
+    Ensure that the indicies for the WT-seq are correct.
+    """
+    data = from_pickle_file(split_data_path)
+    actual_idx = torch.Tensor([11,28,58])
+    assert data.val.wtseq == 'NIT'
+    assert torch.all(torch.eq(actual_idx, data.val.wt_idxs))
