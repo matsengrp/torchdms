@@ -157,7 +157,15 @@ class Analysis:
         batch_count = 1 + max(map(len, self.train_datasets)) // self.batch_size
         self.model.train()  # Sets model to training mode.
         self.model.to(self.device)
+        self._zero_wildtype_betas()
 
+    def _zero_wildtype_betas(self):
+        wt_idxs = self.val_data.wt_idxs
+        # here we set the WT betas to zero before the forward pass
+        for latent_dim in range(self.model.latent_dim):
+            for idx in wt_idxs:
+                self.model.beta_coefficients()[latent_dim, int(idx)] = 0
+                
         def step_model(optimizer, scheduler):
             for _ in range(batch_count):
                 optimizer.zero_grad()
