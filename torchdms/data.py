@@ -70,6 +70,19 @@ class BinaryMapDataset(Dataset):
             ),
         )
 
+    @property
+    def wt_idxs(self):
+        wtseq = self.wtseq
+        alphabet = self.alphabet
+        alphabet_dict = {letter: idx for idx, letter in enumerate(alphabet)}
+        wt_idx =  [alphabet_dict[aa] for aa in wtseq]
+        site_count = len(wtseq)
+        alphabet_length = len(alphabet)
+        wt_encoding_idx = np.empty(site_count)
+        for site, _ in enumerate(wtseq):
+            wt_encoding_idx[site] = (site*alphabet_length) + wt_idx[site]
+        return wt_encoding_idx
+
     def __getitem__(self, idxs):
         return {"samples": self.samples[idxs], "targets": self.targets[idxs]}
 
