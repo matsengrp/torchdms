@@ -14,7 +14,7 @@ from torchdms.utils import (
 
 TEST_DATA_PATH = pkg_resources.resource_filename("torchdms", "data/test_df.pkl")
 split_data_path = pkg_resources.resource_filename(
-    "torchdms", "data/_ignore/test_df.prepped.pkl"
+    "torchdms", "data/test_df.prepped.pkl"
 )
 
 
