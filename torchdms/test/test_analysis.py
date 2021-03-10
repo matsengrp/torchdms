@@ -38,7 +38,7 @@ def test_low_rank_approximation():
 
 def test_zeroed_wt_betas():
     """Test to ensure WT betas of a model are (and remain) 0. """
-    model_string = 'FullyConnected(1,identity,10,relu)'
+    model_string = "FullyConnected(1,identity,10,relu)"
     model = model_of_string(model_string, split_data_path)
     data = from_pickle_file(split_data_path)
     wt_idxs = data.val.wt_idxs
