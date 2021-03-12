@@ -6,7 +6,7 @@ install:
 test: torchdms/data/_ignore/test_df.prepped.pkl
 	cd torchdms/data; tdms go --config test_config.json
 	pytest
-	rm torchdms/data/test_df.prepped.pkl
+	rm torchdms/data/_ignore/test_df.prepped.pkl
 
 datatest: torchdms/data/_ignore/test_df.prepped.pkl
 	tdms validate torchdms/data/_ignore/test_df.prepped.pkl
