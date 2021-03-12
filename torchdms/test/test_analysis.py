@@ -3,17 +3,22 @@ Testing for helper methods in analysis.py
 """
 import numpy as np
 import torch
+import os
 import pkg_resources
 from torchdms.analysis import Analysis
 from torchdms.analysis import low_rank_approximation
-from torchdms.utils import from_pickle_file
+from torchdms.utils import (
+    from_pickle_file,
+    to_pickle_file,
+)
 from torchdms.loss import l1
 from torchdms.model import FullyConnected, model_of_string
+from torchdms.data import partition, SplitDataset, prep_by_stratum_and_export
 
-split_data_path = pkg_resources.resource_filename(
-    "torchdms", "data/test_df.prepped.pkl"
-)
-model_path = pkg_resources.resource_filename("torchdms", "data/run.model")
+TEST_DATA_PATH = pkg_resources.resource_filename("torchdms", "data/test_df.pkl")
+out_path = "test_df-prepped"
+data_path = out_path + ".pkl"
+model_path = "run.model"
 
 
 def test_low_rank_approximation():
@@ -38,18 +43,31 @@ def test_low_rank_approximation():
 
 def test_zeroed_wt_betas():
     """Test to ensure WT betas of a model are (and remain) 0. """
+    data, wtseq = from_pickle_file(TEST_DATA_PATH)
+    split_df = partition(
+        data,
+        per_stratum_variants_for_test=10,
+        skip_stratum_if_count_is_smaller_than=30,
+        export_dataframe=None,
+        partition_label=None,
+    )
+    prep_by_stratum_and_export(split_df, wtseq, ["affinity_score"], out_path, "", None)
+
+    split_df_prepped = from_pickle_file(data_path)
+
     model_string = "FullyConnected(1,identity,10,relu)"
-    model = model_of_string(model_string, split_data_path)
-    data = from_pickle_file(split_data_path)
-    wt_idxs = data.val.wt_idxs
+    model = model_of_string(model_string, data_path)
+
+    torch.save(model, model_path)
     analysis_params = {
         "model": model,
         "model_path": model_path,
-        "val_data": data.val,
-        "train_data_list": data.train,
+        "val_data": split_df_prepped.val,
+        "train_data_list": split_df_prepped.train,
     }
     training_params = {"epoch_count": 1, "loss_fn": l1}
     analysis = Analysis(**analysis_params)
+    wt_idxs = analysis.val_data.wt_idxs
     assert analysis.val_data.wtseq == "NIT"
     # Assert that wt betas are 0 upon initializaiton.
     for latent_dim in range(analysis.model.latent_dim):
@@ -62,3 +80,5 @@ def test_zeroed_wt_betas():
     for latent_dim in range(analysis.model.latent_dim):
         for idx in wt_idxs:
             assert analysis.model.beta_coefficients()[latent_dim, int(idx)] == 0
+    os.remove(model_path)
+    os.remove(data_path)
