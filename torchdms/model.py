@@ -191,7 +191,7 @@ class EscapeModel(TorchdmsModel):
         alphabet,
         num_epitopes,
         beta_l1_coefficient=None,
-        monotonic_sign=False,
+        monotonic_sign=False,  # pylint: disable=unused-argument
     ):
         super().__init__(input_size, target_names, alphabet)
 
@@ -229,7 +229,7 @@ class EscapeModel(TorchdmsModel):
 
         return torch.cat(latent_dims, dim=1)
 
-    def from_latent_to_output(self, x):
+    def from_latent_to_output(self, x):  # pylint: disable=no-self-use
         """latent space in as 'x' -> escape fraction."""
         b_fractions = torch.sigmoid(x)
         return torch.unsqueeze(torch.prod(b_fractions, 1), 1)
@@ -670,19 +670,32 @@ def activation_of_string(string):
 
 def model_of_string(model_string, data_path, **kwargs):
     """Build a model out of a string specification."""
+
+    data = from_pickle_file(data_path)
+    test_dataset = data.test
+
     try:
         model_regex = re.compile(r"(.*)\((.*)\)")
         match = model_regex.match(model_string)
         model_name = match.group(1)
+        if model_name not in KNOWN_MODELS:
+            raise IOError(model_name + " not known")
         arguments = match.group(2).split(",")
-        if arguments == [""]:
-            arguments = []
         if model_name == "Escape":
             if len(arguments) != 1:
                 raise IOError(
                     "The Escape model expects exactly one argument: the number of epitopes."
                 )
             num_epitopes = int(arguments[0])
+            model = EscapeModel(
+                test_dataset.feature_count(),
+                test_dataset.target_names,
+                alphabet=test_dataset.alphabet,
+                num_epitopes=num_epitopes,
+                **kwargs,
+            )
+        elif arguments == [""]:
+            arguments = []
         else:
             if len(arguments) % 2 != 0:
                 raise IOError(
@@ -694,10 +707,7 @@ def model_of_string(model_string, data_path, **kwargs):
     except Exception:
         click.echo(f"ERROR: Couldn't parse model description: '{model_string}'.")
         raise
-    if model_name not in KNOWN_MODELS:
-        raise IOError(model_name + " not known")
-    data = from_pickle_file(data_path)
-    test_dataset = data.test
+
     if model_name == "FullyConnected":
         if len(layers) == 0:
             click.echo("LOG: No layers provided, so I'm creating a linear model.")
@@ -714,14 +724,6 @@ def model_of_string(model_string, data_path, **kwargs):
             test_dataset.feature_count(),
             test_dataset.target_names,
             alphabet=test_dataset.alphabet,
-        )
-    elif model_name == "Escape":
-        model = EscapeModel(
-            test_dataset.feature_count(),
-            test_dataset.target_names,
-            alphabet=test_dataset.alphabet,
-            num_epitopes=num_epitopes,
-            **kwargs,
         )
     elif model_name in ("Independent", "Conditional", "ConditionalSequential"):
         model = KNOWN_MODELS[model_name](
