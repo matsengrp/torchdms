@@ -169,7 +169,6 @@ class Analysis:
                     batch = next(train_infinite_loader)
                     samples = batch["samples"].to(self.device)
                     predictions = self.model(samples)
-
                     loss = self.complete_loss(
                         loss_fn, batch["targets"], predictions, per_stratum_loss_decays
                     )
@@ -185,6 +184,7 @@ class Analysis:
                     if self.model.monotonic_sign:
                         for param in self.model.monotonic_params_from_latent_space():
                             param.data.clamp_(0)
+
                 optimizer.step()
                 # if k >=1, reconstruct beta matricies with truncated SVD
                 if beta_rank is not None:

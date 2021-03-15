@@ -7,6 +7,7 @@ import pandas as pd
 import torch
 import torch.nn as nn
 from torchdms.utils import from_pickle_file
+from torchdms.loss import l1_penalty
 
 
 def identity(x):
@@ -178,6 +179,85 @@ class LinearModel(TorchdmsModel):
 
     def to_latent(self, x):
         return self.forward(x)
+
+
+class EscapeModel(TorchdmsModel):
+    """a subclass of TorchdmsModel for modeling viral escape."""
+
+    def __init__(
+        self,
+        input_size,
+        target_names,
+        alphabet,
+        num_epitopes,
+        beta_l1_coefficient=None,
+        monotonic_sign=False,  # pylint: disable=unused-argument
+    ):
+        super().__init__(input_size, target_names, alphabet)
+
+        # set model attributes
+        self.num_epitopes = num_epitopes
+        self.beta_l1_coefficient = beta_l1_coefficient
+
+        # build the model
+        for i in range(self.num_epitopes):
+            setattr(self, f"latent_layer_epi{i}", nn.Linear(input_size, 1, bias=True))
+
+    @property
+    def characteristics(self):
+        """Return salient characteristics of the model that aren't represented
+        in the PyTorch description."""
+        return {
+            "num_epitopes": self.num_epitopes,
+            "beta_l1_coefficient": self.beta_l1_coefficient,
+        }
+
+    @property
+    def latent_dim(self):
+        """number of dimensions in latent space."""
+        return self.num_epitopes
+
+    def str_summary(self):
+        return "Escape"
+
+    def to_latent(self, x):
+        """input features -> latent space."""
+        latent_dims = []
+        for i in range(self.num_epitopes):
+            model_ = getattr(self, f"latent_layer_epi{i}")
+            latent_dims.append(model_(x))
+
+        return torch.cat(latent_dims, dim=1)
+
+    def from_latent_to_output(self, x):  # pylint: disable=no-self-use
+        """latent space in as 'x' -> escape fraction."""
+        b_fractions = torch.sigmoid(x)
+        return torch.unsqueeze(torch.prod(b_fractions, 1), 1)
+
+    def forward(self, x):  # pylint: disable=arguments-differ
+        """Compose data --> latent --> output."""
+        return self.from_latent_to_output(self.to_latent(x))
+
+    def betas_with_grad(self):
+        """Accessory method for retrieving beta coefficients."""
+        beta_coefficients_data = torch.cat(
+            (
+                [
+                    getattr(self, f"latent_layer_epi{i}").weight
+                    for i in range(self.num_epitopes)
+                ]
+            )
+        )
+        return beta_coefficients_data[:, : self.input_size]
+
+    def beta_coefficients(self):
+        """beta coefficients."""
+        return self.betas_with_grad().data
+
+    def regularization_loss(self):
+        """penalize the beta coefficients."""
+        penalty = self.beta_l1_coefficient * l1_penalty(self.betas_with_grad())
+        return penalty
 
 
 class FullyConnected(TorchdmsModel):
@@ -571,6 +651,7 @@ KNOWN_MODELS = {
     "Independent": Independent,
     "Conditional": Conditional,
     "ConditionalSequential": ConditionalSequential,
+    "Escape": EscapeModel,
 }
 
 
@@ -589,28 +670,44 @@ def activation_of_string(string):
 
 def model_of_string(model_string, data_path, **kwargs):
     """Build a model out of a string specification."""
+
+    data = from_pickle_file(data_path)
+    test_dataset = data.test
+
     try:
         model_regex = re.compile(r"(.*)\((.*)\)")
         match = model_regex.match(model_string)
         model_name = match.group(1)
+        if model_name not in KNOWN_MODELS:
+            raise IOError(model_name + " not known")
         arguments = match.group(2).split(",")
-        if arguments == [""]:
+        if model_name == "Escape":
+            if len(arguments) != 1:
+                raise IOError(
+                    "The Escape model expects exactly one argument: the number of epitopes."
+                )
+            num_epitopes = int(arguments[0])
+            model = EscapeModel(
+                test_dataset.feature_count(),
+                test_dataset.target_names,
+                alphabet=test_dataset.alphabet,
+                num_epitopes=num_epitopes,
+                **kwargs,
+            )
+        elif arguments == [""]:
             arguments = []
-        if len(arguments) % 2 != 0:
-            raise IOError
-        layers = list(map(int, arguments[0::2]))
-        activations = list(map(activation_of_string, arguments[1::2]))
+        else:
+            if len(arguments) % 2 != 0:
+                raise IOError(
+                    "The number of arguments to your model specification must be "
+                    "even, alternating between layer sizes and activations."
+                )
+            layers = list(map(int, arguments[0::2]))
+            activations = list(map(activation_of_string, arguments[1::2]))
     except Exception:
-        click.echo(
-            f"ERROR: Couldn't parse model description: '{model_string}'."
-            "The number of arguments to a model specification must be "
-            "even, alternating between layer sizes and activations."
-        )
+        click.echo(f"ERROR: Couldn't parse model description: '{model_string}'.")
         raise
-    if model_name not in KNOWN_MODELS:
-        raise IOError(model_name + " not known")
-    data = from_pickle_file(data_path)
-    test_dataset = data.test
+
     if model_name == "FullyConnected":
         if len(layers) == 0:
             click.echo("LOG: No layers provided, so I'm creating a linear model.")
@@ -637,6 +734,6 @@ def model_of_string(model_string, data_path, **kwargs):
             alphabet=test_dataset.alphabet,
             **kwargs,
         )
-    else:
+    elif model_name != "Escape":
         raise NotImplementedError(model_name)
     return model
