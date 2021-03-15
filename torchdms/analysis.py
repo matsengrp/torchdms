@@ -108,10 +108,9 @@ class Analysis:
         return sum(per_target_loss) + self.model.regularization_loss()
 
     def _zero_wildtype_betas(self):
-        wt_idxs = self.val_data.wt_idxs
         # here we set the WT betas to zero before the forward pass
         for latent_dim in range(self.model.latent_dim):
-            for idx in wt_idxs:
+            for idx in self.val_data.wt_idxs:
                 self.model.beta_coefficients()[latent_dim, int(idx)] = 0
 
     def train(
