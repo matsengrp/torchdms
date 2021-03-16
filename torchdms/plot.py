@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import torch
-from matplotlib import cm
+from matplotlib import cm, colors
 from plotnine import (
     aes,
     facet_grid,
@@ -204,7 +204,8 @@ def beta_coefficients(model, test_data, out):
         beta_map, alphabet = build_beta_map(
             test_data, model.beta_coefficients()[latent_dim].numpy()
         )
-        mapp = ax[latent_dim].imshow(beta_map, aspect="auto")
+        # define your scale, with white at zero
+        mapp = ax[latent_dim].imshow(beta_map, aspect="auto", norm=colors.DivergingNorm(0), cmap = "RdBu")
         fig.colorbar(mapp, ax=ax[latent_dim], orientation="horizontal")
         ax[latent_dim].set_title(f"Beta coeff for latent dimension {latent_dim}")
         ax[latent_dim].set_yticks(ticks=range(0, 21))
