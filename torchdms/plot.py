@@ -205,10 +205,19 @@ def beta_coefficients(model, test_data, out):
             test_data, model.beta_coefficients()[latent_dim].numpy()
         )
         # define your scale, with white at zero
-        mapp = ax[latent_dim].imshow(beta_map, aspect="auto", norm=colors.DivergingNorm(0), cmap = "RdBu")
+        mapp = ax[latent_dim].imshow(
+            beta_map, aspect="auto", norm=colors.DivergingNorm(0), cmap="RdBu"
+        )
         # Box WT-cells.
         for wt_idx in np.transpose(wtmask.nonzero()):
-            wt_cell = patches.Rectangle(np.flip(wt_idx-0.5), 1, 1, facecolor="none", edgecolor="black", linewidth=2)
+            wt_cell = patches.Rectangle(
+                np.flip(wt_idx - 0.5),
+                1,
+                1,
+                facecolor="none",
+                edgecolor="black",
+                linewidth=2,
+            )
             ax[latent_dim].add_patch(wt_cell)
         fig.colorbar(mapp, ax=ax[latent_dim], orientation="horizontal")
         ax[latent_dim].set_title(f"Beta coeff for latent dimension {latent_dim}")
