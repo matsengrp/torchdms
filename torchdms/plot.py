@@ -221,7 +221,6 @@ def beta_coefficients(model, test_data, out):
             ax[latent_dim].add_patch(wt_cell)
         fig.colorbar(mapp, ax=ax[latent_dim], orientation="horizontal")
         ax[latent_dim].set_title(f"Beta coeff for latent dimension {latent_dim}")
-        ax[latent_dim].set_xticks(ticks=range(0, len(test_data.wtseq)))
         ax[latent_dim].set_yticks(ticks=range(0, 21))
         ax[latent_dim].set_yticklabels(alphabet)
     plt.tight_layout()
