@@ -202,6 +202,14 @@ class EscapeModel(TorchdmsModel):
         for i in range(self.num_epitopes):
             setattr(self, f"latent_layer_epi{i}", nn.Linear(input_size, 1, bias=True))
 
+        # initialize the beta coefficients
+        initial_betas = torch.load('/Users/timyu/Desktop/sars2-regn/perturbed_betas.pt')
+        self.latent_layer_epi0.weight = torch.nn.Parameter(torch.unsqueeze(initial_betas[0], 0))
+        self.latent_layer_epi1.weight = torch.nn.Parameter(torch.unsqueeze(initial_betas[1], 0))
+
+        self.latent_layer_epi0.bias = torch.nn.Parameter(torch.Tensor([-6.9]))
+        self.latent_layer_epi1.bias = torch.nn.Parameter(torch.Tensor([-6.9]))
+
     @property
     def characteristics(self):
         """Return salient characteristics of the model that aren't represented
