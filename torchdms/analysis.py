@@ -111,7 +111,7 @@ class Analysis:
         # here we set the WT betas to zero before the forward pass
         for latent_dim in range(self.model.latent_dim):
             for idx in self.val_data.wt_idxs:
-                self.model.beta_coefficients()[latent_dim, int(idx)] = 0
+                self.model.beta_coefficients()[latent_dim, idx] = 0
 
     def train(
         self,
