@@ -420,3 +420,18 @@ def plot_svd_profiles(model, test_data, out):
 
     fig.suptitle(f"{model.str_summary()}")
     fig.savefig(f"{out}")
+
+
+def plot_observed_2d_scores(data, targets, out):
+    """If a dataset has two targets, create a scatterplot of the scores."""
+    fig, ax = plt.subplots(figsize=(10, 5))
+    corr, _ = stats.pearsonr(data[targets[0]], data[targets[1]])
+    plt.title(f"pearsonr={round(corr, 3)}")
+    plt.suptitle(f"Observed variants {targets[0]} vs {targets[1]}")
+    plot = ax.scatter(data[targets[0]], data[targets[1]], c=data["n_aa_substitutions"])
+    ax.set_xlabel(targets[0])
+    ax.set_ylabel(targets[1])
+
+    ax.legend(*plot.legend_elements(), bbox_to_anchor=(1, 1), title="n-mutant")
+
+    fig.savefig(f"{out}")
