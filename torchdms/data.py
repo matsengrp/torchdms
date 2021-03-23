@@ -76,7 +76,7 @@ class BinaryMapDataset(Dataset):
         alphabet = self.alphabet
         alphabet_dict = {letter: idx for idx, letter in enumerate(alphabet)}
         wt_idx = [alphabet_dict[aa] for aa in wtseq]
-        wt_encoding_idx = torch.zeros_like(wtseq, dtype=torch.int32)
+        wt_encoding_idx = torch.zeros_like(torch.Tensor(len(wtseq)), dtype=torch.int)
         for site, _ in enumerate(wtseq):
             wt_encoding_idx[site] = (site * len(alphabet)) + wt_idx[site]
         return wt_encoding_idx
