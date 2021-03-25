@@ -4,8 +4,9 @@ Testing for data.py.
 
 import random
 import pandas as pd
+import torch
 import pkg_resources
-from torchdms.data import partition
+from torchdms.data import partition, SplitDataset
 from torchdms.utils import (
     count_variants_with_a_mutation_towards_an_aa,
     from_pickle_file,
@@ -57,3 +58,22 @@ def test_summarize():
     assert alt_count == count_variants_with_a_mutation_towards_an_aa(
         aa_substitutions, "K"
     )
+
+
+def test_wt_idx():
+    """
+    Ensure that the indicies for the WT-seq are correct.
+    """
+    data, wtseq = from_pickle_file(TEST_DATA_PATH)
+    actual_idx = torch.Tensor([11, 28, 58])
+    random.seed(1)
+    split_df = partition(
+        data,
+        per_stratum_variants_for_test=10,
+        skip_stratum_if_count_is_smaller_than=30,
+        export_dataframe=None,
+        partition_label=None,
+    )
+    split_df_prepped = SplitDataset.of_split_df(split_df, wtseq, ["affinity_score"], "")
+    assert split_df_prepped.val.wtseq == "NIT"
+    assert torch.all(torch.eq(actual_idx, split_df_prepped.val.wt_idxs))
