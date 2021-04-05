@@ -196,18 +196,43 @@ class Analysis:
                 self._zero_wildtype_betas()
                 # if k >=1, reconstruct beta matricies with truncated SVD
                 if beta_rank is not None:
-                    num_latent_dims = self.model.latent_dim
-                    for latent_dim in range(num_latent_dims):
-                        beta_vec = (
-                            self.model.beta_coefficients()[latent_dim]
-                            .detach()
-                            .clone()
-                            .numpy()
-                        )
-                        beta_map, _ = build_beta_map(self.val_data, beta_vec)
-                        self.model.beta_coefficients()[
-                            latent_dim
-                        ] = low_rank_approximation(beta_map, beta_rank)
+                    # procedure for 2D models.
+                    if self.model.__class__.__name__ != "FullyConnected":
+                        num_latent_dims = self.model.model_bind.latent_dim
+                        for latent_dim in range(num_latent_dims):
+                            bind_beta_vec = (
+                                self.model.model_bind.beta_coefficients()[latent_dim]
+                                .detach()
+                                .clone()
+                                .numpy()
+                            )
+                            stab_beta_vec = (
+                                self.model.model_stab.beta_coefficients()[latent_dim]
+                                .detach()
+                                .clone()
+                                .numpy()
+                            )
+                            bind_beta_map, _ = build_beta_map(self.val_data, bind_beta_vec)
+                            stab_beta_map, _ = build_beta_map(self.val_data, stab_beta_vec)
+                            self.model.model_bind.beta_coefficients()[
+                                latent_dim
+                            ] = low_rank_approximation(bind_beta_map, beta_rank)
+                            self.model.model_stab.beta_coefficients()[
+                                latent_dim
+                            ] = low_rank_approximation(stab_beta_map, beta_rank)
+                    else:
+                        num_latent_dims = self.model.latent_dim
+                        for latent_dim in range(num_latent_dims):
+                            beta_vec = (
+                                self.model.beta_coefficients()[latent_dim]
+                                .detach()
+                                .clone()
+                                .numpy()
+                            )
+                            beta_map, _ = build_beta_map(self.val_data, beta_vec)
+                            self.model.beta_coefficients()[
+                                latent_dim
+                            ] = low_rank_approximation(beta_map, beta_rank)
 
             val_samples = self.val_data.samples.to(self.device)
             val_predictions = self.model(val_samples)
