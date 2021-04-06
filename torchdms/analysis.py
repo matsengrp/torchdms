@@ -212,8 +212,12 @@ class Analysis:
                                 .clone()
                                 .numpy()
                             )
-                            bind_beta_map, _ = build_beta_map(self.val_data, bind_beta_vec)
-                            stab_beta_map, _ = build_beta_map(self.val_data, stab_beta_vec)
+                            bind_beta_map, _ = build_beta_map(
+                                self.val_data, bind_beta_vec
+                            )
+                            stab_beta_map, _ = build_beta_map(
+                                self.val_data, stab_beta_vec
+                            )
                             self.model.model_bind.beta_coefficients()[
                                 latent_dim
                             ] = low_rank_approximation(bind_beta_map, beta_rank)
