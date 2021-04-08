@@ -29,7 +29,7 @@ def low_rank_approximation(beta_map, beta_rank):
     return beta_approx.transpose(1, 0).flatten()
 
 
-def low_rank_betas(model, latent_dim, beta_rank, data):
+def make_beta_matrix_low_rank(model, latent_dim, beta_rank, data):
     """Assigns low-rank beta approximations to tdms models."""
     beta_vec = model.beta_coefficients()[latent_dim].detach().clone().numpy()
     beta_map, _ = build_beta_map(data, beta_vec)
@@ -209,13 +209,13 @@ class Analysis:
                     ):
                         num_latent_dims = self.model.model_bind.latent_dim
                         for latent_dim in range(num_latent_dims):
-                            low_rank_betas(
+                            make_beta_matrix_low_rank(
                                 self.model.model_bind,
                                 latent_dim,
                                 beta_rank,
                                 self.val_data,
                             )
-                            low_rank_betas(
+                            make_beta_matrix_low_rank(
                                 self.model.model_stab,
                                 latent_dim,
                                 beta_rank,
@@ -224,7 +224,7 @@ class Analysis:
                     else:
                         num_latent_dims = self.model.latent_dim
                         for latent_dim in range(num_latent_dims):
-                            low_rank_betas(
+                            make_beta_matrix_low_rank(
                                 self.model, latent_dim, beta_rank, self.val_data
                             )
 
