@@ -408,7 +408,7 @@ def plot_svd_profiles(model, test_data, out):
     else:
         for latent_dim in range(num_latent_dims):
             beta_map = build_beta_map(
-                teste_data.wtseq,
+                test_data.wtseq,
                 test_data.alphabet,
                 model.beta_coefficients()[latent_dim].numpy(),
             )
@@ -424,7 +424,7 @@ def plot_svd_profiles(model, test_data, out):
                 xticks=range(rank),
                 xlabel="Profile number",
                 yticks=range(0, 21),
-                yticklabels=alphabet,
+                yticklabels=test_data.alphabet,
                 ylabel="Amino acid",
             )
             # add second heatmap for folding latent space
