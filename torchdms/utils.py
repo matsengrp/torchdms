@@ -8,7 +8,6 @@ import json
 import re
 import pandas as pd
 import numpy as np
-import dms_variants as dms
 
 
 def from_pickle_file(path):
