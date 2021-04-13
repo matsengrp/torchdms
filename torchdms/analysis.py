@@ -29,10 +29,10 @@ def low_rank_approximation(beta_map, beta_rank):
     return beta_approx.transpose(1, 0).flatten()
 
 
-def make_beta_matrix_low_rank(model, latent_dim, beta_rank, data):
+def _make_beta_matrix_low_rank(model, latent_dim, beta_rank, wtseq, alphabet):
     """Assigns low-rank beta approximations to tdms models."""
     beta_vec = model.beta_coefficients()[latent_dim].detach().clone().numpy()
-    beta_map, _ = build_beta_map(data, beta_vec)
+    beta_map = build_beta_map(wtseq, alphabet, beta_vec)
     model.beta_coefficients()[latent_dim] = low_rank_approximation(beta_map, beta_rank)
 
 
@@ -209,23 +209,26 @@ class Analysis:
                     ):
                         num_latent_dims = self.model.model_bind.latent_dim
                         for latent_dim in range(num_latent_dims):
-                            make_beta_matrix_low_rank(
+                            _make_beta_matrix_low_rank(
                                 self.model.model_bind,
                                 latent_dim,
                                 beta_rank,
-                                self.val_data,
+                                self.val_data.wtseq,
+                                self.val_data.alphabet,
                             )
-                            make_beta_matrix_low_rank(
+                            _make_beta_matrix_low_rank(
                                 self.model.model_stab,
                                 latent_dim,
                                 beta_rank,
-                                self.val_data,
+                                self.val_data.wtseq,
+                                self.val_data.alphabet,
                             )
                     else:
                         num_latent_dims = self.model.latent_dim
                         for latent_dim in range(num_latent_dims):
-                            make_beta_matrix_low_rank(
-                                self.model, latent_dim, beta_rank, self.val_data
+                            _make_beta_matrix_low_rank(
+                                self.model, latent_dim, beta_rank, self.val_data.wtseq,
+                                self.val_data.alphabet,
                             )
 
             val_samples = self.val_data.samples.to(self.device)
