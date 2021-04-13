@@ -189,9 +189,7 @@ def build_beta_map(wtseq, alphabet, beta_vec):
         row_position = alphabet.index(aa)
         wtmask[row_position, column_position] = True
     # See model.numpy_single_mutant_predictions for why this transpose is here.
-    return (
-        beta_vec.reshape(len(wtseq), len(alphabet)).transpose()
-    )
+    return beta_vec.reshape(len(wtseq), len(alphabet)).transpose()
 
 
 def make_all_possible_mutations(test_data):

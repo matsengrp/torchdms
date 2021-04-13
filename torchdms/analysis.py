@@ -227,7 +227,10 @@ class Analysis:
                         num_latent_dims = self.model.latent_dim
                         for latent_dim in range(num_latent_dims):
                             _make_beta_matrix_low_rank(
-                                self.model, latent_dim, beta_rank, self.val_data.wtseq,
+                                self.model,
+                                latent_dim,
+                                beta_rank,
+                                self.val_data.wtseq,
                                 self.val_data.alphabet,
                             )
 
