@@ -115,10 +115,16 @@ class Analysis:
         return sum(per_target_loss) + self.model.regularization_loss()
 
     def _zero_wildtype_betas(self):
-        # here we set the WT betas to zero before the forward pass
-        for latent_dim in range(self.model.latent_dim):
-            for idx in self.val_data.wt_idxs:
-                self.model.beta_coefficients()[latent_dim, idx] = 0
+        if hasattr(self.model, "model_bind") and hasattr(self.model, "model_stab"):
+            for latent_dim in range(self.model.model_bind.latent_dim):
+                for idx in self.val_data.wt_idxs:
+                    self.model.model_bind.beta_coefficients()[latent_dim, idx] = 0
+                    self.model.model_stab.beta_coefficients()[latent_dim, idx] = 0
+        else:
+            # here we set the WT betas to zero before the forward pass
+            for latent_dim in range(self.model.latent_dim):
+                for idx in self.val_data.wt_idxs:
+                    self.model.beta_coefficients()[latent_dim, idx] = 0
 
     def train(
         self,
