@@ -8,6 +8,7 @@ import json
 import re
 import pandas as pd
 import numpy as np
+import dms_variants as dms
 
 
 def from_pickle_file(path):
@@ -174,7 +175,7 @@ def make_cartesian_product_hierarchy(dict_of_option_dicts, dry_run=False):
                 to_json_file(final_dict, json_path)
 
 
-def build_beta_map(wtseq, alphabet, beta_vec):
+def build_beta_map(test_data, beta_vec):
     """This function creates a beta matrix for one latent layer of a torchdms
     model.
 
@@ -182,13 +183,19 @@ def build_beta_map(wtseq, alphabet, beta_vec):
     matrix of beta-coefficients and the amino acid alphabet.
     """
 
-    wtmask = np.full([len(alphabet), len(wtseq)], False, dtype=bool)
+    bmap = dms.binarymap.BinaryMap(test_data.original_df)
 
-    for column_position, aa in enumerate(wtseq):
+    wtmask = np.full([len(bmap.alphabet), len(test_data.wtseq)], False, dtype=bool)
+    alphabet = bmap.alphabet
+
+    for column_position, aa in enumerate(test_data.wtseq):
         row_position = alphabet.index(aa)
         wtmask[row_position, column_position] = True
     # See model.numpy_single_mutant_predictions for why this transpose is here.
-    return beta_vec.reshape(len(wtseq), len(alphabet)).transpose()
+    return (
+        beta_vec.reshape(len(test_data.wtseq), len(bmap.alphabet)).transpose(),
+        alphabet,
+    )
 
 
 def make_all_possible_mutations(test_data):

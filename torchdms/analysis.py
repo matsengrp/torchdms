@@ -29,13 +29,6 @@ def low_rank_approximation(beta_map, beta_rank):
     return beta_approx.transpose(1, 0).flatten()
 
 
-def _make_beta_matrix_low_rank(model, latent_dim, beta_rank, wtseq, alphabet):
-    """Assigns low-rank beta approximations to tdms models."""
-    beta_vec = model.beta_coefficients()[latent_dim].detach().clone().numpy()
-    beta_map = build_beta_map(wtseq, alphabet, beta_vec)
-    model.beta_coefficients()[latent_dim] = low_rank_approximation(beta_map, beta_rank)
-
-
 class Analysis:
     """A wrapper class for training models."""
 
@@ -115,16 +108,10 @@ class Analysis:
         return sum(per_target_loss) + self.model.regularization_loss()
 
     def _zero_wildtype_betas(self):
-        if hasattr(self.model, "model_bind") and hasattr(self.model, "model_stab"):
-            for latent_dim in range(self.model.model_bind.latent_dim):
-                for idx in self.val_data.wt_idxs:
-                    self.model.model_bind.beta_coefficients()[latent_dim, idx] = 0
-                    self.model.model_stab.beta_coefficients()[latent_dim, idx] = 0
-        else:
-            # here we set the WT betas to zero before the forward pass
-            for latent_dim in range(self.model.latent_dim):
-                for idx in self.val_data.wt_idxs:
-                    self.model.beta_coefficients()[latent_dim, idx] = 0
+        # here we set the WT betas to zero before the forward pass
+        for latent_dim in range(self.model.latent_dim):
+            for idx in self.val_data.wt_idxs:
+                self.model.beta_coefficients()[latent_dim, idx] = 0
 
     def train(
         self,
@@ -209,36 +196,18 @@ class Analysis:
                 self._zero_wildtype_betas()
                 # if k >=1, reconstruct beta matricies with truncated SVD
                 if beta_rank is not None:
-                    # procedure for 2D models.
-                    if hasattr(self.model, "model_bind") and hasattr(
-                        self.model, "model_stab"
-                    ):
-                        num_latent_dims = self.model.model_bind.latent_dim
-                        for latent_dim in range(num_latent_dims):
-                            _make_beta_matrix_low_rank(
-                                self.model.model_bind,
-                                latent_dim,
-                                beta_rank,
-                                self.val_data.wtseq,
-                                self.val_data.alphabet,
-                            )
-                            _make_beta_matrix_low_rank(
-                                self.model.model_stab,
-                                latent_dim,
-                                beta_rank,
-                                self.val_data.wtseq,
-                                self.val_data.alphabet,
-                            )
-                    else:
-                        num_latent_dims = self.model.latent_dim
-                        for latent_dim in range(num_latent_dims):
-                            _make_beta_matrix_low_rank(
-                                self.model,
-                                latent_dim,
-                                beta_rank,
-                                self.val_data.wtseq,
-                                self.val_data.alphabet,
-                            )
+                    num_latent_dims = self.model.latent_dim
+                    for latent_dim in range(num_latent_dims):
+                        beta_vec = (
+                            self.model.beta_coefficients()[latent_dim]
+                            .detach()
+                            .clone()
+                            .numpy()
+                        )
+                        beta_map, _ = build_beta_map(self.val_data, beta_vec)
+                        self.model.beta_coefficients()[
+                            latent_dim
+                        ] = low_rank_approximation(beta_map, beta_rank)
 
             val_samples = self.val_data.samples.to(self.device)
             val_predictions = self.model(val_samples)

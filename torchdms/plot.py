@@ -201,10 +201,8 @@ def beta_coefficients(model, test_data, out):
     if num_latent_dims == 1:
         ax = [ax]
     for latent_dim in range(num_latent_dims):
-        beta_map = build_beta_map(
-            test_data.wtseq,
-            test_data.alphabet,
-            model.beta_coefficients()[latent_dim].numpy(),
+        beta_map, alphabet = build_beta_map(
+            test_data, model.beta_coefficients()[latent_dim].numpy()
         )
         # define your scale, with white at zero
         mapp = ax[latent_dim].imshow(
@@ -321,10 +319,8 @@ def plot_svd(model, test_data, out):
         nrows=num_latent_dims, ncols=2, figsize=(10, 5 * num_latent_dims)
     )
     for latent_dim in range(num_latent_dims):
-        beta_map = build_beta_map(
-            test_data.wtseq,
-            test_data.alphabet,
-            model.beta_coefficients()[latent_dim].numpy(),
+        beta_map, _ = build_beta_map(
+            test_data, model.beta_coefficients()[latent_dim].numpy()
         )
         rank = np.linalg.matrix_rank(beta_map)
         s_matrix = np.linalg.svd(beta_map, compute_uv=False)
@@ -377,10 +373,8 @@ def plot_svd_profiles(model, test_data, out):
     )
     if num_latent_dims == 1:
         latent_dim = 0
-        beta_map = build_beta_map(
-            test_data.wtseq,
-            test_data.alphabet,
-            model.beta_coefficients()[latent_dim].numpy(),
+        beta_map, alphabet = build_beta_map(
+            test_data, model.beta_coefficients()[latent_dim].numpy()
         )
         rank = np.linalg.matrix_rank(beta_map)
         u_vecs, _, v_vecs = torch.svd(torch.from_numpy(beta_map))
@@ -392,7 +386,7 @@ def plot_svd_profiles(model, test_data, out):
             xticks=range(rank),
             xlabel="Profile number",
             yticks=range(0, 21),
-            yticklabels=test_data.alphabet,
+            yticklabels=alphabet,
             ylabel="Amino acid",
         )
         # add second heatmap for folding latent space
@@ -407,10 +401,8 @@ def plot_svd_profiles(model, test_data, out):
         )
     else:
         for latent_dim in range(num_latent_dims):
-            beta_map = build_beta_map(
-                test_data.wtseq,
-                test_data.alphabet,
-                model.beta_coefficients()[latent_dim].numpy(),
+            beta_map, alphabet = build_beta_map(
+                test_data, model.beta_coefficients()[latent_dim].numpy()
             )
             rank = np.linalg.matrix_rank(beta_map)
             u_vecs, _, v_vecs = torch.svd(torch.from_numpy(beta_map))
@@ -424,7 +416,7 @@ def plot_svd_profiles(model, test_data, out):
                 xticks=range(rank),
                 xlabel="Profile number",
                 yticks=range(0, 21),
-                yticklabels=test_data.alphabet,
+                yticklabels=alphabet,
                 ylabel="Amino acid",
             )
             # add second heatmap for folding latent space
