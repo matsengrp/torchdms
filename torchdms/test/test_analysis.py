@@ -22,7 +22,7 @@ model_path = "run.model"
 
 
 def test_low_rank_approximation():
-    """ Tests low-rank approximation function."""
+    """Tests low-rank approximation function."""
     # define simple 2-rank matrix
     test_matrix = np.array([[1, 4, 7], [2, 5, 8], [3, 6, 9]], dtype="float")
 
@@ -42,7 +42,7 @@ def test_low_rank_approximation():
 
 
 def test_zeroed_wt_betas():
-    """Test to ensure WT betas of a model are (and remain) 0. """
+    """Test to ensure WT betas of a model are (and remain) 0."""
     data, wtseq = from_pickle_file(TEST_DATA_PATH)
     split_df = partition(
         data,
