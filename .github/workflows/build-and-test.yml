@@ -30,6 +30,7 @@ jobs:
     - name: Test
       run: |
         make test
+        make test2d
         make datatest
     - name: Lint with flake8
       run: |
