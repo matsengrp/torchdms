@@ -51,7 +51,7 @@ def test_zeroed_wt_betas():
         export_dataframe=None,
         partition_label=None,
     )
-    prep_by_stratum_and_export(split_df, wtseq, ["affinity_score"], out_path, "", None)
+    prep_by_stratum_and_export(split_df, wtseq, ["affinity_score"], out_path, "", None, protein_start_site=1)
 
     split_df_prepped = from_pickle_file(data_path)
 
