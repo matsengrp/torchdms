@@ -30,7 +30,16 @@ class BinaryMapDataset(Dataset):
     drop redundant columns that are already attributes.
     """
 
-    def __init__(self, samples, targets, original_df, wtseq, target_names, alphabet, protein_start_site):
+    def __init__(
+        self,
+        samples,
+        targets,
+        original_df,
+        wtseq,
+        target_names,
+        alphabet,
+        protein_start_site,
+    ):
         row_count = len(samples)
         assert row_count == len(targets)
         assert row_count == len(original_df)
@@ -131,9 +140,13 @@ class SplitDataset:
         self.description_string = description_string
 
     @classmethod
-    def of_split_df(cls, split_df, wtseq, targets, description_string, protein_start_site):
+    def of_split_df(
+        cls, split_df, wtseq, targets, description_string, protein_start_site
+    ):
         def our_of_raw(df):
-            return BinaryMapDataset.of_raw(df, wtseq=wtseq, targets=targets, protein_start_site=protein_start_site)
+            return BinaryMapDataset.of_raw(
+                df, wtseq=wtseq, targets=targets, protein_start_site=protein_start_site
+            )
 
         return cls(
             test_data=our_of_raw(split_df.test),
@@ -373,11 +386,7 @@ def prep_by_stratum_and_export(
 
     to_pickle_file(
         SplitDataset.of_split_df(
-            split_df,
-            wtseq,
-            list(targets),
-            description_string,
-            protein_start_site
+            split_df, wtseq, list(targets), description_string, protein_start_site
         ),
         out_path,
     )
