@@ -77,6 +77,7 @@ def plot_test_correlation(evaluation_dict, model, out, cmap="plasma"):
     n_aa_substitutions = [
         len(s.split()) for s in evaluation_dict["original_df"]["aa_substitutions"]
     ]
+    has_unseen_mutation = np.array(evaluation_dict["original_df"]["unseen_mutations"])
     width = 7 * num_targets
     fig, ax = plt.subplots(1, num_targets, figsize=(width, 6))
     if num_targets == 1:
@@ -86,7 +87,11 @@ def plot_test_correlation(evaluation_dict, model, out, cmap="plasma"):
         pred = evaluation_dict["predictions"][:, target]
         targ = evaluation_dict["targets"][:, target]
         corr = stats.pearsonr(pred, targ)
-        scatter = ax[target].scatter(pred, targ, cmap=cmap, c=n_aa_substitutions, s=8.0)
+        # create plot with seen mutations and then unseen mutations
+        scatter = ax[target].scatter(np.array(pred)[~has_unseen_mutation], np.array(targ)[~has_unseen_mutation], cmap=cmap,
+            c=np.array(n_aa_substitutions)[~has_unseen_mutation], marker='.', s=8.0)
+        ax[target].scatter(np.array(pred)[has_unseen_mutation], np.array(targ)[has_unseen_mutation], cmap=cmap,
+            c=np.array(n_aa_substitutions)[has_unseen_mutation], marker='x', s=24.0)
         ax[target].set_xlabel("Predicted")
         ax[target].set_ylabel("Observed")
         target_name = evaluation_dict["target_names"][target]
