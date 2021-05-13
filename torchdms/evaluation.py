@@ -32,9 +32,6 @@ def build_evaluation_dict(model, test_data, device="cpu"):
     test_data.original_df["unseen_mutations"] = test_data.original_df[
         "aa_substitutions"
     ].str.split().map(set) & test_data.original_df["unseen_mutations"].map(set)
-    X = test_data.samples.detach().numpy()
-    rank = np.linalg.matrix_rank(X)
-    print(f"Test data dim: {X.shape}, rank {rank}")
 
     return {
         "samples": test_data.samples.detach().numpy(),
