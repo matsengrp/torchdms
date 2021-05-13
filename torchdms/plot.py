@@ -188,18 +188,13 @@ def beta_coefficients(model, test_data, out):
     )
     # Sites of interest for tick marks
     first_site = test_data.protein_start_site
-    fifth_site = int(((first_site + 4) / 5) * 5)
     last_site = first_site + len(test_data.wtseq)
-
-    # General case -- else statement handles sequences smaller than 5aa (tests)
-    if last_site > fifth_site:
-        first_tick_marks = np.array([first_site, fifth_site])
-        remaining_tick_marks = np.arange(fifth_site, last_site, 5)
-        tick_marks = np.concatenate([first_tick_marks, remaining_tick_marks[1:]])
-        ticks = np.arange(0, len(test_data.wtseq), 4)
-    else:
-        tick_marks = np.arange(first_site, last_site)
-        ticks = np.arange(0, len(test_data.wtseq))
+    # tick placement and labels
+    ticks = np.arange(0, len(test_data.wtseq), 4)
+    tick_marks = np.ceil(np.arange(first_site, last_site, 4, dtype=np.int) / 5) * 5
+    tick_marks[0] = first_site
+    tick_marks[-1] = last_site
+    tick_marks = tick_marks.astype("int32")
 
     # To represent the wtseq in the heatmap, create a mask
     # to encode which matrix entries are the wt nt in each position.
@@ -238,7 +233,7 @@ def beta_coefficients(model, test_data, out):
         fig.colorbar(mapp, ax=ax[latent_dim], orientation="horizontal")
         ax[latent_dim].set_title(f"Beta coeff for latent dimension {latent_dim}")
         ax[latent_dim].set_xticks(ticks=ticks)
-        ax[latent_dim].set_xticklabels(tick_marks)
+        ax[latent_dim].set_xticklabels(tick_marks, Fontsize=6)
         ax[latent_dim].set_yticks(ticks=range(0, 21))
         ax[latent_dim].set_yticklabels(alphabet)
     plt.tight_layout()
