@@ -68,6 +68,7 @@ class Analysis:
         self.all_possible_mutations = make_all_possible_mutations(self.val_data)
         self.set_unseen_training_mutations()
         self._zero_wildtype_betas()
+        self._store_mutant_beta_indicies()
 
     def set_unseen_training_mutations(self):
         """Store unseen training mutations in model."""
@@ -112,7 +113,13 @@ class Analysis:
                 range(targets.shape[1]), loss_decays
             )
         ]
-        return sum(per_target_loss) + self.model.regularization_loss()
+        return sum(per_target_loss) + self.model.regularization_loss() + self.model.constraint_loss()
+
+    def _store_mutant_beta_indicies(self):
+        """ Store indicies of non-WT betas for constraint penalty."""
+        all_idx = torch.Tensor(list(range(0, self.model.input_size)))
+        mutant_idx = all_idx[~all_idx.unsqueeze(1).eq(self.val_data.wt_idxs).any(1)]
+        self.model.mutant_idxs = mutant_idx.type(torch.LongTensor)
 
     def _zero_wildtype_betas(self):
         if hasattr(self.model, "model_bind") and hasattr(self.model, "model_stab"):
