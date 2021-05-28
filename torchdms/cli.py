@@ -292,7 +292,7 @@ def validate(data_path):
     "--beta-constraint-coefficients",
     type=str,
     help="Coefficients with which to l2-regularize the average of a given set of "
-    "beta coefficents towards -1."
+    "beta coefficents towards -1.",
 )
 @seed_option
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
@@ -326,7 +326,9 @@ def create(
             kwargs["interaction_l1_coefficient"] = interaction_l1_coefficients[0]
         else:
             kwargs["interaction_l1_coefficients"] = interaction_l1_coefficients
-    beta_constraint_coefficients = float_list_of_comma_separated_string(beta_constraint_coefficients)
+    beta_constraint_coefficients = float_list_of_comma_separated_string(
+        beta_constraint_coefficients
+    )
     if beta_constraint_coefficients is not None:
         if len(beta_l1_coefficients) == 1:
             kwargs["beta_constraint_coefficient"] = beta_constraint_coefficients[0]

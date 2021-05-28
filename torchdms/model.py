@@ -465,10 +465,13 @@ class FullyConnected(TorchdmsModel):
         return penalty
 
     def constraint_loss(self):
-        """L2 penalize average of single mutant effects towards -1. """
+        """L2 penalize average of single mutant effects towards -1."""
         penalty = 0.0
         if self.beta_constraint_coefficient > 0.0:
-            penalty += self.beta_constraint_coefficient * (torch.mean(self.latent_layer.weight[:, self.mutant_idxs])+1)**2
+            penalty += (
+                self.beta_constraint_coefficient
+                * (torch.mean(self.latent_layer.weight[:, self.mutant_idxs]) + 1) ** 2
+            )
         return penalty
 
 
@@ -491,7 +494,7 @@ class Independent(TorchdmsModel):
         monotonic_sign=None,
         beta_l1_coefficients=None,
         interaction_l1_coefficients=None,
-        beta_constraint_coefficients = None,
+        beta_constraint_coefficients=None,
     ):
         super().__init__(input_size, target_names, alphabet)
 
@@ -598,7 +601,7 @@ class Independent(TorchdmsModel):
 
     def constraint_loss(self):
         """Penalize average of weights towards -1."""
-        return (self.model_bind.constraint_loss() + self.model_stab.constraint_loss())
+        return self.model_bind.constraint_loss() + self.model_stab.constraint_loss()
 
 
 class Conditional(Independent):
