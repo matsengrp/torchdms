@@ -194,17 +194,20 @@ def build_beta_map(wtseq, alphabet, beta_vec):
 
 def affine_projection_matrix(beta_dim):
     """This function creates affine projectino matrix.
+
     Takes beta vector dimension, d, as input and returns a dxd matrix.
-    Explanation: https://math.stackexchange.com/questions/2320236/projection-on-the-hyperplane-h-sum-x-i-0 """
-    I_mat = torch.eye(beta_dim)
-    ones = torch.ones(beta_dim, beta_dim)
-    return I_mat - ones / beta_dim
+    """
+    identity_mat = torch.eye(beta_dim)
+    ones_mat = torch.ones(beta_dim, beta_dim)
+    return identity_mat - ones_mat / beta_dim
 
 
 def project_betas(beta_vec):
     """This function projects the beta vector to a hyperplane for gauge fixing.
+
     Takes a beta vector of d dimension, and returns it's projection.
-    Projection is onto the hyperplane that is equal to -1/d in every dimension.
+    Projection is onto the hyperplane that is equal to -1/d in every
+    dimension.
     """
     proj_matrix = affine_projection_matrix(beta_vec.shape[0])
     return torch.matmul(proj_matrix, beta_vec) - torch.ones(beta_vec.shape[0])
