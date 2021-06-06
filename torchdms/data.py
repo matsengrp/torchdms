@@ -313,8 +313,12 @@ def partition(
             ].reset_index(drop=True)
         )
 
-    test_split = aa_func_scores.loc[aa_func_scores["in_test"],].reset_index(drop=True)
-    val_split = aa_func_scores.loc[aa_func_scores["in_val"],].reset_index(drop=True)
+    test_split = aa_func_scores.loc[
+        aa_func_scores["in_test"],
+    ].reset_index(drop=True)
+    val_split = aa_func_scores.loc[
+        aa_func_scores["in_val"],
+    ].reset_index(drop=True)
 
     if export_dataframe is not None:
         if partition_label is not None:
@@ -326,12 +330,19 @@ def partition(
             to_pickle_file(aa_func_scores, f"{export_dataframe}.pkl")
 
     return SplitDataframe(
-        test_data=test_split, val_data=val_split, train_data_list=test_split_strata,
+        test_data=test_split,
+        val_data=val_split,
+        train_data_list=test_split_strata,
     )
 
 
 def prep_by_stratum_and_export(
-    split_df, wtseq, targets, out_prefix, description_string, partition_label,
+    split_df,
+    wtseq,
+    targets,
+    out_prefix,
+    description_string,
+    partition_label,
 ):
     """Print number of training examples per stratum and test samples, run
     prepare(), and export to .pkl file with descriptive filename."""
@@ -355,6 +366,11 @@ def prep_by_stratum_and_export(
         out_path = f"{out_prefix}.pkl"
 
     to_pickle_file(
-        SplitDataset.of_split_df(split_df, wtseq, list(targets), description_string,),
+        SplitDataset.of_split_df(
+            split_df,
+            wtseq,
+            list(targets),
+            description_string,
+        ),
         out_path,
     )
