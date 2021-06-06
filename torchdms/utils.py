@@ -8,6 +8,7 @@ import json
 import re
 import pandas as pd
 import numpy as np
+import torch
 
 
 def from_pickle_file(path):
@@ -189,6 +190,24 @@ def build_beta_map(wtseq, alphabet, beta_vec):
         wtmask[row_position, column_position] = True
     # See model.numpy_single_mutant_predictions for why this transpose is here.
     return beta_vec.reshape(len(wtseq), len(alphabet)).transpose()
+
+
+def affine_projection_matrix(beta_dim):
+    """This function creates affine projectino matrix.
+    Takes beta vector dimension, d, as input and returns a dxd matrix.
+    Explanation: https://math.stackexchange.com/questions/2320236/projection-on-the-hyperplane-h-sum-x-i-0 """
+    I_mat = torch.eye(beta_dim)
+    ones = torch.ones(beta_dim, beta_dim)
+    return I_mat - ones / beta_dim
+
+
+def project_betas(beta_vec):
+    """This function projects the beta vector to a hyperplane for gauge fixing.
+    Takes a beta vector of d dimension, and returns it's projection.
+    Projection is onto the hyperplane that is equal to -1/d in every dimension.
+    """
+    proj_matrix = affine_projection_matrix(beta_vec.shape[0])
+    return torch.matmul(proj_matrix, beta_vec) - torch.ones(beta_vec.shape[0])
 
 
 def make_all_possible_mutations(test_data):
