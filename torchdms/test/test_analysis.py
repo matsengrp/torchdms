@@ -73,6 +73,7 @@ def test_zeroed_wt_betas():
     for latent_dim in range(analysis.model.latent_dim):
         for idx in wt_idxs:
             assert analysis.model.beta_coefficients()[latent_dim, int(idx)] == 0
+
     # Train model with analysis object for 1 epoch
     analysis.train(**training_params)
 
