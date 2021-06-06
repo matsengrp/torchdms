@@ -7,7 +7,7 @@ import torch
 from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torchdms.data import BinaryMapDataset
-from torchdms.utils import build_beta_map, make_all_possible_mutations
+from torchdms.utils import build_beta_map, make_all_possible_mutations, project_betas
 
 
 def make_data_loader_infinite(data_loader):
@@ -137,6 +137,31 @@ class Analysis:
                 for idx in self.val_data.wt_idxs:
                     self.model.beta_coefficients()[latent_dim, idx] = 0
 
+    def _constrain_mutant_betas(self):
+        if hasattr(self.model, "model_bind") and hasattr(self.model, "model_stab"):
+            for latent_dim in range(self.model.model_bind.latent_dim):
+                self.model.model_bind.beta_coefficients()[
+                    latent_dim, self.model.mutant_idxs
+                ] = project_betas(
+                    self.model.model_bind.beta_coefficients()[
+                        latent_dim, self.model.mutant_idxs
+                    ]
+                )
+                self.model.model_stab.beta_coefficients()[
+                    latent_dim, self.model.mutant_idxs
+                ] = project_betas(
+                    self.model.model_stab.beta_coefficients()[
+                        latent_dim, self.model.mutant_idxs
+                    ]
+                )
+        else:
+            for latent_dim in range(self.model.latent_dim):
+                self.model.beta_coefficients()[
+                    latent_dim, self.model.mutant_idxs
+                ] = project_betas(
+                    self.model.beta_coefficients()[latent_dim, self.model.mutant_idxs]
+                )
+
     def train(
         self,
         epoch_count,
@@ -218,6 +243,7 @@ class Analysis:
 
                 optimizer.step()
                 self._zero_wildtype_betas()
+                self._constrain_mutant_betas()
                 # if k >=1, reconstruct beta matricies with truncated SVD
                 if beta_rank is not None:
                     # procedure for 2D models.
