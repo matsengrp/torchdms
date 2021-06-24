@@ -297,7 +297,6 @@ class FullyConnected(TorchdmsModel):
         monotonic_sign=None,
         beta_l1_coefficient=0.0,
         interaction_l1_coefficient=0.0,
-        beta_constraint_coefficient=0.0,
         freeze_betas=False,
     ):
         super().__init__(input_size, target_names, alphabet)
@@ -306,7 +305,6 @@ class FullyConnected(TorchdmsModel):
         self.activations = activations
         self.beta_l1_coefficient = beta_l1_coefficient
         self.interaction_l1_coefficient = interaction_l1_coefficient
-        self.beta_constraint_coefficient = beta_constraint_coefficient
         self.freeze_betas = freeze_betas
 
         if not len(layer_sizes) == len(activations):
@@ -368,7 +366,6 @@ class FullyConnected(TorchdmsModel):
             "monotonic": self.monotonic_sign,
             "beta_l1_coefficient": self.beta_l1_coefficient,
             "interaction_l1_coefficient": self.interaction_l1_coefficient,
-            "beta_constraint_coefficient": self.beta_constraint_coefficient,
         }
 
     @property
@@ -464,16 +461,6 @@ class FullyConnected(TorchdmsModel):
                 ).weight.norm(1)
         return penalty
 
-    def constraint_loss(self):
-        """L2 penalize average of single mutant effects towards -1."""
-        penalty = 0.0
-        if self.beta_constraint_coefficient > 0.0:
-            penalty += (
-                self.beta_constraint_coefficient
-                * (torch.mean(self.latent_layer.weight[:, self.mutant_idxs]) + 1) ** 2
-            )
-        return penalty
-
 
 class Independent(TorchdmsModel):
     """Parallel and independent FullyConnected for each of two output
@@ -494,7 +481,6 @@ class Independent(TorchdmsModel):
         monotonic_sign=None,
         beta_l1_coefficients=None,
         interaction_l1_coefficients=None,
-        beta_constraint_coefficients=None,
     ):
         super().__init__(input_size, target_names, alphabet)
 
@@ -513,8 +499,6 @@ class Independent(TorchdmsModel):
             beta_l1_coefficients = [0.0, 0.0]
         if interaction_l1_coefficients is None:
             interaction_l1_coefficients = [0.0, 0.0]
-        if beta_constraint_coefficients is None:
-            beta_constraint_coefficients = [0.0, 0.0]
 
         for i, model in enumerate(("bind", "stab")):
             self.add_module(
@@ -528,7 +512,6 @@ class Independent(TorchdmsModel):
                     monotonic_sign,
                     beta_l1_coefficients[i],
                     interaction_l1_coefficients[i],
-                    beta_constraint_coefficients[i],
                 ),
             )
             for layer_name in getattr(self, f"model_{model}").layers:
@@ -598,10 +581,6 @@ class Independent(TorchdmsModel):
             self.model_bind.regularization_loss()
             + self.model_stab.regularization_loss()
         )
-
-    def constraint_loss(self):
-        """Penalize average of weights towards -1."""
-        return self.model_bind.constraint_loss() + self.model_stab.constraint_loss()
 
 
 class Conditional(Independent):

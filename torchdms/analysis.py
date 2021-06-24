@@ -113,14 +113,10 @@ class Analysis:
                 range(targets.shape[1]), loss_decays
             )
         ]
-        return (
-            sum(per_target_loss)
-            + self.model.regularization_loss()
-            + self.model.constraint_loss()
-        )
+        return sum(per_target_loss) + self.model.regularization_loss()
 
     def _store_mutant_beta_indicies(self):
-        """Store indicies of non-WT betas for constraint penalty."""
+        """Store indicies of non-WT betas."""
         all_idx = torch.Tensor(list(range(0, self.model.input_size)))
         mutant_idx = all_idx[~all_idx.unsqueeze(1).eq(self.val_data.wt_idxs).any(1)]
         self.model.mutant_idxs = mutant_idx.type(torch.LongTensor)
