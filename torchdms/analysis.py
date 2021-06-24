@@ -7,7 +7,7 @@ import torch
 from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torchdms.data import BinaryMapDataset
-from torchdms.utils import build_beta_map, make_all_possible_mutations, project_betas
+from torchdms.utils import build_beta_map, make_all_possible_mutations
 
 
 def make_data_loader_infinite(data_loader):

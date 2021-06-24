@@ -2,7 +2,7 @@
 Testing for utils.py.
 """
 import torch
-from torchdms.utils import cartesian_product, affine_projection_matrix, project_betas
+from torchdms.utils import cartesian_product, affine_projection_matrix
 
 
 def test_cartesian_product():
@@ -37,19 +37,3 @@ def test_affine_projection_matrix():
     func_output = affine_projection_matrix(3)
 
     assert torch.allclose(ground_truth, func_output)
-
-
-def test_project_betas():
-    """
-    Test function for beta projection.
-    """
-    # Say we have a vector with 50 elements
-    # Test this 10 times:
-    for i in range(10):
-        test_beta_vec = (-12 - 2) * torch.rand(50) + 2
-        new_betas = project_betas(test_beta_vec)
-        # Correct vector dimensions
-        assert new_betas.shape[0] == 50
-        assert len(new_betas.shape) == 1
-        # Average of -1 as desired
-        assert round(torch.mean(new_betas).item(), 5) == -1

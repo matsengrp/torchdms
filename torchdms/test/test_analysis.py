@@ -41,6 +41,51 @@ def test_low_rank_approximation():
     assert torch.allclose(torch.from_numpy(approx_true), approx_est, rtol=0.001)
 
 
+def test_project_betas():
+    """Test to ensure we get an average value of -1 for non-WT betas."""
+    data, wtseq = from_pickle_file(TEST_DATA_PATH)
+    split_df = partition(
+        data,
+        per_stratum_variants_for_test=10,
+        skip_stratum_if_count_is_smaller_than=30,
+        export_dataframe=None,
+        partition_label=None,
+    )
+    prep_by_stratum_and_export(split_df, wtseq, ["affinity_score"], out_path, "", None)
+
+    split_df_prepped = from_pickle_file(data_path)
+
+    model_string = "FullyConnected(1,identity,10,relu)"
+    model = model_of_string(model_string, data_path)
+
+    torch.save(model, model_path)
+    analysis_params = {
+        "model": model,
+        "model_path": model_path,
+        "val_data": split_df_prepped.val,
+        "train_data_list": split_df_prepped.train,
+    }
+    training_params = {"epoch_count": 1, "loss_fn": l1}
+    analysis = Analysis(**analysis_params)
+    # Train model with analysis object for 1 epoch
+    analysis.train(**training_params)
+    # Assert that non-wt betas have an average of -1.
+    for latent_dim in range(analysis.model.latent_dim):
+        assert (
+            round(
+                torch.mean(
+                    analysis.model.beta_coefficients()[
+                        latent_dim, analysis.model.mutant_idxs
+                    ]
+                ).item(),
+                5,
+            )
+            == -1
+        )
+    os.remove(model_path)
+    os.remove(data_path)
+
+
 def test_zeroed_wt_betas():
     """Test to ensure WT betas of a model are (and remain) 0."""
     data, wtseq = from_pickle_file(TEST_DATA_PATH)
