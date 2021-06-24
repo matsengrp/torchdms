@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
-from torchdms.utils import from_pickle_file
+from torchdms.utils import from_pickle_file, affine_projection_matrix
 from torchdms.loss import l1_penalty
 
 
@@ -306,6 +306,7 @@ class FullyConnected(TorchdmsModel):
         self.beta_l1_coefficient = beta_l1_coefficient
         self.interaction_l1_coefficient = interaction_l1_coefficient
         self.freeze_betas = freeze_betas
+        self.affine_projection_matrix = affine_projection_matrix(input_size - int(input_size / len(alphabet)))
 
         if not len(layer_sizes) == len(activations):
             raise ValueError(
@@ -383,6 +384,18 @@ class FullyConnected(TorchdmsModel):
             return 0
         # else:
         return dims[self.latent_idx]
+
+    def project_betas(self):
+        """Projects beta vector to a hyperplane for gauge fixing.
+
+        Given the model's beta vector of d dimension, and returns it's projection.
+        Projection is onto the hyperplane that is equal to -1/d in every
+        dimension.
+        """
+        for latent_dim in range(self.latent_dim):
+            beta_vec = self.beta_coefficients()[latent_dim, self.mutant_idxs]
+            self.beta_coefficients()[latent_dim, self.mutant_idxs] = torch.matmul(self.affine_projection_matrix, beta_vec) - torch.ones(beta_vec.shape[0])
+
 
     def str_summary(self):
         """A one-line summary of the model."""

@@ -202,17 +202,6 @@ def affine_projection_matrix(beta_dim):
     return identity_mat - ones_mat / beta_dim
 
 
-def project_betas(beta_vec):
-    """This function projects the beta vector to a hyperplane for gauge fixing.
-
-    Takes a beta vector of d dimension, and returns it's projection.
-    Projection is onto the hyperplane that is equal to -1/d in every
-    dimension.
-    """
-    proj_matrix = affine_projection_matrix(beta_vec.shape[0])
-    return torch.matmul(proj_matrix, beta_vec) - torch.ones(beta_vec.shape[0])
-
-
 def make_all_possible_mutations(test_data):
     """This function creates a set of all possible amino acid substitutions.
 
