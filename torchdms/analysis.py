@@ -122,7 +122,7 @@ class Analysis:
         self.model.mutant_idxs = mutant_idx.type(torch.LongTensor)
 
     def _zero_wildtype_betas(self):
-        """Set WT betas to zero. """
+        """Set WT betas to zero."""
         if hasattr(self.model, "model_bind") and hasattr(self.model, "model_stab"):
             for latent_dim in range(self.model.model_bind.latent_dim):
                 for idx in self.val_data.wt_idxs:
@@ -135,7 +135,7 @@ class Analysis:
                     self.model.beta_coefficients()[latent_dim, idx] = 0
 
     def _constrain_mutant_betas(self):
-        """Force non-WT betas to have an average value of -1. """.
+        """Force mutant betas to have an average value of -1."""
         if hasattr(self.model, "model_bind") and hasattr(self.model, "model_stab"):
             self.model.model_bind.project_betas()
             self.model.model_stab.project_betas()
