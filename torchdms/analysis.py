@@ -65,24 +65,7 @@ class Analysis:
             for train_loader in self.train_loaders
         ]
         self.val_loss_record = sys.float_info.max
-        self.all_possible_mutations = make_all_possible_mutations(self.val_data)
-        self.set_unseen_training_mutations()
-        self._zero_wildtype_betas()
-        self._store_mutant_beta_indicies()
-
-    def set_unseen_training_mutations(self):
-        """Store unseen training mutations in model."""
-        observed_mutations = set()
-        for train_dataset in self.train_datasets:
-            train_muts = train_dataset.original_df["aa_substitutions"]
-            train_muts_split = [sub for muts in train_muts for sub in muts.split()]
-            observed_mutations.update(train_muts_split)
-        self.model.set_unseen_mutations(
-            self.all_possible_mutations.difference(observed_mutations)
-        )
-        assert len(self.model.unseen_mutations) + len(observed_mutations) == len(
-            self.all_possible_mutations
-        ), "Unseen and observed mutation numbers don't add up!"
+        self.model.fix_gauge()
 
     def loss_of_targets_and_prediction(
         self, loss_fn, targets, predictions, per_target_loss_decay
@@ -114,33 +97,6 @@ class Analysis:
             )
         ]
         return sum(per_target_loss) + self.model.regularization_loss()
-
-    def _store_mutant_beta_indicies(self):
-        """Store indicies of non-WT betas."""
-        all_idx = torch.Tensor(list(range(0, self.model.input_size)))
-        mutant_idx = all_idx[~all_idx.unsqueeze(1).eq(self.val_data.wt_idxs).any(1)]
-        self.model.mutant_idxs = mutant_idx.type(torch.LongTensor)
-
-    def _zero_wildtype_betas(self):
-        """Set WT betas to zero."""
-        if hasattr(self.model, "model_bind") and hasattr(self.model, "model_stab"):
-            for latent_dim in range(self.model.model_bind.latent_dim):
-                for idx in self.val_data.wt_idxs:
-                    self.model.model_bind.beta_coefficients()[latent_dim, idx] = 0
-                    self.model.model_stab.beta_coefficients()[latent_dim, idx] = 0
-        else:
-            # here we set the WT betas to zero before the forward pass
-            for latent_dim in range(self.model.latent_dim):
-                for idx in self.val_data.wt_idxs:
-                    self.model.beta_coefficients()[latent_dim, idx] = 0
-
-    def _constrain_mutant_betas(self):
-        """Force mutant betas to have an average value of -1."""
-        if hasattr(self.model, "model_bind") and hasattr(self.model, "model_stab"):
-            self.model.model_bind.project_betas()
-            self.model.model_stab.project_betas()
-        else:
-            self.model.project_betas()
 
     def train(
         self,
@@ -222,8 +178,7 @@ class Analysis:
                             param.data.clamp_(0)
 
                 optimizer.step()
-                self._zero_wildtype_betas()
-                self._constrain_mutant_betas()
+                self.model.fix_gauge()
                 # if k >=1, reconstruct beta matricies with truncated SVD
                 if beta_rank is not None:
                     # procedure for 2D models.
