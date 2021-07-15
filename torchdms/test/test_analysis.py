@@ -5,6 +5,7 @@ import numpy as np
 import torch
 import os
 import pkg_resources
+from pytest import approx
 from torchdms.analysis import Analysis
 from torchdms.analysis import low_rank_approximation
 from torchdms.utils import (
@@ -71,17 +72,9 @@ def test_project_betas():
     analysis.train(**training_params)
     # Assert that non-wt betas have an average of -1.
     for latent_dim in range(analysis.model.latent_dim):
-        assert (
-            round(
-                torch.mean(
-                    analysis.model.beta_coefficients()[
-                        latent_dim, analysis.model.mutant_idxs
-                    ]
-                ).item(),
-                5,
-            )
-            == -1
-        )
+        assert torch.mean(
+            analysis.model.beta_coefficients()[latent_dim, analysis.model.mutant_idxs]
+        ).item() == approx(-1)
     os.remove(model_path)
     os.remove(data_path)
 

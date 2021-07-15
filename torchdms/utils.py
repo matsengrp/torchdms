@@ -193,7 +193,7 @@ def build_beta_map(wtseq, alphabet, beta_vec):
 
 
 def affine_projection_matrix(beta_dim):
-    """This function creates affine projectino matrix.
+    """This function creates the affine projection matrix.
 
     Takes beta vector dimension, d, as input and returns a dxd matrix.
     """

@@ -97,11 +97,7 @@ def plot_test_correlation(evaluation_dict, model, out, cmap="plasma"):
         print(plot_title)
 
         per_target_df = pd.DataFrame(
-            dict(
-                pred=pred,
-                targ=targ,
-                n_aa_substitutions=n_aa_substitutions,
-            )
+            dict(pred=pred, targ=targ, n_aa_substitutions=n_aa_substitutions,)
         )
         correlation_series["correlation " + str(target)] = (
             per_target_df.groupby("n_aa_substitutions").corr().iloc[0::2, -1]
@@ -168,9 +164,7 @@ def plot_heatmap(model, path):
         plots += make_plot_for(output_idx, prediction)
 
     save_as_pdf_pages(
-        plots,
-        filename=path,
-        verbose=False,
+        plots, filename=path, verbose=False,
     )
 
 
@@ -183,9 +177,7 @@ def beta_coefficients(model, test_data, out):
     mutation.
     """
 
-    bmap = dms.binarymap.BinaryMap(
-        test_data.original_df,
-    )
+    bmap = dms.binarymap.BinaryMap(test_data.original_df,)
 
     # To represent the wtseq in the heatmap, create a mask
     # to encode which matrix entries are the wt nt in each position.
@@ -222,13 +214,6 @@ def beta_coefficients(model, test_data, out):
             )
             ax[latent_dim].add_patch(wt_cell)
         fig.colorbar(mapp, ax=ax[latent_dim], orientation="horizontal")
-        non_wt_avg = round(
-            torch.mean(model.beta_coefficients()[latent_dim, model.mutant_idxs]).item(),
-            3,
-        )
-        ax[latent_dim].set_title(
-            f"Beta coeff for latent dimension {latent_dim}, \n Non-WT avg={non_wt_avg}"
-        )
         ax[latent_dim].set_yticks(ticks=range(0, 21))
         ax[latent_dim].set_yticklabels(alphabet)
     plt.tight_layout()

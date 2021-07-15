@@ -320,7 +320,6 @@ def create(
         else:
             kwargs["interaction_l1_coefficients"] = interaction_l1_coefficients
     model = model_of_string(model_string, data_path, **kwargs)
-
     torch.save(model, out_path)
     click.echo(f"LOG: Model defined as: {model}")
     click.echo(f"LOG: Saved model to {out_path}")
@@ -633,7 +632,7 @@ def svd(model_path, data_path, out):
     click.echo(f"LOG: Singular values of beta plotted and dumped to {out}")
 
 
-### Plot protein profiles
+# Plot protein profiles
 @cli.command()
 @click.argument("model_path", type=click.Path(exists=True))
 @click.argument("data_path", type=click.Path(exists=True))
