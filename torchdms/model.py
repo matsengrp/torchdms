@@ -10,6 +10,8 @@ from torchdms.utils import (
     from_pickle_file,
     affine_projection_matrix,
     make_all_possible_mutations,
+    get_observed_training_mutations,
+    get_mutation_indicies,
 )
 from torchdms.loss import l1_penalty
 
@@ -67,23 +69,19 @@ class TorchdmsModel(nn.Module):
     @abstractmethod
     def zero_unseen_mutations(self):
         """Set beta coefficients to 0 for unseen mutations."""
-        pass
 
     @abstractmethod
     def zero_wildtype_betas(self):
         """Set wildtype betas to zero."""
-        pass
 
     @abstractmethod
     def project_mutant_betas(self):
         """Force mutant betas to have an average value of -1."""
-        pass
 
     @abstractmethod
     def fix_gauge(self):
         """Perform gauge-fixing procedure: zero WT betas and unseen mutaions,
         and project mutant betas to hyperplane."""
-        pass
 
     @property
     def sequence_length(self):
@@ -213,20 +211,16 @@ class LinearModel(TorchdmsModel):
 
     def zero_unseen_mutations(self):
         """Set beta coefficients to 0 for unseen mutations."""
-        pass
 
     def zero_wildtype_betas(self):
         """Set wildtype betas to zero."""
-        pass
 
     def project_mutant_betas(self):
         """Force mutant betas to have an average value of -1."""
-        pass
 
     def fix_gauge(self):
         """Perform gauge-fixing procedure: zero WT betas and unseen mutaions,
         and project mutant betas to hyperplane."""
-        pass
 
 
 class EscapeModel(TorchdmsModel):
@@ -321,7 +315,6 @@ class EscapeModel(TorchdmsModel):
 
     def project_mutant_betas(self):
         """Force mutant betas to have an average value of -1."""
-        pass
 
     def fix_gauge(self):
         """Perform gauge-fixing procedure: zero WT betas and unseen
@@ -691,6 +684,36 @@ class Independent(TorchdmsModel):
             + self.model_stab.regularization_loss()
         )
 
+    def _distribute_indicies_to_sub_modules(self):
+        """ Passes site indicies from main independent class to sub-modules"""
+        wt_idxs = self.wildtype_idxs
+        mutant_idxs = self.mutant_idxs
+        unseen_idxs = self.unseen_mutation_idxs
+        unseen_mutant_list = self.unseen_mutations
+        self.model_bind.wildtype_idxs = wt_idxs
+        self.model_bind.mutant_idxs = mutant_idxs
+        self.model_bind.unseen_mutation_idxs = unseen_idxs
+        self.model_bind.unseen_mutations = unseen_mutant_list
+        self.model_stab.wildtype_idxs = wt_idxs
+        self.model_stab.mutant_idxs = mutant_idxs
+        self.model_stab.unseen_mutation_idxs = unseen_mutant_list
+        self.model_stab.unseen_mutations = unseen_idxs
+
+    def zero_unseen_mutations(self):
+        """Set beta coefficients to 0 for unseen mutations."""
+        self.model_bind.zero_unseen_mutations()
+        self.model_stab.zero_unseen_mutations()
+
+    def zero_wildtype_betas(self):
+        """Set wildtype betas to zero."""
+        self.model_bind.zero_wildtype_betas()
+        self.model_stab.zero_wildtype_betas()
+
+    def project_mutant_betas(self):
+        """Force mutant betas to have an average value of -1."""
+        self.model_bind.project_mutant_betas()
+        self.model_stab.project_mutant_betas()
+
     def fix_gauge(self):
         """Perform gauge-fixing procedure: zero WT betas and unseen mutaions,
         and project mutant betas to hyperplane."""
@@ -858,25 +881,18 @@ def model_of_string(model_string, data_path, **kwargs):
     all_idx = torch.Tensor(list(range(0, model.input_size)))
     mutant_idx = all_idx[~all_idx.unsqueeze(1).eq(test_dataset.wt_idxs).any(1)]
     model.mutant_idxs = mutant_idx.type(torch.LongTensor)
+    assert model.wildtype_idxs is not None
 
-    alphabet_dict = {letter: idx for idx, letter in enumerate(test_dataset.alphabet)}
-
-    # store unseen training mutations
+    # # store unseen training mutations
     all_possible_mutations = make_all_possible_mutations(data.test)
-    observed_mutations = set()
-    for train_dataset in data.train:
-        train_muts = train_dataset.original_df["aa_substitutions"]
-        train_muts_split = [sub for muts in train_muts for sub in muts.split()]
-        observed_mutations.update(train_muts_split)
+    observed_mutations = get_observed_training_mutations(data.train)
     model.unseen_mutations = all_possible_mutations.difference(observed_mutations)
     assert len(model.unseen_mutations) + len(observed_mutations) == len(
         all_possible_mutations
     ), "Unseen and observed mutation numbers don't add up!"
+
     # Store indicies of unseen training mutations
-    for mut in model.unseen_mutations:
-        mut_aa = mut[-1]
-        site = int(mut[1:-1])
-        model.unseen_mutation_idxs.append(
-            ((site - 1) * len(alphabet_dict)) + alphabet_dict[mut_aa]
-        )
+    mutation_indicies = get_mutation_indicies(model.unseen_mutations, model.alphabet)
+    model.unseen_mutation_idxs = mutation_indicies
+
     return model

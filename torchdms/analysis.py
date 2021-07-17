@@ -65,6 +65,8 @@ class Analysis:
             for train_loader in self.train_loaders
         ]
         self.val_loss_record = sys.float_info.max
+        if hasattr(self.model, "model_bind") and hasattr(self.model, "model_stab"):
+            self.model._distribute_indicies_to_sub_modules()
         self.model.fix_gauge()
 
     def loss_of_targets_and_prediction(
