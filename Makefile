@@ -8,6 +8,10 @@ test: torchdms/data/_ignore/test_df.prepped.pkl
 	pytest
 	rm torchdms/data/_ignore/test_df.prepped.pkl
 
+test2d: torchdms/data/_ignore/test_df_2d.prepped.pkl
+	cd torchdms/data; tdms go --config test2d_config.json
+	pytest
+	rm torchdms/data/_ignore/test_df_2d.prepped.pkl
 
 datatest: torchdms/data/_ignore/test_df.prepped.pkl
 	tdms validate torchdms/data/_ignore/test_df.prepped.pkl
