@@ -685,7 +685,7 @@ class Independent(TorchdmsModel):
         )
 
     def _distribute_indicies_to_sub_modules(self):
-        """ Passes site indicies from main independent class to sub-modules"""
+        """Passes site indicies from main independent class to sub-modules."""
         wt_idxs = self.wildtype_idxs
         mutant_idxs = self.mutant_idxs
         unseen_idxs = self.unseen_mutation_idxs
