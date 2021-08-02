@@ -28,7 +28,7 @@ from plotnine import (
     theme_set,
     theme_void,
 )
-import scipy.stats as stats
+from scipy import stats
 from torchdms.utils import build_beta_map
 
 

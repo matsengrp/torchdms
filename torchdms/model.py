@@ -5,7 +5,7 @@ import click
 import numpy as np
 import pandas as pd
 import torch
-import torch.nn as nn
+from torch import nn
 from torchdms.utils import (
     from_pickle_file,
     affine_projection_matrix,
