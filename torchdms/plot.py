@@ -203,6 +203,15 @@ def beta_coefficients(model, test_data, out):
     bmap = dms.binarymap.BinaryMap(
         test_data.original_df,
     )
+    # Sites of interest for tick marks
+    first_site = test_data.protein_start_site
+    last_site = first_site + len(test_data.wtseq)
+    # tick placement and labels
+    ticks = np.arange(0, len(test_data.wtseq), 4)
+    tick_marks = np.ceil(np.arange(first_site, last_site, 4, dtype=np.int) / 5) * 5
+    tick_marks[0] = first_site
+    tick_marks[-1] = last_site
+    tick_marks = tick_marks.astype("int32")
 
     # To represent the wtseq in the heatmap, create a mask
     # to encode which matrix entries are the wt nt in each position.
@@ -240,6 +249,8 @@ def beta_coefficients(model, test_data, out):
             ax[latent_dim].add_patch(wt_cell)
         fig.colorbar(mapp, ax=ax[latent_dim], orientation="horizontal")
         ax[latent_dim].set_title(f"Beta coeff for latent dimension {latent_dim}")
+        ax[latent_dim].set_xticks(ticks=ticks)
+        ax[latent_dim].set_xticklabels(tick_marks, Fontsize=6)
         ax[latent_dim].set_yticks(ticks=range(0, 21))
         ax[latent_dim].set_yticklabels(alphabet)
     plt.tight_layout()

@@ -30,7 +30,16 @@ class BinaryMapDataset(Dataset):
     drop redundant columns that are already attributes.
     """
 
-    def __init__(self, samples, targets, original_df, wtseq, target_names, alphabet):
+    def __init__(
+        self,
+        samples,
+        targets,
+        original_df,
+        wtseq,
+        target_names,
+        alphabet,
+        protein_start_site,
+    ):
         row_count = len(samples)
         assert row_count == len(targets)
         assert row_count == len(original_df)
@@ -41,9 +50,10 @@ class BinaryMapDataset(Dataset):
         self.wtseq = wtseq
         self.target_names = target_names
         self.alphabet = alphabet
+        self.protein_start_site = protein_start_site
 
     @classmethod
-    def of_raw(cls, pd_dataset, wtseq, targets):
+    def of_raw(cls, pd_dataset, wtseq, targets, protein_start_site):
         bmap = BinaryMap(pd_dataset, expand=True, wtseq=wtseq)
         return cls(
             torch.from_numpy(bmap.binary_variants.toarray()).float(),
@@ -52,6 +62,7 @@ class BinaryMapDataset(Dataset):
             wtseq,
             targets,
             bmap.alphabet,
+            protein_start_site,
         )
 
     @classmethod
@@ -67,6 +78,9 @@ class BinaryMapDataset(Dataset):
             ),
             get_only_entry_from_constant_list(
                 [dataset.alphabet for dataset in datasets]
+            ),
+            get_only_entry_from_constant_list(
+                [dataset.protein_start_site for dataset in datasets]
             ),
         )
 
@@ -126,9 +140,13 @@ class SplitDataset:
         self.description_string = description_string
 
     @classmethod
-    def of_split_df(cls, split_df, wtseq, targets, description_string):
+    def of_split_df(
+        cls, split_df, wtseq, targets, description_string, protein_start_site
+    ):
         def our_of_raw(df):
-            return BinaryMapDataset.of_raw(df, wtseq=wtseq, targets=targets)
+            return BinaryMapDataset.of_raw(
+                df, wtseq=wtseq, targets=targets, protein_start_site=protein_start_site
+            )
 
         return cls(
             test_data=our_of_raw(split_df.test),
@@ -343,6 +361,7 @@ def prep_by_stratum_and_export(
     out_prefix,
     description_string,
     partition_label,
+    protein_start_site,
 ):
     """Print number of training examples per stratum and test samples, run
     prepare(), and export to .pkl file with descriptive filename."""
@@ -367,10 +386,7 @@ def prep_by_stratum_and_export(
 
     to_pickle_file(
         SplitDataset.of_split_df(
-            split_df,
-            wtseq,
-            list(targets),
-            description_string,
+            split_df, wtseq, list(targets), description_string, protein_start_site
         ),
         out_path,
     )
