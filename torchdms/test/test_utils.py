@@ -2,7 +2,11 @@
 Testing for utils.py.
 """
 import torch
-from torchdms.utils import cartesian_product, affine_projection_matrix
+from torchdms.utils import (
+    cartesian_product,
+    affine_projection_matrix,
+    get_mutation_indicies,
+)
 
 
 def test_cartesian_product():
@@ -37,3 +41,15 @@ def test_affine_projection_matrix():
     func_output = affine_projection_matrix(3)
 
     assert torch.allclose(ground_truth, func_output)
+
+
+def test_get_mutation_indicies():
+    """
+    Test function to get mutation indicies.
+    """
+    alphabet = {"A": 0, "B": 1, "C": 2}
+    mutations = ["A1B", "C2A", "B3C"]
+    ground_truth = torch.Tensor([1, 3, 8])
+    unseen_muts = get_mutation_indicies(mutations, alphabet)
+
+    assert torch.allclose(ground_truth, unseen_muts)

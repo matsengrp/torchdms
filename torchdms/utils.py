@@ -222,7 +222,7 @@ def make_all_possible_mutations(test_data):
 
 
 def get_observed_training_mutations(train_data_list):
-    """Returns a list of all aa-subs in training-data list."""
+    """Returns a list of all aa subs in training data list."""
     observed_mutations = set()
     for train_dataset in train_data_list:
         train_muts = train_dataset.original_df["aa_substitutions"]
@@ -232,7 +232,7 @@ def get_observed_training_mutations(train_data_list):
 
 
 def get_mutation_indicies(mutation_list, alphabet):
-    """Returns a list of beta indicies for a given list of mutations (aa-site-
+    """Returns a list of beta indicies for a given list of mutations(aa - site -
     aa fomat)."""
     indicies = []
     alphabet_dict = {letter: idx for idx, letter in enumerate(alphabet)}
@@ -241,4 +241,4 @@ def get_mutation_indicies(mutation_list, alphabet):
         site = int(mut[1:-1])
         indicies.append(((site - 1) * len(alphabet_dict)) + alphabet_dict[mut_aa])
 
-    return indicies
+    return torch.Tensor(indicies)
