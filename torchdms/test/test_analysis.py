@@ -73,7 +73,7 @@ def test_project_betas():
     # Assert that non-wt betas have an average of -1.
     for latent_dim in range(analysis.model.latent_dim):
         assert torch.mean(
-            analysis.model.beta_coefficients()[latent_dim, analysis.model.mutant_idxs]
+            analysis.model.beta_coefficients()[latent_dim, analysis.mutant_idxs]
         ).item() == approx(-1)
     os.remove(model_path)
     os.remove(data_path)

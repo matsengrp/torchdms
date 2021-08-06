@@ -7,7 +7,14 @@ import torch
 from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torchdms.data import BinaryMapDataset
-from torchdms.utils import build_beta_map
+from torchdms.utils import (
+    build_beta_map,
+    get_mutation_indicies,
+    get_observed_training_mutations,
+    get_mutation_indicies,
+    make_all_possible_mutations,
+    affine_projection_matrix,
+)
 
 
 def make_data_loader_infinite(data_loader):
@@ -65,9 +72,22 @@ class Analysis:
             for train_loader in self.train_loaders
         ]
         self.val_loss_record = sys.float_info.max
-        if hasattr(self.model, "model_bind") and hasattr(self.model, "model_stab"):
-            self.model._distribute_indicies_to_sub_modules()
-        self.model.fix_gauge()
+        # Store all observed mutations
+        self.training_mutations = get_observed_training_mutations(train_data_list)
+        # Store WT idxs
+        self.wt_idxs = val_data.wt_idxs.type(torch.LongTensor)
+        # Store all observed mutations in mutant idxs
+        self.mutant_idxs = get_mutation_indicies(
+            self.training_mutations, self.model.alphabet
+        ).type(torch.LongTensor)
+        self.unseen_idxs = get_mutation_indicies(
+            make_all_possible_mutations(val_data).difference(self.training_mutations),
+            self.model.alphabet,
+        ).type(torch.LongTensor)
+        self.proj_beta_dim = (
+            self.model.input_size - len(val_data.wtseq) - self.unseen_idxs.shape[0]
+        )
+        self.model.fix_gauge(self.wt_idxs, self.mutant_idxs, self.proj_beta_dim)
 
     def loss_of_targets_and_prediction(
         self, loss_fn, targets, predictions, per_target_loss_decay
@@ -180,7 +200,7 @@ class Analysis:
                             param.data.clamp_(0)
 
                 optimizer.step()
-                self.model.fix_gauge()
+                self.model.fix_gauge(self.wt_idxs, self.mutant_idxs, self.proj_beta_dim)
                 # if k >=1, reconstruct beta matricies with truncated SVD
                 if beta_rank is not None:
                     # procedure for 2D models.
