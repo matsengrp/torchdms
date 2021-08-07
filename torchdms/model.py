@@ -8,10 +8,6 @@ import torch
 from torch import nn
 from torchdms.utils import (
     from_pickle_file,
-    affine_projection_matrix,
-    make_all_possible_mutations,
-    get_observed_training_mutations,
-    get_mutation_indicies,
 )
 from torchdms.loss import l1_penalty
 
@@ -61,7 +57,7 @@ class TorchdmsModel(nn.Module):
         pass
 
     @abstractmethod
-    def fix_gauge(self, wt_idxs, mutant_idxs):
+    def fix_gauge(self, gauge_mask):
         """Perform gauge-fixing procedure: zero WT betas and unseen mutaions,
         and project mutant betas to hyperplane."""
 
@@ -161,11 +157,6 @@ class TorchdmsModel(nn.Module):
         click.echo("Training in default style.")
         self.set_require_grad_for_all_parameters(True)
 
-    # def set_unseen_mutations(self, mutations):
-    #     """Update unseen mutations attribute after a training pass."""
-    #     if self.unseen_mutations is None:
-    #         self.unseen_mutations = mutations
-
 
 class LinearModel(TorchdmsModel):
     """The simplest model."""
@@ -200,7 +191,7 @@ class LinearModel(TorchdmsModel):
     def project_mutant_betas(self):
         """Force mutant betas to have an average value of -1."""
 
-    def fix_gauge(self, wt_idxs, mutant_idxs):
+    def fix_gauge(self, gauge_mask):
         """Perform gauge-fixing procedure: zero WT betas and unseen mutaions,
         and project mutant betas to hyperplane."""
 
@@ -283,27 +274,11 @@ class EscapeModel(TorchdmsModel):
         penalty = self.beta_l1_coefficient * l1_penalty(self.betas_with_grad())
         return penalty
 
-    def zero_unseen_mutations(self):
-        """Set beta coefficients to 0 for unseen mutations."""
-        for latent_dim in range(self.latent_dim):
-            for idx in self.unseen_mutation_idxs:
-                self.beta_coefficients()[latent_dim, idx] = 0
-
-    def zero_wildtype_betas(self):
-        """Set wildtype betas to zero."""
-        for latent_dim in range(self.latent_dim):
-            for idx in self.wildtype_idxs:
-                self.beta_coefficients()[latent_dim, idx] = 0
-
-    def project_mutant_betas(self):
-        """Force mutant betas to have an average value of -1."""
-
-    def fix_gauge(self, wt_idxs, mutant_idxs):
+    def fix_gauge(self, gauge_mask):
         """Perform gauge-fixing procedure: zero WT betas and unseen
         mutaions."""
-        # Zero WT betas.
-        self.beta_coefficients()[:, wt_idxs] = 0
-        # self.zero_unseen_mutations()
+        # Zero WT and unseen betas.
+        self.beta_coefficients()[:, gauge_mask] = 0
 
 
 class FullyConnected(TorchdmsModel):
@@ -429,19 +404,17 @@ class FullyConnected(TorchdmsModel):
         # else:
         return dims[self.latent_idx]
 
-    def fix_gauge(self, wt_idxs, mutant_idxs, gauge_beta_dim):
-        """Perform gauge-fixing procedure: zero WT betas and unseen mutaions,
-        and project mutant betas to hyperplane."""
-        proj_matrix = affine_projection_matrix(gauge_beta_dim)
-        # zero WT betas
-        self.beta_coefficients()[:, wt_idxs] = 0
+    def fix_gauge(self, gauge_mask):
+        """Perform gauge-fixing procedure: gauge mask is 1 hot for values that
+        must be set to zero."""
+        # zero WT and unseen betas
+        self.beta_coefficients()[:, gauge_mask] = 0
         # project mutant betas
         for latent_dim in range(self.latent_dim):
-            beta_vec = self.beta_coefficients()[latent_dim, mutant_idxs]
-            self.beta_coefficients()[latent_dim, mutant_idxs] = torch.matmul(
-                proj_matrix, beta_vec
-            ) - torch.ones(beta_vec.shape[0])
-        # self.zero_unseen_mutations()
+            beta_vec = self.beta_coefficients()[latent_dim, ~gauge_mask]
+            self.beta_coefficients()[latent_dim, ~gauge_mask] = (
+                beta_vec - beta_vec.sum() / beta_vec.shape[0] - 1
+            )
 
     def str_summary(self):
         """A one-line summary of the model."""
@@ -641,11 +614,11 @@ class Independent(TorchdmsModel):
             + self.model_stab.regularization_loss()
         )
 
-    def fix_gauge(self, wt_idxs, mutant_idxs, gauge_beta_dim):
+    def fix_gauge(self, gauge_mask):
         """Perform gauge-fixing procedure: zero WT betas and unseen mutaions,
         and project mutant betas to hyperplane."""
-        self.model_bind.fix_gauge(wt_idxs, mutant_idxs, gauge_beta_dim)
-        self.model_stab.fix_gauge(wt_idxs, mutant_idxs, gauge_beta_dim)
+        self.model_bind.fix_gauge(gauge_mask)
+        self.model_stab.fix_gauge(gauge_mask)
 
 
 class Conditional(Independent):
