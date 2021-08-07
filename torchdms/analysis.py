@@ -11,9 +11,7 @@ from torchdms.utils import (
     build_beta_map,
     get_mutation_indicies,
     get_observed_training_mutations,
-    get_mutation_indicies,
     make_all_possible_mutations,
-    affine_projection_matrix,
 )
 
 
@@ -84,10 +82,9 @@ class Analysis:
             make_all_possible_mutations(val_data).difference(self.training_mutations),
             self.model.alphabet,
         ).type(torch.LongTensor)
-        self.proj_beta_dim = (
-            self.model.input_size - len(val_data.wtseq) - self.unseen_idxs.shape[0]
-        )
-        self.model.fix_gauge(self.wt_idxs, self.mutant_idxs, self.proj_beta_dim)
+        self.gauge_mask = torch.zeros(self.model.input_size, dtype=torch.bool)
+        self.gauge_mask[torch.cat((self.wt_idxs, self.unseen_idxs))] = 1
+        self.model.fix_gauge(self.gauge_mask)
 
     def loss_of_targets_and_prediction(
         self, loss_fn, targets, predictions, per_target_loss_decay
@@ -200,7 +197,7 @@ class Analysis:
                             param.data.clamp_(0)
 
                 optimizer.step()
-                self.model.fix_gauge(self.wt_idxs, self.mutant_idxs, self.proj_beta_dim)
+                self.model.fix_gauge(self.gauge_mask)
                 # if k >=1, reconstruct beta matricies with truncated SVD
                 if beta_rank is not None:
                     # procedure for 2D models.
