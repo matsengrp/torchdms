@@ -182,15 +182,6 @@ class LinearModel(TorchdmsModel):
     def to_latent(self, x):
         return self.forward(x)
 
-    def zero_unseen_mutations(self):
-        """Set beta coefficients to 0 for unseen mutations."""
-
-    def zero_wildtype_betas(self):
-        """Set wildtype betas to zero."""
-
-    def project_mutant_betas(self):
-        """Force mutant betas to have an average value of -1."""
-
     def fix_gauge(self, gauge_mask):
         """Perform gauge-fixing procedure: zero WT betas and unseen mutaions,
         and project mutant betas to hyperplane."""
