@@ -49,7 +49,7 @@ def test_get_mutation_indicies():
     """
     alphabet = {"A": 0, "B": 1, "C": 2}
     mutations = ["A1B", "C2A", "B3C"]
-    ground_truth = torch.Tensor([1, 3, 8])
+    ground_truth = torch.Tensor([1, 3, 8]).type(torch.long)
     unseen_muts = get_mutation_indicies(mutations, alphabet)
 
     assert torch.allclose(ground_truth, unseen_muts)
