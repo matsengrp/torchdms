@@ -208,7 +208,7 @@ def beta_coefficients(model, test_data, out):
         )
         # define your scale, with white at zero
         mapp = ax[latent_dim].imshow(
-            beta_map, aspect="auto", norm=colors.DivergingNorm(0), cmap="RdBu"
+            beta_map, aspect="auto", norm=colors.TwoSlopeNorm(0), cmap="RdBu"
         )
         # Box WT-cells.
         for wt_idx in np.transpose(wtmask.nonzero()):
