@@ -152,6 +152,13 @@ def cli(version):
     help="Column name containing a feature by which the data should be split into "
     "independent datasets for partitioning; e.g. 'library'.",
 )
+@click.option(
+    "--protein-start-site",
+    type=int,
+    required=False,
+    default=1,
+    help="Amino acid number of first site in DMS for plot axis adjustement.",
+)
 @dry_run_option
 @seed_option
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
@@ -168,6 +175,7 @@ def prep(
     partition_by,
     dry_run,
     seed,
+    protein_start_site,
 ):
     """Prepare data for training.
 
@@ -210,7 +218,13 @@ def prep(
         )
 
         prep_by_stratum_and_export(
-            split_df, wtseq, targets, out_prefix, str(ctx.params), partition_label
+            split_df,
+            wtseq,
+            targets,
+            out_prefix,
+            str(ctx.params),
+            partition_label,
+            protein_start_site,
         )
 
     if partition_by in aa_func_scores.columns:

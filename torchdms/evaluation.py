@@ -1,6 +1,7 @@
 """Evaluating models."""
 
 import pandas as pd
+import numpy as np
 from torchdms.data import SplitDataset
 from torchdms.utils import positions_in_list
 
@@ -24,6 +25,14 @@ def build_evaluation_dict(model, test_data, device="cpu"):
     assert test_data.feature_count() == model.input_size
     assert test_data.target_count() == model.output_size
     model.eval()
+    test_col = list(model.unseen_mutations)
+    test_data.original_df["unseen_mutations"] = np.tile(
+        test_col, (len(test_data.original_df), 1)
+    ).tolist()
+    test_data.original_df["unseen_mutations"] = test_data.original_df[
+        "aa_substitutions"
+    ].str.split().map(set) & test_data.original_df["unseen_mutations"].map(set)
+
     return {
         "samples": test_data.samples.detach().numpy(),
         "predictions": model(test_data.samples.to(device)).detach().numpy(),
@@ -46,6 +55,7 @@ def error_df_of_evaluation_dict(evaluation_dict):
                 "n_aa_substitutions": evaluation_dict["original_df"][
                     "n_aa_substitutions"
                 ],
+                "unseen_mutations": evaluation_dict["original_df"]["unseen_mutations"],
                 "target": evaluation_dict["target_names"][target_idx],
             }
         )
