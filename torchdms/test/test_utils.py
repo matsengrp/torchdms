@@ -4,7 +4,6 @@ Testing for utils.py.
 import torch
 from torchdms.utils import (
     cartesian_product,
-    affine_projection_matrix,
     get_mutation_indicies,
 )
 
@@ -29,18 +28,6 @@ def test_cartesian_product():
         (["s@b", "i@6"], {"s": "b", "i": 6}),
     ]
     assert correct == test
-
-
-def test_affine_projection_matrix():
-    """
-    Test function that creates affine projection matrix.
-    """
-    ground_truth = torch.Tensor(
-        [[2 / 3, -1 / 3, -1 / 3], [-1 / 3, 2 / 3, -1 / 3], [-1 / 3, -1 / 3, 2 / 3]]
-    )
-    func_output = affine_projection_matrix(3)
-
-    assert torch.allclose(ground_truth, func_output)
 
 
 def test_get_mutation_indicies():

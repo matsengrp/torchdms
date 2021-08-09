@@ -192,16 +192,6 @@ def build_beta_map(wtseq, alphabet, beta_vec):
     return beta_vec.reshape(len(wtseq), len(alphabet)).transpose()
 
 
-def affine_projection_matrix(beta_dim):
-    """This function creates the affine projection matrix.
-
-    Takes beta vector dimension, d, as input and returns a dxd matrix.
-    """
-    identity_mat = torch.eye(beta_dim)
-    ones_mat = torch.ones(beta_dim, beta_dim)
-    return identity_mat - ones_mat / beta_dim
-
-
 def make_all_possible_mutations(test_data):
     """This function creates a set of all possible amino acid substitutions.
 
