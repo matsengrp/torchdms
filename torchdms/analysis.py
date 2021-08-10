@@ -7,7 +7,12 @@ import torch
 from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torchdms.data import BinaryMapDataset
-from torchdms.utils import build_beta_map, make_all_possible_mutations
+from torchdms.utils import (
+    build_beta_map,
+    get_mutation_indicies,
+    get_observed_training_mutations,
+    make_all_possible_mutations,
+)
 
 
 def make_data_loader_infinite(data_loader):
@@ -65,23 +70,21 @@ class Analysis:
             for train_loader in self.train_loaders
         ]
         self.val_loss_record = sys.float_info.max
-        self.all_possible_mutations = make_all_possible_mutations(self.val_data)
-        self.set_unseen_training_mutations()
-        self._zero_wildtype_betas()
-
-    def set_unseen_training_mutations(self):
-        """Store unseen training mutations in model."""
-        observed_mutations = set()
-        for train_dataset in self.train_datasets:
-            train_muts = train_dataset.original_df["aa_substitutions"]
-            train_muts_split = [sub for muts in train_muts for sub in muts.split()]
-            observed_mutations.update(train_muts_split)
-        self.model.set_unseen_mutations(
-            self.all_possible_mutations.difference(observed_mutations)
-        )
-        assert len(self.model.unseen_mutations) + len(observed_mutations) == len(
-            self.all_possible_mutations
-        ), "Unseen and observed mutation numbers don't add up!"
+        # Store all observed mutations
+        self.training_mutations = get_observed_training_mutations(train_data_list)
+        # Store WT idxs
+        self.wt_idxs = val_data.wt_idxs.type(torch.LongTensor)
+        # Store all observed mutations in mutant idxs
+        self.mutant_idxs = get_mutation_indicies(
+            self.training_mutations, self.model.alphabet
+        ).type(torch.LongTensor)
+        self.unseen_idxs = get_mutation_indicies(
+            make_all_possible_mutations(val_data).difference(self.training_mutations),
+            self.model.alphabet,
+        ).type(torch.LongTensor)
+        self.gauge_mask = torch.zeros(self.model.input_size, dtype=torch.bool)
+        self.gauge_mask[torch.cat((self.wt_idxs, self.unseen_idxs))] = 1
+        self.model.fix_gauge(self.gauge_mask)
 
     def loss_of_targets_and_prediction(
         self, loss_fn, targets, predictions, per_target_loss_decay
@@ -113,18 +116,6 @@ class Analysis:
             )
         ]
         return sum(per_target_loss) + self.model.regularization_loss()
-
-    def _zero_wildtype_betas(self):
-        if hasattr(self.model, "model_bind") and hasattr(self.model, "model_stab"):
-            for latent_dim in range(self.model.model_bind.latent_dim):
-                for idx in self.val_data.wt_idxs:
-                    self.model.model_bind.beta_coefficients()[latent_dim, idx] = 0
-                    self.model.model_stab.beta_coefficients()[latent_dim, idx] = 0
-        else:
-            # here we set the WT betas to zero before the forward pass
-            for latent_dim in range(self.model.latent_dim):
-                for idx in self.val_data.wt_idxs:
-                    self.model.beta_coefficients()[latent_dim, idx] = 0
 
     def train(
         self,
@@ -206,7 +197,7 @@ class Analysis:
                             param.data.clamp_(0)
 
                 optimizer.step()
-                self._zero_wildtype_betas()
+                self.model.fix_gauge(self.gauge_mask)
                 # if k >=1, reconstruct beta matricies with truncated SVD
                 if beta_rank is not None:
                     # procedure for 2D models.

@@ -5,8 +5,10 @@ import click
 import numpy as np
 import pandas as pd
 import torch
-import torch.nn as nn
-from torchdms.utils import from_pickle_file
+from torch import nn
+from torchdms.utils import (
+    from_pickle_file,
+)
 from torchdms.loss import l1_penalty
 
 
@@ -28,7 +30,6 @@ class TorchdmsModel(nn.Module):
         self.monotonic_sign = None
         self.layers = []
         self.training_style_sequence = [self.default_training_style]
-        self.unseen_mutations = None
 
     def __str__(self):
         return super().__str__() + "\n" + self.characteristics.__str__()
@@ -53,6 +54,11 @@ class TorchdmsModel(nn.Module):
     @abstractmethod
     def to_latent(self, x):
         pass
+
+    @abstractmethod
+    def fix_gauge(self, gauge_mask):
+        """Perform gauge-fixing procedure: zero WT betas and unseen mutaions,
+        and project mutant betas to hyperplane."""
 
     @property
     def sequence_length(self):
@@ -150,11 +156,6 @@ class TorchdmsModel(nn.Module):
         click.echo("Training in default style.")
         self.set_require_grad_for_all_parameters(True)
 
-    def set_unseen_mutations(self, mutations):
-        """Update unseen mutations attribute after a training pass."""
-        if self.unseen_mutations is None:
-            self.unseen_mutations = mutations
-
 
 class LinearModel(TorchdmsModel):
     """The simplest model."""
@@ -179,6 +180,10 @@ class LinearModel(TorchdmsModel):
 
     def to_latent(self, x):
         return self.forward(x)
+
+    def fix_gauge(self, gauge_mask):
+        """Perform gauge-fixing procedure: zero WT betas and unseen mutaions,
+        and project mutant betas to hyperplane."""
 
 
 class EscapeModel(TorchdmsModel):
@@ -258,6 +263,12 @@ class EscapeModel(TorchdmsModel):
         """penalize the beta coefficients."""
         penalty = self.beta_l1_coefficient * l1_penalty(self.betas_with_grad())
         return penalty
+
+    def fix_gauge(self, gauge_mask):
+        """Perform gauge-fixing procedure: zero WT betas and unseen
+        mutaions."""
+        # Zero WT and unseen betas.
+        self.beta_coefficients()[:, gauge_mask] = 0
 
 
 class FullyConnected(TorchdmsModel):
@@ -382,6 +393,18 @@ class FullyConnected(TorchdmsModel):
             return 0
         # else:
         return dims[self.latent_idx]
+
+    def fix_gauge(self, gauge_mask):
+        """Perform gauge-fixing procedure: gauge mask is 1 hot for values that
+        must be set to zero."""
+        # zero WT and unseen betas
+        self.beta_coefficients()[:, gauge_mask] = 0
+        # project mutant betas
+        for latent_dim in range(self.latent_dim):
+            beta_vec = self.beta_coefficients()[latent_dim, ~gauge_mask]
+            self.beta_coefficients()[latent_dim, ~gauge_mask] = (
+                beta_vec - beta_vec.sum() / beta_vec.shape[0] - 1
+            )
 
     def str_summary(self):
         """A one-line summary of the model."""
@@ -581,6 +604,12 @@ class Independent(TorchdmsModel):
             + self.model_stab.regularization_loss()
         )
 
+    def fix_gauge(self, gauge_mask):
+        """Perform gauge-fixing procedure: zero WT betas and unseen mutaions,
+        and project mutant betas to hyperplane."""
+        self.model_bind.fix_gauge(gauge_mask)
+        self.model_stab.fix_gauge(gauge_mask)
+
 
 class Conditional(Independent):
     """Allows the latent space for the second output feature (i.e. stability)
@@ -736,4 +765,5 @@ def model_of_string(model_string, data_path, **kwargs):
         )
     elif model_name != "Escape":
         raise NotImplementedError(model_name)
+
     return model

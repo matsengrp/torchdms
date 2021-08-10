@@ -152,13 +152,6 @@ def cli(version):
     help="Column name containing a feature by which the data should be split into "
     "independent datasets for partitioning; e.g. 'library'.",
 )
-@click.option(
-    "--protein-start-site",
-    type=int,
-    required=False,
-    default=1,
-    help="Amino acid number of first site in DMS for plot axis adjustement.",
-)
 @dry_run_option
 @seed_option
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
@@ -175,7 +168,6 @@ def prep(
     partition_by,
     dry_run,
     seed,
-    protein_start_site,
 ):
     """Prepare data for training.
 
@@ -218,13 +210,7 @@ def prep(
         )
 
         prep_by_stratum_and_export(
-            split_df,
-            wtseq,
-            targets,
-            out_prefix,
-            str(ctx.params),
-            partition_label,
-            protein_start_site,
+            split_df, wtseq, targets, out_prefix, str(ctx.params), partition_label
         )
 
     if partition_by in aa_func_scores.columns:
@@ -333,9 +319,7 @@ def create(
             kwargs["interaction_l1_coefficient"] = interaction_l1_coefficients[0]
         else:
             kwargs["interaction_l1_coefficients"] = interaction_l1_coefficients
-
     model = model_of_string(model_string, data_path, **kwargs)
-
     torch.save(model, out_path)
     click.echo(f"LOG: Model defined as: {model}")
     click.echo(f"LOG: Saved model to {out_path}")
@@ -648,7 +632,7 @@ def svd(model_path, data_path, out):
     click.echo(f"LOG: Singular values of beta plotted and dumped to {out}")
 
 
-### Plot protein profiles
+# Plot protein profiles
 @cli.command()
 @click.argument("model_path", type=click.Path(exists=True))
 @click.argument("data_path", type=click.Path(exists=True))

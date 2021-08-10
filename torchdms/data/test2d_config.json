@@ -1,0 +1,14 @@
+{
+    "default": {
+        "beta_l1_coefficients": "0.0, 0.0",
+        "interaction_l1_coefficients": "0.0,0.0",
+        "data_path": "_ignore/test_df_2d.prepped.pkl",
+        "epochs": 1,
+        "independent_starts": 2,
+        "loss_weight_span": 0.01,
+        "model_string": "Independent(1,sigmoid,10,relu)",
+        "monotonic": null,
+        "prefix": "_ignore/run",
+        "seed": 42
+    }
+}

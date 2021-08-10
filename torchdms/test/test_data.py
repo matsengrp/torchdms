@@ -74,8 +74,6 @@ def test_wt_idx():
         export_dataframe=None,
         partition_label=None,
     )
-    split_df_prepped = SplitDataset.of_split_df(
-        split_df, wtseq, ["affinity_score"], "", protein_start_site=1
-    )
+    split_df_prepped = SplitDataset.of_split_df(split_df, wtseq, ["affinity_score"], "")
     assert split_df_prepped.val.wtseq == "NIT"
     assert torch.all(torch.eq(actual_idx, split_df_prepped.val.wt_idxs))

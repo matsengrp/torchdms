@@ -8,6 +8,7 @@ import json
 import re
 import pandas as pd
 import numpy as np
+import torch
 
 
 def from_pickle_file(path):
@@ -208,3 +209,26 @@ def make_all_possible_mutations(test_data):
     assert len(all_possible_mutations) == (len(test_data.alphabet) - 1) * len(wtseq)
     assert len(set(all_possible_mutations)) == len(all_possible_mutations)
     return set(all_possible_mutations)
+
+
+def get_observed_training_mutations(train_data_list):
+    """Returns a list of all aa subs in training data list."""
+    observed_mutations = set()
+    for train_dataset in train_data_list:
+        train_muts = train_dataset.original_df["aa_substitutions"]
+        train_muts_split = [sub for muts in train_muts for sub in muts.split()]
+        observed_mutations.update(train_muts_split)
+    return observed_mutations
+
+
+def get_mutation_indicies(mutation_list, alphabet):
+    """Returns a list of beta indicies for a given list of mutations(aa - site -
+    aa fomat)."""
+    indicies = []
+    alphabet_dict = {letter: idx for idx, letter in enumerate(alphabet)}
+    for mut in mutation_list:
+        mut_aa = mut[-1]
+        site = int(mut[1:-1])
+        indicies.append(((site - 1) * len(alphabet_dict)) + alphabet_dict[mut_aa])
+
+    return torch.Tensor(indicies).type(torch.long)

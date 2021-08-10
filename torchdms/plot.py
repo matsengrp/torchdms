@@ -28,7 +28,7 @@ from plotnine import (
     theme_set,
     theme_void,
 )
-import scipy.stats as stats
+from scipy import stats
 from torchdms.utils import build_beta_map
 
 
@@ -77,7 +77,6 @@ def plot_test_correlation(evaluation_dict, model, out, cmap="plasma"):
     n_aa_substitutions = [
         len(s.split()) for s in evaluation_dict["original_df"]["aa_substitutions"]
     ]
-    has_unseen_mutation = np.array(evaluation_dict["original_df"]["unseen_mutations"])
     width = 7 * num_targets
     fig, ax = plt.subplots(1, num_targets, figsize=(width, 6))
     if num_targets == 1:
@@ -87,23 +86,7 @@ def plot_test_correlation(evaluation_dict, model, out, cmap="plasma"):
         pred = evaluation_dict["predictions"][:, target]
         targ = evaluation_dict["targets"][:, target]
         corr = stats.pearsonr(pred, targ)
-        # create plot with seen mutations and then unseen mutations
-        scatter = ax[target].scatter(
-            np.array(pred)[~has_unseen_mutation],
-            np.array(targ)[~has_unseen_mutation],
-            cmap=cmap,
-            c=np.array(n_aa_substitutions)[~has_unseen_mutation],
-            marker=".",
-            s=8.0,
-        )
-        ax[target].scatter(
-            np.array(pred)[has_unseen_mutation],
-            np.array(targ)[has_unseen_mutation],
-            cmap=cmap,
-            c=np.array(n_aa_substitutions)[has_unseen_mutation],
-            marker="x",
-            s=24.0,
-        )
+        scatter = ax[target].scatter(pred, targ, cmap=cmap, c=n_aa_substitutions, s=8.0)
         ax[target].set_xlabel("Predicted")
         ax[target].set_ylabel("Observed")
         target_name = evaluation_dict["target_names"][target]
@@ -203,15 +186,6 @@ def beta_coefficients(model, test_data, out):
     bmap = dms.binarymap.BinaryMap(
         test_data.original_df,
     )
-    # Sites of interest for tick marks
-    first_site = test_data.protein_start_site
-    last_site = first_site + len(test_data.wtseq)
-    # tick placement and labels
-    ticks = np.arange(0, len(test_data.wtseq), 4)
-    tick_marks = np.ceil(np.arange(first_site, last_site, 4, dtype=np.int) / 5) * 5
-    tick_marks[0] = first_site
-    tick_marks[-1] = last_site
-    tick_marks = tick_marks.astype("int32")
 
     # To represent the wtseq in the heatmap, create a mask
     # to encode which matrix entries are the wt nt in each position.
@@ -234,7 +208,7 @@ def beta_coefficients(model, test_data, out):
         )
         # define your scale, with white at zero
         mapp = ax[latent_dim].imshow(
-            beta_map, aspect="auto", norm=colors.DivergingNorm(0), cmap="RdBu"
+            beta_map, aspect="auto", norm=colors.TwoSlopeNorm(0), cmap="RdBu"
         )
         # Box WT-cells.
         for wt_idx in np.transpose(wtmask.nonzero()):
@@ -248,9 +222,6 @@ def beta_coefficients(model, test_data, out):
             )
             ax[latent_dim].add_patch(wt_cell)
         fig.colorbar(mapp, ax=ax[latent_dim], orientation="horizontal")
-        ax[latent_dim].set_title(f"Beta coeff for latent dimension {latent_dim}")
-        ax[latent_dim].set_xticks(ticks=ticks)
-        ax[latent_dim].set_xticklabels(tick_marks, Fontsize=6)
         ax[latent_dim].set_yticks(ticks=range(0, 21))
         ax[latent_dim].set_yticklabels(alphabet)
     plt.tight_layout()
