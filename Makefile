@@ -13,6 +13,11 @@ test2d: torchdms/data/_ignore/test_df_2d.prepped.pkl
 	pytest
 	rm torchdms/data/_ignore/test_df_2d.prepped.pkl
 
+testescape: torchdms/data/_ignore/test_escape_df.prepped.pkl
+	cd torchdms/data; tdms go --config test_escape_config.json
+	pytest
+	rm torchdms/data/_ignore/test_escape_df.prepped.pkl
+
 datatest: torchdms/data/_ignore/test_df.prepped.pkl
 	tdms validate torchdms/data/_ignore/test_df.prepped.pkl
 	tdms summarize --out-prefix torchdms/data/_ignore/test_df.summary torchdms/data/_ignore/test_df.prepped.pkl
@@ -42,5 +47,9 @@ torchdms/data/_ignore/test_df.prepped.pkl: torchdms/data/test_df.pkl
 torchdms/data/_ignore/test_df_2d.prepped.pkl: torchdms/data/test_df_2d.pkl
 	mkdir -p torchdms/data/_ignore
 	tdms prep --per-stratum-variants-for-test 10 --skip-stratum-if-count-is-smaller-than 30 torchdms/data/test_df_2d.pkl torchdms/data/_ignore/test_df_2d.prepped func_score func_score2
+
+torchdms/data/_ignore/test_escape_df.prepped.pkl: torchdms/data/test_escape_df.pkl
+	mkdir -p torchdms/data/_ignore
+	tdms prep --per-stratum-variants-for-test 10 --skip-stratum-if-count-is-smaller-than 30 torchdms/data/test_escape_df.pkl torchdms/data/_ignore/test_escape_df.prepped prob_escape
 
 .PHONY: install test datatest format lint deploy docs
