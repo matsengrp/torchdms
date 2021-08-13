@@ -158,6 +158,25 @@ def test_zeroed_unseen_betas():
             assert analysis.model.beta_coefficients()[latent_dim, int(idx)] == 0
 
 
+def test_seq_to_binary():
+    """
+    Test function for translating strings of aa-seqs to their 1-hot encoding.
+    """
+    # The test_seq_to_binary() method will take a string of amino acids and a model.
+    wtseq = analysis.val_data.wtseq
+    mutseq_valid = "NHT"
+    assert wtseq == "NIT"
+
+    # Ground truth indicies for valid cases
+    wt_ground_truth = torch.zeros(len(wtseq) * len(analysis.model.alphabet))
+    mut_ground_truth = torch.zeros(len(wtseq) * len(analysis.model.alphabet))
+    wt_ground_truth[analysis.wt_idxs] = 1.0
+    mut_ground_truth[torch.tensor([11, 27, 58]).type(torch.LongTensor)] = 1.0
+
+    # Make sure translation works.
+    assert torch.allclose(wt_ground_truth, analysis.model.seq_to_binary(wtseq))
+    assert torch.allclose(mut_ground_truth, analysis.model.seq_to_binary(mutseq_valid))
+
 def test_concentrations_stored():
     """Tests to make sure EscapeModel() is recieving concentration values as planned (tacking values on to end of encoding)."""
     # Make sure the model's input size doesn't change

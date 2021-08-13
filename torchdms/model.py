@@ -157,6 +157,28 @@ class TorchdmsModel(nn.Module):
         click.echo("Training in default style.")
         self.set_require_grad_for_all_parameters(True)
 
+    def seq_to_binary(self, seq):
+        """Takes a string of amino acids and creates an appropriate one-hot
+        encoding."""
+        # Get indicies to place 1s for present amino acids.
+        assert self.input_size == len(seq) * len(
+            self.alphabet
+        ), "Sequence size doesn't match training sequences."
+        assert set(seq).issubset(
+            self.alphabet
+        ), "Input sequence has character(s) outside of model's alphabet."
+        alphabet_dict = {letter: idx for idx, letter in enumerate(self.alphabet)}
+        seq_idx = [alphabet_dict[aa] for aa in seq]
+        indicies = torch.zeros(len(seq), dtype=torch.long, requires_grad=False)
+        for site, _ in enumerate(seq):
+            indicies[site] = (site * len(self.alphabet)) + seq_idx[site]
+
+        # Generate encoding.
+        encoding = torch.zeros((1, len(seq) * len(self.alphabet)), requires_grad=False)
+        encoding[0, indicies.data] = 1.0
+
+        return encoding
+
 
 class LinearModel(TorchdmsModel):
     """The simplest model."""
