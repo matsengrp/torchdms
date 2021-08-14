@@ -45,6 +45,18 @@ class BinaryMapDataset(Dataset):
     @classmethod
     def of_raw(cls, pd_dataset, wtseq, targets):
         bmap = BinaryMap(pd_dataset, expand=True, wtseq=wtseq)
+        # check for concentration column
+        if 'concentration' in pd_dataset.columns:
+            concentration_samples = np.concatenate((bmap.binary_variants.toarray(), pd_dataset['concentration'].to_numpy() ), axis=0)
+            return cls(
+                torch.from_numpy(concentration_samples).float(),
+                torch.from_numpy(pd_dataset[targets].to_numpy()).float(),
+                pd_dataset,
+                wtseq,
+                targets,
+                bmap.alphabet,
+            )
+        # else normal of_raw
         return cls(
             torch.from_numpy(bmap.binary_variants.toarray()).float(),
             torch.from_numpy(pd_dataset[targets].to_numpy()).float(),

@@ -13,6 +13,7 @@ from torchdms.utils import (
 )
 
 TEST_DATA_PATH = pkg_resources.resource_filename("torchdms", "data/test_df.pkl")
+ESC_TEST_DATA_PATH = pkg_resources.resource_filename("torchdms", "data/test_escape_df.pkl")
 
 
 def test_partition_is_clean():
@@ -77,3 +78,11 @@ def test_wt_idx():
     split_df_prepped = SplitDataset.of_split_df(split_df, wtseq, ["affinity_score"], "")
     assert split_df_prepped.val.wtseq == "NIT"
     assert torch.all(torch.eq(actual_idx, split_df_prepped.val.wt_idxs))
+
+
+def test_concentrations_stored():
+    """
+    Test to make sure antibody concentrations are stored correctly in data.
+    """
+    data, wtseq = from_pickle_file(ESC_TEST_DATA_PATH)
+    assert 'concentration' in data.columns
