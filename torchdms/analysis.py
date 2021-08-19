@@ -82,7 +82,7 @@ class Analysis:
             make_all_possible_mutations(val_data).difference(self.training_mutations),
             self.model.alphabet,
         ).type(torch.LongTensor)
-        self.gauge_mask = torch.zeros(self.model.input_size, dtype=torch.bool)
+        self.gauge_mask = torch.zeros(self.model.sequence_length * len(self.model.alphabet), dtype=torch.bool)
         self.gauge_mask[torch.cat((self.wt_idxs, self.unseen_idxs))] = 1
         self.model.fix_gauge(self.gauge_mask)
 
