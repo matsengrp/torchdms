@@ -13,7 +13,9 @@ from torchdms.utils import (
 )
 
 TEST_DATA_PATH = pkg_resources.resource_filename("torchdms", "data/test_df.pkl")
-ESC_TEST_DATA_PATH = pkg_resources.resource_filename("torchdms", "data/test_escape_df.pkl")
+ESC_TEST_DATA_PATH = pkg_resources.resource_filename(
+    "torchdms", "data/test_escape_df.pkl"
+)
 
 
 def test_partition_is_clean():
@@ -85,4 +87,4 @@ def test_concentrations_stored():
     Test to make sure antibody concentrations are stored correctly in data.
     """
     data, wtseq = from_pickle_file(ESC_TEST_DATA_PATH)
-    assert 'concentration' in data.columns
+    assert "concentration" in data.columns

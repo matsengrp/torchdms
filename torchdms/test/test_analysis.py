@@ -16,7 +16,9 @@ from torchdms.model import model_of_string
 from torchdms.data import partition, prep_by_stratum_and_export
 
 TEST_DATA_PATH = pkg_resources.resource_filename("torchdms", "data/test_df.pkl")
-ESCAPE_TEST_DATA_PATH = pkg_resources.resource_filename("torchdms", "data/test_escape_df.pkl")
+ESCAPE_TEST_DATA_PATH = pkg_resources.resource_filename(
+    "torchdms", "data/test_escape_df.pkl"
+)
 out_path = "test_df-prepped"
 escape_out_path = "test_df_escape-prepped"
 data_path = out_path + ".pkl"
@@ -46,7 +48,9 @@ def setup_module(module):
         partition_label=None,
     )
     prep_by_stratum_and_export(split_df, wtseq, ["affinity_score"], out_path, "", None)
-    prep_by_stratum_and_export(escape_split_df, escape_wtseq, ["prob_escape"], escape_out_path, "", None)
+    prep_by_stratum_and_export(
+        escape_split_df, escape_wtseq, ["prob_escape"], escape_out_path, "", None
+    )
 
     split_df_prepped = from_pickle_file(data_path)
     escape_split_df_prepped = from_pickle_file(escape_data_path)
@@ -155,17 +159,20 @@ def test_zeroed_unseen_betas():
 
 
 def test_concentrations_stored():
-    """ Tests to make sure EscapeModel() is recieving concentration values as planned (tacking values on to end of encoding). """
+    """Tests to make sure EscapeModel() is recieving concentration values as planned (tacking values on to end of encoding)."""
 
     # Test if input size of model is 1 larger than it would be without
-    assert escape_model.input_size == len(escape_model.alphabet) * len(escape_analysis.val_data.wtseq) + 1
+    assert (
+        escape_model.input_size
+        == len(escape_model.alphabet) * len(escape_analysis.val_data.wtseq) + 1
+    )
 
     # Ensure that model.concentrations is true.
-    assert 'concentration' in escape_analysis.val_data.original_df.columns
+    assert "concentration" in escape_analysis.val_data.original_df.columns
 
 
 def test_escape_concentrations_forward():
-    """ Test to make sure concentrations aren't influencing betas in EscapeModel. """
+    """Test to make sure concentrations aren't influencing betas in EscapeModel."""
 
     # Make sure beta_coefficients() only returns sequence indices.
     # The encoding for the polyclonal escape simulated data is 4221 slots.

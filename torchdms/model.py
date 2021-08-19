@@ -197,7 +197,7 @@ class EscapeModel(TorchdmsModel):
         num_epitopes,
         beta_l1_coefficient=0.0,
         monotonic_sign=False,  # pylint: disable=unused-argument
-        concentrations=False
+        concentrations=False,
     ):
         super().__init__(input_size, target_names, alphabet)
 
@@ -229,7 +229,8 @@ class EscapeModel(TorchdmsModel):
 
     @property
     def sequence_length(self):
-        """ Override parent class sequence length to ignore concentration info. """
+        """Override parent class sequence length to ignore concentration
+        info."""
         alphabet_length = len(self.alphabet)
         if self.concentrations:
             # concentration in data.
@@ -253,7 +254,10 @@ class EscapeModel(TorchdmsModel):
         # sites.
         if self.concentrations:
             flat_results = np.concatenate(
-                [forward_on_ith_basis_vector(i) for i in range(input_tensor.shape[1] - 1)]
+                [
+                    forward_on_ith_basis_vector(i)
+                    for i in range(input_tensor.shape[1] - 1)
+                ]
             )
         else:
             flat_results = np.concatenate(
@@ -268,7 +272,7 @@ class EscapeModel(TorchdmsModel):
         return "Escape"
 
     def wt_activity(self):
-        """ Returns wildtype activity of an epitope."""
+        """Returns wildtype activity of an epitope."""
         return torch.cat(
             [getattr(self, f"wt_activity_epi{i}") for i in range(self.num_epitopes)]
         )
@@ -277,7 +281,13 @@ class EscapeModel(TorchdmsModel):
         """input features -> latent space."""
         if self.concentrations:
             x = x[:, :-1]
-        return torch.cat([getattr(self, f"latent_layer_epi{i}")(x) for i in range(self.num_epitopes)], axis=1)
+        return torch.cat(
+            [
+                getattr(self, f"latent_layer_epi{i}")(x)
+                for i in range(self.num_epitopes)
+            ],
+            axis=1,
+        )
 
     def from_latent_to_output(self, x, c=None):  # pylint: disable=no-self-use
         """latent space in as 'x' -> escape fraction."""

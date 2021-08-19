@@ -46,9 +46,9 @@ class BinaryMapDataset(Dataset):
     def of_raw(cls, pd_dataset, wtseq, targets):
         bmap = BinaryMap(pd_dataset, expand=True, wtseq=wtseq)
         # check for concentration column
-        if 'concentration' in pd_dataset.columns:
+        if "concentration" in pd_dataset.columns:
             samples = bmap.binary_variants.toarray()
-            concentrations = np.array(pd_dataset['concentration'], ndmin=2).T
+            concentrations = np.array(pd_dataset["concentration"], ndmin=2).T
             concentration_samples = np.concatenate((samples, concentrations), axis=1)
             return cls(
                 torch.from_numpy(concentration_samples).float(),
@@ -113,8 +113,8 @@ class BinaryMapDataset(Dataset):
         return [(np.nanmin(column), np.nanmax(column)) for column in numpy_targets.T]
 
     def concentrations_available(self):
-        """ Return true if antibody concentrations are available in data."""
-        return 'concentration' in self.original_df.columns
+        """Return true if antibody concentrations are available in data."""
+        return "concentration" in self.original_df.columns
 
 
 class SplitDataframe:
