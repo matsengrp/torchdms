@@ -195,8 +195,9 @@ class EscapeModel(TorchdmsModel):
         target_names,
         alphabet,
         num_epitopes,
-        beta_l1_coefficient=None,
+        beta_l1_coefficient=0.0,
         monotonic_sign=False,  # pylint: disable=unused-argument
+        concentrations=False
     ):
         super().__init__(input_size, target_names, alphabet)
 
@@ -204,9 +205,13 @@ class EscapeModel(TorchdmsModel):
         self.num_epitopes = num_epitopes
         self.beta_l1_coefficient = beta_l1_coefficient
 
-        # build the model
+        if self.input_size % len(self.alphabet) == 1:
+            self.concentrations = True
+            input_size = input_size - 1
+
         for i in range(self.num_epitopes):
-            setattr(self, f"latent_layer_epi{i}", nn.Linear(input_size, 1, bias=True))
+            setattr(self, f"latent_layer_epi{i}", nn.Linear(input_size, 1, bias=False))
+            setattr(self, f"wt_activity_epi{i}", nn.Parameter(torch.zeros(1)))
 
     @property
     def characteristics(self):
@@ -222,25 +227,74 @@ class EscapeModel(TorchdmsModel):
         """number of dimensions in latent space."""
         return self.num_epitopes
 
+    @property
+    def sequence_length(self):
+        """ Override parent class sequence length to ignore concentration info. """
+        alphabet_length = len(self.alphabet)
+        if self.concentrations:
+            # concentration in data.
+            assert (self.input_size - 1) % alphabet_length == 0
+            return (self.input_size - 1) // alphabet_length
+        assert self.input_size % alphabet_length == 0
+        return self.input_size // alphabet_length
+
+    def numpy_single_mutant_predictions(self):
+        """Return the single mutant predictions as a numpy array of shape (AAs,
+        sites, outputs) -- overrides TorchdmsModel()."""
+        input_tensor = torch.zeros((1, self.input_size))
+
+        def forward_on_ith_basis_vector(i):
+            input_tensor[0, i] = 1.0
+            return_value = self.forward(input_tensor).detach().numpy()
+            input_tensor[0, i] = 0.0
+            return return_value
+
+        # flat_results first indexes through the outputs, then the alphabet, then the
+        # sites.
+        if self.concentrations:
+            flat_results = np.concatenate(
+                [forward_on_ith_basis_vector(i) for i in range(input_tensor.shape[1] - 1)]
+            )
+        else:
+            flat_results = np.concatenate(
+                [forward_on_ith_basis_vector(i) for i in range(input_tensor.shape[1])]
+            )
+
+        return flat_results.reshape(
+            (self.sequence_length, len(self.alphabet), self.output_size)
+        ).transpose(1, 0, 2)
+
     def str_summary(self):
         return "Escape"
 
+    def wt_activity(self):
+        """ Returns wildtype activity of an epitope."""
+        return torch.cat(
+            [getattr(self, f"wt_activity_epi{i}") for i in range(self.num_epitopes)]
+        )
+
     def to_latent(self, x):
         """input features -> latent space."""
-        latent_dims = []
-        for i in range(self.num_epitopes):
-            model_ = getattr(self, f"latent_layer_epi{i}")
-            latent_dims.append(model_(x))
+        if self.concentrations:
+            x = x[:, :-1]
+        return torch.cat([getattr(self, f"latent_layer_epi{i}")(x) for i in range(self.num_epitopes)], axis=1)
 
-        return torch.cat(latent_dims, dim=1)
-
-    def from_latent_to_output(self, x):  # pylint: disable=no-self-use
+    def from_latent_to_output(self, x, c=None):  # pylint: disable=no-self-use
         """latent space in as 'x' -> escape fraction."""
+        if c is not None:
+            c = c.unsqueeze(1)
+            b_fractions = torch.sigmoid((x + self.wt_activity()) - torch.log(c))
+        else:
+            b_fractions = torch.sigmoid(x + self.wt_activity())
         b_fractions = torch.sigmoid(x)
         return torch.unsqueeze(torch.prod(b_fractions, 1), 1)
 
     def forward(self, x):  # pylint: disable=arguments-differ
         """Compose data --> latent --> output."""
+        if self.concentrations:
+            c = x[:, -1]
+            return self.from_latent_to_output(self.to_latent(x), c)
+        # else
         return self.from_latent_to_output(self.to_latent(x))
 
     def betas_with_grad(self):
