@@ -60,6 +60,7 @@ def setup_module(module):
     escape_model = model_of_string(escape_model_string, escape_data_path)
 
     torch.save(model, model_path)
+    torch.save(escape_model, escape_model_path)
     analysis_params = {
         "model": model,
         "model_path": model_path,
