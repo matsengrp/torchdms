@@ -289,11 +289,11 @@ class EscapeModel(TorchdmsModel):
             axis=1,
         )
 
-    def from_latent_to_output(self, x, c=None):  # pylint: disable=no-self-use
+    def from_latent_to_output(self, x, conc=None):  # pylint: disable=no-self-use
         """latent space in as 'x' -> escape fraction."""
-        if c is not None:
-            c = c.unsqueeze(1)
-            b_fractions = torch.sigmoid((x + self.wt_activity()) - torch.log(c))
+        if conc is not None:
+            conc = conc.unsqueeze(1)
+            b_fractions = torch.sigmoid((x + self.wt_activity()) - torch.log(conc))
         else:
             b_fractions = torch.sigmoid(x + self.wt_activity())
         b_fractions = torch.sigmoid(x)
@@ -302,8 +302,8 @@ class EscapeModel(TorchdmsModel):
     def forward(self, x):  # pylint: disable=arguments-differ
         """Compose data --> latent --> output."""
         if self.concentrations:
-            c = x[:, -1]
-            return self.from_latent_to_output(self.to_latent(x), c)
+            conc = x[:, -1]
+            return self.from_latent_to_output(self.to_latent(x), conc)
         # else
         return self.from_latent_to_output(self.to_latent(x))
 
