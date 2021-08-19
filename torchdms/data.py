@@ -47,7 +47,9 @@ class BinaryMapDataset(Dataset):
         bmap = BinaryMap(pd_dataset, expand=True, wtseq=wtseq)
         # check for concentration column
         if 'concentration' in pd_dataset.columns:
-            concentration_samples = np.concatenate((bmap.binary_variants.toarray(), pd_dataset['concentration'].to_numpy() ), axis=0)
+            samples = bmap.binary_variants.toarray()
+            concentrations = np.array(pd_dataset['concentration'], ndmin=2).T
+            concentration_samples = np.concatenate((samples, concentrations), axis=1)
             return cls(
                 torch.from_numpy(concentration_samples).float(),
                 torch.from_numpy(pd_dataset[targets].to_numpy()).float(),
@@ -109,6 +111,10 @@ class BinaryMapDataset(Dataset):
         """Return a (min, max) tuple for the value of each target."""
         numpy_targets = self.targets.numpy()
         return [(np.nanmin(column), np.nanmax(column)) for column in numpy_targets.T]
+
+    def concentrations_available(self):
+        """ Return true if antibody concentrations are available in data."""
+        return 'concentration' in self.original_df.columns
 
 
 class SplitDataframe:
