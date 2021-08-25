@@ -161,9 +161,8 @@ def test_zeroed_unseen_betas():
 def test_concentrations_stored():
     """Tests to make sure EscapeModel() is recieving concentration values as planned (tacking values on to end of encoding)."""
     # Make sure the model's input size doesn't change
-    assert (
-        escape_model.input_size
-        == len(escape_model.alphabet) * len(escape_analysis.val_data.wtseq)
+    assert escape_model.input_size == len(escape_model.alphabet) * len(
+        escape_analysis.val_data.wtseq
     )
     # Ensure that concentrations are in dataframe
     assert "concentration" in escape_analysis.val_data.original_df.columns

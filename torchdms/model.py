@@ -204,7 +204,6 @@ class EscapeModel(TorchdmsModel):
         self.num_epitopes = num_epitopes
         self.beta_l1_coefficient = beta_l1_coefficient
 
-
         for i in range(self.num_epitopes):
             setattr(self, f"latent_layer_epi{i}", nn.Linear(input_size, 1, bias=False))
             setattr(self, f"wt_activity_epi{i}", nn.Parameter(torch.zeros(1)))
@@ -222,7 +221,6 @@ class EscapeModel(TorchdmsModel):
     def latent_dim(self):
         """number of dimensions in latent space."""
         return self.num_epitopes
-
 
     def str_summary(self):
         return "Escape"
@@ -243,11 +241,15 @@ class EscapeModel(TorchdmsModel):
             axis=1,
         )
 
-    def from_latent_to_output(self, x, concentrations=None):  # pylint: disable=no-self-use
+    def from_latent_to_output(
+        self, x, concentrations=None
+    ):  # pylint: disable=no-self-use
         """latent space in as 'x' -> escape fraction."""
         if concentrations is not None:
             concentrations = concentrations.unsqueeze(1)
-            b_fractions = torch.sigmoid((x + self.wt_activity()) - torch.log(concentrations))
+            b_fractions = torch.sigmoid(
+                (x + self.wt_activity()) - torch.log(concentrations)
+            )
         else:
             b_fractions = torch.sigmoid(x + self.wt_activity())
         b_fractions = torch.sigmoid(x)
