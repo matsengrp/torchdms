@@ -41,24 +41,11 @@ class BinaryMapDataset(Dataset):
         self.wtseq = wtseq
         self.target_names = target_names
         self.alphabet = alphabet
+        self.samples_concentrations = torch.tensor(original_df['concentration'].values) if 'concentration' in original_df.columns else None
 
     @classmethod
     def of_raw(cls, pd_dataset, wtseq, targets):
         bmap = BinaryMap(pd_dataset, expand=True, wtseq=wtseq)
-        # check for concentration column
-        if "concentration" in pd_dataset.columns:
-            samples = bmap.binary_variants.toarray()
-            concentrations = np.array(pd_dataset["concentration"], ndmin=2).T
-            concentration_samples = np.concatenate((samples, concentrations), axis=1)
-            return cls(
-                torch.from_numpy(concentration_samples).float(),
-                torch.from_numpy(pd_dataset[targets].to_numpy()).float(),
-                pd_dataset,
-                wtseq,
-                targets,
-                bmap.alphabet,
-            )
-        # else normal of_raw
         return cls(
             torch.from_numpy(bmap.binary_variants.toarray()).float(),
             torch.from_numpy(pd_dataset[targets].to_numpy()).float(),
@@ -96,6 +83,8 @@ class BinaryMapDataset(Dataset):
         return wt_encoding_idx
 
     def __getitem__(self, idxs):
+        if self.samples_concentrations is not None:
+            return {"samples": self.samples[idxs], "targets": self.targets[idxs], "concentrations": self.samples_concentrations[idxs]}
         return {"samples": self.samples[idxs], "targets": self.targets[idxs]}
 
     def __len__(self):
@@ -111,10 +100,6 @@ class BinaryMapDataset(Dataset):
         """Return a (min, max) tuple for the value of each target."""
         numpy_targets = self.targets.numpy()
         return [(np.nanmin(column), np.nanmax(column)) for column in numpy_targets.T]
-
-    def concentrations_available(self):
-        """Return true if antibody concentrations are available in data."""
-        return "concentration" in self.original_df.columns
 
 
 class SplitDataframe:

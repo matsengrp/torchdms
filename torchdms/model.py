@@ -197,7 +197,6 @@ class EscapeModel(TorchdmsModel):
         num_epitopes,
         beta_l1_coefficient=0.0,
         monotonic_sign=False,  # pylint: disable=unused-argument
-        concentrations=False,
     ):
         super().__init__(input_size, target_names, alphabet)
 
@@ -205,9 +204,6 @@ class EscapeModel(TorchdmsModel):
         self.num_epitopes = num_epitopes
         self.beta_l1_coefficient = beta_l1_coefficient
 
-        if self.input_size % len(self.alphabet) == 1:
-            self.concentrations = True
-            input_size = input_size - 1
 
         for i in range(self.num_epitopes):
             setattr(self, f"latent_layer_epi{i}", nn.Linear(input_size, 1, bias=False))
@@ -227,46 +223,6 @@ class EscapeModel(TorchdmsModel):
         """number of dimensions in latent space."""
         return self.num_epitopes
 
-    @property
-    def sequence_length(self):
-        """Override parent class sequence length to ignore concentration
-        info."""
-        alphabet_length = len(self.alphabet)
-        if self.concentrations:
-            # concentration in data.
-            assert (self.input_size - 1) % alphabet_length == 0
-            return (self.input_size - 1) // alphabet_length
-        assert self.input_size % alphabet_length == 0
-        return self.input_size // alphabet_length
-
-    def numpy_single_mutant_predictions(self):
-        """Return the single mutant predictions as a numpy array of shape (AAs,
-        sites, outputs) -- overrides TorchdmsModel()."""
-        input_tensor = torch.zeros((1, self.input_size))
-
-        def forward_on_ith_basis_vector(i):
-            input_tensor[0, i] = 1.0
-            return_value = self.forward(input_tensor).detach().numpy()
-            input_tensor[0, i] = 0.0
-            return return_value
-
-        # flat_results first indexes through the outputs, then the alphabet, then the
-        # sites.
-        if self.concentrations:
-            flat_results = np.concatenate(
-                [
-                    forward_on_ith_basis_vector(i)
-                    for i in range(input_tensor.shape[1] - 1)
-                ]
-            )
-        else:
-            flat_results = np.concatenate(
-                [forward_on_ith_basis_vector(i) for i in range(input_tensor.shape[1])]
-            )
-
-        return flat_results.reshape(
-            (self.sequence_length, len(self.alphabet), self.output_size)
-        ).transpose(1, 0, 2)
 
     def str_summary(self):
         return "Escape"
@@ -279,8 +235,6 @@ class EscapeModel(TorchdmsModel):
 
     def to_latent(self, x):
         """input features -> latent space."""
-        if self.concentrations:
-            x = x[:, :-1]
         return torch.cat(
             [
                 getattr(self, f"latent_layer_epi{i}")(x)
@@ -289,23 +243,19 @@ class EscapeModel(TorchdmsModel):
             axis=1,
         )
 
-    def from_latent_to_output(self, x, conc=None):  # pylint: disable=no-self-use
+    def from_latent_to_output(self, x, concentrations=None):  # pylint: disable=no-self-use
         """latent space in as 'x' -> escape fraction."""
-        if conc is not None:
-            conc = conc.unsqueeze(1)
-            b_fractions = torch.sigmoid((x + self.wt_activity()) - torch.log(conc))
+        if concentrations is not None:
+            concentrations = concentrations.unsqueeze(1)
+            b_fractions = torch.sigmoid((x + self.wt_activity()) - torch.log(concentrations))
         else:
             b_fractions = torch.sigmoid(x + self.wt_activity())
         b_fractions = torch.sigmoid(x)
         return torch.unsqueeze(torch.prod(b_fractions, 1), 1)
 
-    def forward(self, x):  # pylint: disable=arguments-differ
+    def forward(self, x, concentrations=None):  # pylint: disable=arguments-differ
         """Compose data --> latent --> output."""
-        if self.concentrations:
-            conc = x[:, -1]
-            return self.from_latent_to_output(self.to_latent(x), conc)
-        # else
-        return self.from_latent_to_output(self.to_latent(x))
+        return self.from_latent_to_output(self.to_latent(x), concentrations)
 
     def betas_with_grad(self):
         """Accessory method for retrieving beta coefficients."""
