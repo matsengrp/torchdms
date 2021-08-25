@@ -49,7 +49,7 @@ from torchdms.utils import (
 def json_provider(file_path, cmd_name):
     """Enable loading of flags from a JSON file via click_config_file."""
     if cmd_name:
-        with open(file_path) as config_data:
+        with open(file_path, encoding="UTF-8") as config_data:
             config_dict = json.load(config_data)
             if cmd_name not in config_dict:
                 if "default" in config_dict:

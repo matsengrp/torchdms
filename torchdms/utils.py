@@ -25,13 +25,13 @@ def to_pickle_file(obj, path):
 
 def from_json_file(path):
     """Load an object from a JSON file."""
-    with open(path, "r") as file:
+    with open(path, "r", encoding="UTF-8") as file:
         return json.load(file)
 
 
 def to_json_file(obj, path):
     """Write an object to a JSON file."""
-    with open(path, "w") as file:
+    with open(path, "w", encoding="UTF-8") as file:
         json.dump(obj, file, indent=4, sort_keys=True)
         file.write("\n")
 
