@@ -160,20 +160,19 @@ def test_zeroed_unseen_betas():
 
 def test_concentrations_stored():
     """Tests to make sure EscapeModel() is recieving concentration values as planned (tacking values on to end of encoding)."""
-
-    # Test if input size of model is 1 larger than it would be without
+    # Make sure the model's input size doesn't change
     assert (
         escape_model.input_size
-        == len(escape_model.alphabet) * len(escape_analysis.val_data.wtseq) + 1
+        == len(escape_model.alphabet) * len(escape_analysis.val_data.wtseq)
     )
-
-    # Ensure that model.concentrations is true.
+    # Ensure that concentrations are in dataframe
     assert "concentration" in escape_analysis.val_data.original_df.columns
+    # and the concentrations attribute is true...
+    assert escape_analysis.val_data.samples_concentrations is not None
 
 
 def test_escape_concentrations_forward():
     """Test to make sure concentrations aren't influencing betas in EscapeModel."""
-
     # Make sure beta_coefficients() only returns sequence indices.
     # The encoding for the polyclonal escape simulated data is 4221 slots.
     # We have 2 epitopes in the test model.
