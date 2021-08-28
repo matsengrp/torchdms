@@ -31,7 +31,7 @@ setup(
         "sphinx-click",
         "sphinx-rtd-theme",
         "statsmodels==0.12.1",
-        "torch==1.4.0",
+        "torch",
         "versioneer",
     ],
 )
