@@ -10,6 +10,7 @@ from torchdms.analysis import Analysis
 from torchdms.analysis import low_rank_approximation
 from torchdms.utils import (
     from_pickle_file,
+    parse_epitopes
 )
 from torchdms.loss import l1
 from torchdms.model import model_of_string
@@ -131,4 +132,27 @@ def test_escape_concentrations_forward():
     # Make sure beta_coefficients() only returns sequence indices.
     # The encoding for the polyclonal escape simulated data is 4221 slots.
     # We have 2 epitopes in the test model.
+    test_dict = {'1': ['1-5'], '2': ['10-15']}
+    all_indicies = np.arange(escape_model.input_size)
+    epitope_indicies = parse_epitopes(test_dict, escape_model.alphabet)
+
     assert escape_analysis.model.beta_coefficients().shape == (2, 4221)
+
+    escape_model.randomize_parameters()
+
+    # Jumble betas
+    not torch.allclose(escape_model.beta_coefficients(), torch.zeros_like(escape_model.beta_coefficients()))
+
+    # Now mask them.
+    escape_model.fix_gauge(escape_analysis.gauge_mask, epitope_indicies)
+
+    # Loop through epitopes.
+    for epitope_id, sites in test_dict.items():
+        latent_dim = int(epitope_id) - 1
+        zero_beta_indicies = torch.from_numpy(np.setxor1d(all_indicies, epitope_indicies[latent_dim].numpy()))
+        non_epitope_betas = escape_model.beta_coefficients()[latent_dim, zero_beta_indicies]
+        epitope_betas = escape_model.beta_coefficients()[latent_dim, epitope_indicies[latent_dim]]
+        # Check that all non-epitope betas are zero.
+        torch.allclose(non_epitope_betas, torch.zeros_like(non_epitope_betas))
+        # Check that the correct epitope was preserved.
+        not torch.allclose(epitope_betas, torch.zeros_like(epitope_betas))
