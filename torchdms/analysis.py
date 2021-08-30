@@ -12,6 +12,7 @@ from torchdms.utils import (
     get_mutation_indicies,
     get_observed_training_mutations,
     make_all_possible_mutations,
+    parse_epitopes
 )
 
 
@@ -50,6 +51,7 @@ class Analysis:
         model_path,
         val_data,
         train_data_list,
+        epitope_dict=None,
         batch_size=500,
         learning_rate=5e-3,
         device="cpu",
@@ -86,7 +88,8 @@ class Analysis:
             self.model.sequence_length * len(self.model.alphabet), dtype=torch.bool
         )
         self.gauge_mask[torch.cat((self.wt_idxs, self.unseen_idxs))] = 1
-        self.model.fix_gauge(self.gauge_mask)
+        self.epitope_mask = parse_epitopes(epitope_dict, self.model.alphabet)
+        self.model.fix_gauge(self.gauge_mask, self.epitope_mask)
 
     def loss_of_targets_and_prediction(
         self, loss_fn, targets, predictions, per_target_loss_decay
@@ -203,7 +206,7 @@ class Analysis:
                             param.data.clamp_(0)
 
                 optimizer.step()
-                self.model.fix_gauge(self.gauge_mask)
+                self.model.fix_gauge(self.gauge_mask, self.epitope_mask)
                 # if k >=1, reconstruct beta matricies with truncated SVD
                 if beta_rank is not None:
                     # procedure for 2D models.

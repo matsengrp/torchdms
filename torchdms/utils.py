@@ -236,6 +236,8 @@ def get_mutation_indicies(mutation_list, alphabet):
 
 def parse_epitopes(epitope_dict, alphabet):
     """Parse epitope dictionary and return beta indicies for given alphabet."""
+    if epitope_dict is None:
+        return None
     epitope_mask = []
 
     for sites in epitope_dict.values():
