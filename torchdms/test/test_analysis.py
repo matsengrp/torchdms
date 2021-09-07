@@ -114,6 +114,50 @@ def test_low_rank_approximation():
     assert torch.allclose(torch.from_numpy(approx_true), approx_est, rtol=0.001)
 
 
+def test_project_betas():
+    """Test to ensure we get an average value of -1 for non-WT betas."""
+    for latent_dim in range(analysis.model.latent_dim):
+        assert torch.mean(
+            analysis.model.beta_coefficients()[latent_dim, analysis.mutant_idxs]
+        ).item() == approx(-1)
+
+
+def test_zeroed_wt_betas():
+    """Test to ensure WT betas of a model are (and remain) 0."""
+    wt_idxs = analysis.val_data.wt_idxs
+    assert analysis.val_data.wtseq == "NIT"
+    # Assert that wt betas are 0 upon initializaiton.
+    for latent_dim in range(analysis.model.latent_dim):
+        for idx in wt_idxs:
+            assert analysis.model.beta_coefficients()[latent_dim, int(idx)] == 0
+
+    # Train model with analysis object for 1 epoch
+    analysis.train(**training_params)
+
+    # Assert that wt betas are still 0.
+    for latent_dim in range(analysis.model.latent_dim):
+        for idx in wt_idxs:
+            assert analysis.model.beta_coefficients()[latent_dim, int(idx)] == 0
+
+
+def test_zeroed_unseen_betas():
+    """Test to ensure unseen betas of a model are (and remain) 0."""
+    unseen_idxs = analysis.unseen_idxs
+    assert analysis.val_data.wtseq == "NIT"
+    # Assert that wt betas are 0 upon initializaiton.
+    for latent_dim in range(analysis.model.latent_dim):
+        for idx in unseen_idxs:
+            assert analysis.model.beta_coefficients()[latent_dim, int(idx)] == 0
+
+    # Train model with analysis object for 1 epoch
+    analysis.train(**training_params)
+
+    # Assert that wt betas are still 0.
+    for latent_dim in range(analysis.model.latent_dim):
+        for idx in unseen_idxs:
+            assert analysis.model.beta_coefficients()[latent_dim, int(idx)] == 0
+
+
 def test_concentrations_stored():
     """Tests to make sure EscapeModel() is recieving concentration values as planned (tacking values on to end of encoding)."""
     # Make sure the model's input size doesn't change
