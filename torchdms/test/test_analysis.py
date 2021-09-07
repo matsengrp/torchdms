@@ -168,14 +168,21 @@ def test_seq_to_binary():
     assert wtseq == "NIT"
 
     # Ground truth indicies for valid cases
-    wt_ground_truth = torch.zeros(len(wtseq) * len(analysis.model.alphabet))
-    mut_ground_truth = torch.zeros(len(wtseq) * len(analysis.model.alphabet))
+    wt_ground_truth = torch.zeros(len(wtseq) * len(analysis.model.alphabet)).type(
+        torch.FloatTensor
+    )
+    mut_ground_truth = torch.zeros(len(wtseq) * len(analysis.model.alphabet)).type(
+        torch.FloatTensor
+    )
     wt_ground_truth[analysis.wt_idxs] = 1.0
     mut_ground_truth[torch.tensor([11, 27, 58]).type(torch.LongTensor)] = 1.0
+    wt_test = analysis.model.seq_to_binary(wtseq)
+    mut_test = analysis.model.seq_to_binary(mutseq_valid)
 
     # Make sure translation works.
-    assert torch.allclose(wt_ground_truth, analysis.model.seq_to_binary(wtseq))
-    assert torch.allclose(mut_ground_truth, analysis.model.seq_to_binary(mutseq_valid))
+    assert torch.equal(wt_ground_truth, wt_test)
+    assert torch.equal(mut_ground_truth, mut_test)
+
 
 def test_concentrations_stored():
     """Tests to make sure EscapeModel() is recieving concentration values as planned (tacking values on to end of encoding)."""
