@@ -5,7 +5,6 @@ import torch
 from torchdms.utils import (
     cartesian_product,
     get_mutation_indicies,
-    parse_epitopes
 )
 
 
@@ -41,21 +40,3 @@ def test_get_mutation_indicies():
     unseen_muts = get_mutation_indicies(mutations, alphabet)
 
     assert torch.allclose(ground_truth, unseen_muts)
-
-
-def test_parse_epitopes():
-    """
-    Ensure linear and conformational epitopes are read properly.
-    """
-    # Epitope dicts for testing (hypothetical 10 site protein)
-    epitope_dict = {'1': ['1-3'], '2': ['5-8', '10-12']}
-    alphabet = set(range(5))
-    epitope_one = torch.arange(0,15).type(torch.LongTensor)
-    epitope_two = torch.cat((torch.arange(20, 40), torch.arange(45, 60))).type(torch.LongTensor)
-
-    # Parse epitope dicts to get beta indicies.
-    linear_idxs = parse_epitopes(epitope_dict, alphabet)
-
-    # Linear and conformational epitope tests
-    assert torch.allclose(linear_idxs[0], epitope_one)
-    assert torch.allclose(linear_idxs[1], epitope_two)

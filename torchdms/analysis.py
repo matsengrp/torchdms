@@ -12,7 +12,6 @@ from torchdms.utils import (
     get_mutation_indicies,
     get_observed_training_mutations,
     make_all_possible_mutations,
-    parse_epitopes
 )
 
 

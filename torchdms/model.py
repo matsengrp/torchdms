@@ -280,19 +280,11 @@ class EscapeModel(TorchdmsModel):
         penalty = self.beta_l1_coefficient * l1_penalty(self.betas_with_grad())
         return penalty
 
-    def fix_gauge(self, gauge_mask, epitope_mask=None):
+    def fix_gauge(self, gauge_mask):
         """Perform gauge-fixing procedure: zero WT betas and unseen
         mutaions."""
         # Zero WT and unseen betas.
         self.beta_coefficients()[:, gauge_mask] = 0
-        # Mask epitopes. epitope_mask should be a list of tensors.
-        if epitope_mask is not None:
-            assert len(epitope_mask) == self.num_epitopes, "Number of model epitopes does not match defined epitopes in mask."
-            all_indicies = np.arange(0, self.input_size)
-
-            for epitope, _ in enumerate(epitope_mask):
-                mask_betas = torch.from_numpy(np.setxor1d(epitope_mask[epitope].numpy(), all_indicies)).type(torch.LongTensor)
-                self.beta_coefficients()[epitope, mask_betas] = 0
 
 
 class FullyConnected(TorchdmsModel):
