@@ -399,7 +399,7 @@ def create(
     required=False,
     type=click.Path(exists=True),
     default=None,
-    help="Path to .JSON file containing both epitope numbers and site numbers. ",
+    help="Path to .JSON file containing both epitope numbers and site numbers. "
 )
 @dry_run_option
 @seed_option
@@ -422,7 +422,7 @@ def train(
     dry_run,
     seed,
     beta_rank,
-    epitope_path,
+    epitope_path
 ):
     """Train a model, saving trained model to original location."""
     if dry_run:
@@ -436,7 +436,7 @@ def train(
     epitope_dict = None
     if epitope_path is not None:
         try:
-            epitope_dict = from_json_file(epitope_path)["epitopes"]
+            epitope_dict = from_json_file(epitope_path)['epitopes']
         except FileNotFoundError:
             print(f"Could not find epitopes path {epitope_path}.")
 
