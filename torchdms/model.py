@@ -287,15 +287,11 @@ class EscapeModel(TorchdmsModel):
         self.beta_coefficients()[:, gauge_mask] = 0
         # Mask epitopes. epitope_mask should be a list of tensors.
         if epitope_mask is not None:
-            assert (
-                len(epitope_mask) == self.num_epitopes
-            ), "Number of model epitopes does not match defined epitopes in mask."
+            assert len(epitope_mask) == self.num_epitopes, "Number of model epitopes does not match defined epitopes in mask."
             all_indicies = np.arange(0, self.input_size)
 
             for epitope, _ in enumerate(epitope_mask):
-                mask_betas = torch.from_numpy(
-                    np.setxor1d(epitope_mask[epitope].numpy(), all_indicies)
-                ).type(torch.LongTensor)
+                mask_betas = torch.from_numpy(np.setxor1d(epitope_mask[epitope].numpy(), all_indicies)).type(torch.LongTensor)
                 self.beta_coefficients()[epitope, mask_betas] = 0
 
 

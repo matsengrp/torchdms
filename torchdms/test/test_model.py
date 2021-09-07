@@ -140,21 +140,17 @@ def test_zeroed_unseen_betas():
 
 
 def test_epitope_mask():
-    """Ensure that a provided EscapeModel epitope mask works as expected."""
+    """Ensure that a provided EscapeModel epitope mask works as expected. """
     # When epitope masking, a few things to keep in mind:
     # 1. The procedure is performed during EscapeModel's fix_gauge() call.
     # 2. The easiest way to pass in an epitope mask is with a dictionary of sites.
     # 3. The number of epitopes provided must match the number of epitopes in model_string.
     # 4. For each epitope provided, make sure sites not-included are set to zero.
-    epitope_dict = {"1": ["1-10"], "2": ["50-60", "70-80"]}
+    epitope_dict = {'1': ['1-10'], '2': ['50-60', '70-80']}
     all_indicies = np.arange(0, escape_model.input_size)
 
-    epitope_one = parse_epitopes(epitope_dict, escape_model.alphabet)[0].type(
-        torch.LongTensor
-    )
-    epi_one_betas = torch.index_select(
-        escape_model.beta_coefficients()[0], 0, epitope_one
-    )
+    epitope_one = parse_epitopes(epitope_dict, escape_model.alphabet)[0].type(torch.LongTensor)
+    epi_one_betas = torch.index_select(escape_model.beta_coefficients()[0], 0, epitope_one)
     # Assign random values to betas (or just set them all to something like 10)
     # Assert that the below test is false (epitopes have not been masked)
     # Call fix_gauge()
@@ -163,19 +159,10 @@ def test_epitope_mask():
 
     for i in range(escape_model.num_epitopes):
         # Grab the epitope indicies
-        epitope = parse_epitopes(epitope_dict, escape_model.alphabet)[i].type(
-            torch.LongTensor
-        )
+        epitope = parse_epitopes(epitope_dict, escape_model.alphabet)[i].type(torch.LongTensor)
         # Get indicies of betas that should be zero for this epitope.
         zero_betas = torch.from_numpy(np.setxor1d(epitope.numpy(), all_indicies))
         # Make sure that these betas are actually 0.
-        escape_model.beta_coefficients()[i] = torch.FloatTensor(
-            1, escape_model.input_size
-        ).uniform_(1, 5)
-        non_epitope_betas = torch.index_select(
-            escape_model.beta_coefficients()[i], 0, zero_betas
-        )
-        torch.allclose(
-            non_epitope_betas.type(torch.LongTensor),
-            torch.ones(len(zero_betas)).type(torch.LongTensor),
-        )
+        escape_model.beta_coefficients()[i] = torch.FloatTensor(1, escape_model.input_size).uniform_(1,5)
+        non_epitope_betas = torch.index_select(escape_model.beta_coefficients()[i], 0, zero_betas)
+        torch.allclose(non_epitope_betas.type(torch.LongTensor), torch.ones(len(zero_betas)).type(torch.LongTensor))
