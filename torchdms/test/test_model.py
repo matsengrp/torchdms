@@ -1,13 +1,11 @@
 """
 Testing for methods in model.py
 """
-import numpy as np
 import torch
 import os
 import pkg_resources
 from pytest import approx
 from torchdms.analysis import Analysis
-from torchdms.analysis import low_rank_approximation
 from torchdms.utils import (
     from_pickle_file,
     parse_epitopes_tensor,
