@@ -143,7 +143,7 @@ def test_escape_concentrations_forward():
     )
 
     # Now mask them.
-    escape_model.fix_gauge(escape_analysis.gauge_mask, epitope_indicies)
+    escape_model.fix_gauge(escape_analysis.gauge_mask)
 
     # Loop through epitopes.
     for epitope_id, sites in test_dict.items():
