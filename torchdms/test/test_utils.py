@@ -2,7 +2,7 @@
 Testing for utils.py.
 """
 import torch
-from torchdms.utils import cartesian_product, get_mutation_indicies, parse_epitopes
+from torchdms.utils import cartesian_product, get_mutation_indicies, parse_epitopes, parse_epitopes_tensor
 
 
 def test_cartesian_product():
@@ -57,3 +57,25 @@ def test_parse_epitopes():
     # Linear and conformational epitope tests
     assert torch.allclose(linear_idxs[0], epitope_one)
     assert torch.allclose(linear_idxs[1], epitope_two)
+
+
+def test_parse_epitopes_tensor():
+    """
+    Ensure linear and conformational epitopes are read properly.
+    """
+    # Epitope dicts for testing (hypothetical 15 site protein)
+    epitope_dict = {"1": ["1-3"], "2": ["5-8", "10-12"]}
+    alphabet = set(range(5)) # mini alphabet for easy mental calculations.
+    beta_dim = len(alphabet) * 15
+    epitope_one_ground_truth = torch.ones(beta_dim, dtype = torch.bool)
+    epitope_two_ground_truth = torch.ones(beta_dim, dtype = torch.bool)
+    # Epitope one will have zeros from idx 0:14
+    epitope_one_ground_truth[0:14] = 0
+    # Epitope two will have zeros from 20:39, 45:59
+    epitope_two_ground_truth[20:39] = 0
+    epitope_two_ground_truth[45:59] = 0
+
+    epitope_mask = torch.cat((epitope_one_ground_truth, epitope_two_ground_truth)).reshape(beta_dim, 2)
+
+    parse_epitopes_output = parse_epitopes_tensor(epitope_dict, beta_dim, alphabet)
+    torch.equal(epitope_mask, parse_epitopes_output)
