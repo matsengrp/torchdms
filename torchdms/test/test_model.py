@@ -10,7 +10,7 @@ from torchdms.analysis import Analysis
 from torchdms.analysis import low_rank_approximation
 from torchdms.utils import (
     from_pickle_file,
-    parse_epitopes,
+    parse_epitopes_tensor,
 )
 from torchdms.loss import l1
 from torchdms.model import model_of_string
@@ -147,35 +147,18 @@ def test_epitope_mask():
     # 3. The number of epitopes provided must match the number of epitopes in model_string.
     # 4. For each epitope provided, make sure sites not-included are set to zero.
     epitope_dict = {"1": ["1-10"], "2": ["50-60", "70-80"]}
-    all_indicies = np.arange(0, escape_model.input_size)
 
-    epitope_one = parse_epitopes(epitope_dict, escape_model.alphabet)[0].type(
-        torch.LongTensor
-    )
-    epi_one_betas = torch.index_select(
-        escape_model.beta_coefficients()[0], 0, epitope_one
-    )
-    # Assign random values to betas (or just set them all to something like 10)
-    # Assert that the below test is false (epitopes have not been masked)
-    # Call fix_gauge()
-    # Assert that the test now passes
-    # escape_model.fix_gauge(escape_analysis.gauge_mask, parse_epitopes(epitope_dict, escape_model.alphabet))
+    epitopes = parse_epitopes_tensor(epitope_dict, escape_model.input_size, escape_model.alphabet)
 
-    for i in range(escape_model.num_epitopes):
-        # Grab the epitope indicies
-        epitope = parse_epitopes(epitope_dict, escape_model.alphabet)[i].type(
-            torch.LongTensor
-        )
-        # Get indicies of betas that should be zero for this epitope.
-        zero_betas = torch.from_numpy(np.setxor1d(epitope.numpy(), all_indicies))
-        # Make sure that these betas are actually 0.
-        escape_model.beta_coefficients()[i] = torch.FloatTensor(
-            1, escape_model.input_size
-        ).uniform_(1, 5)
-        non_epitope_betas = torch.index_select(
-            escape_model.beta_coefficients()[i], 0, zero_betas
-        )
-        torch.allclose(
-            non_epitope_betas.type(torch.LongTensor),
-            torch.ones(len(zero_betas)).type(torch.LongTensor),
-        )
+    for i in range(epitopes.shape[1]):
+        # Get column for epitope.
+        epitope_mask = epitopes[:, i]
+
+        # Grab beta indicies that should be zero according to this epitope.
+        test_betas = escape_model.beta_coefficients()[i, epitope_mask]
+        non_epi_betas = escape_model.beta_coefficients()[i, ~epitope_mask]
+        # Assert that all of the model betas are zero.
+        torch.equal(test_betas, torch.zeros_like(test_betas))
+
+        # Assert that all of the epitope betas aren't zero.
+        assert not torch.equal(non_epi_betas, torch.zeros_like(non_epi_betas))

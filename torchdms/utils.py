@@ -253,13 +253,14 @@ def parse_epitopes(epitope_dict, alphabet):
 
     return epitope_mask
 
+
 def parse_epitopes_tensor(epitope_dict, input_size, alphabet):
     """Parse epitope dictionary and return matrix of beta indicies to be zeroed. """
     if epitope_dict is None:
         return None
     pass
 
-    epitope_mask = torch.ones((input_size, len(epitope_dict.keys())), dtype = torch.bool)
+    epitope_mask = torch.ones((input_size, len(epitope_dict.keys())), dtype=torch.bool)
     add_col = 0
     for sites in epitope_dict.values():
         epitope_idx = []
