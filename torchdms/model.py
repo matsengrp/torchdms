@@ -56,7 +56,7 @@ class TorchdmsModel(nn.Module):
         pass
 
     @abstractmethod
-    def fix_gauge(self, gauge_mask, epitope_mask=None):
+    def fix_gauge(self, gauge_mask):
         """Perform gauge-fixing procedure: zero WT betas and unseen mutaions,
         and project mutant betas to hyperplane."""
 
@@ -181,7 +181,7 @@ class LinearModel(TorchdmsModel):
     def to_latent(self, x):
         return self.forward(x)
 
-    def fix_gauge(self, gauge_mask, epitope_mask=None):
+    def fix_gauge(self, gauge_mask):
         """Perform gauge-fixing procedure: zero WT betas and unseen mutaions,
         and project mutant betas to hyperplane."""
 
@@ -422,7 +422,7 @@ class FullyConnected(TorchdmsModel):
         # else:
         return dims[self.latent_idx]
 
-    def fix_gauge(self, gauge_mask, epitope_mask=None):
+    def fix_gauge(self, gauge_mask):
         """Perform gauge-fixing procedure: gauge mask is 1 hot for values that
         must be set to zero."""
         # zero WT and unseen betas
@@ -632,7 +632,7 @@ class Independent(TorchdmsModel):
             + self.model_stab.regularization_loss()
         )
 
-    def fix_gauge(self, gauge_mask, epitope_mask=None):
+    def fix_gauge(self, gauge_mask):
         """Perform gauge-fixing procedure: zero WT betas and unseen mutaions,
         and project mutant betas to hyperplane."""
         self.model_bind.fix_gauge(gauge_mask)
