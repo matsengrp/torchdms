@@ -88,9 +88,13 @@ class Analysis:
             self.model.sequence_length * len(self.model.alphabet), dtype=torch.bool
         )
         self.gauge_mask[torch.cat((self.wt_idxs, self.unseen_idxs))] = 1
-        self.epitope_mask = parse_epitopes_tensor(epitope_dict, self.model.input_size, self.model.alphabet)
-        if self.epitope_mask is not None and hasattr(self.model, 'num_epitopes'):
-            self.gauge_mask = torch.cat([self.gauge_mask.reshape(-1,1), self.epitope_mask], dim=1)
+        self.epitope_mask = parse_epitopes_tensor(
+            epitope_dict, self.model.input_size, self.model.alphabet
+        )
+        if self.epitope_mask is not None and hasattr(self.model, "num_epitopes"):
+            self.gauge_mask = torch.cat(
+                [self.gauge_mask.reshape(-1, 1), self.epitope_mask], dim=1
+            )
         self.model.fix_gauge(self.gauge_mask)
 
     def loss_of_targets_and_prediction(

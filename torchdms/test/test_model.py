@@ -146,7 +146,9 @@ def test_epitope_mask():
     # 4. For each epitope provided, make sure sites not-included are set to zero.
     epitope_dict = {"1": ["1-10"], "2": ["50-60", "70-80"]}
 
-    epitopes = parse_epitopes_tensor(epitope_dict, escape_model.input_size, escape_model.alphabet)
+    epitopes = parse_epitopes_tensor(
+        epitope_dict, escape_model.input_size, escape_model.alphabet
+    )
 
     for i in range(epitopes.shape[1]):
         # Get column for epitope.

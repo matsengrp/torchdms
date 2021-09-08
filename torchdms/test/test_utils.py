@@ -2,7 +2,12 @@
 Testing for utils.py.
 """
 import torch
-from torchdms.utils import cartesian_product, get_mutation_indicies, parse_epitopes, parse_epitopes_tensor
+from torchdms.utils import (
+    cartesian_product,
+    get_mutation_indicies,
+    parse_epitopes,
+    parse_epitopes_tensor,
+)
 
 
 def test_cartesian_product():
@@ -76,7 +81,9 @@ def test_parse_epitopes_tensor():
     epitope_two_ground_truth[20:39] = 0
     epitope_two_ground_truth[45:59] = 0
 
-    epitope_mask = torch.cat((epitope_one_ground_truth, epitope_two_ground_truth)).reshape(beta_dim, 2)
+    epitope_mask = torch.cat(
+        (epitope_one_ground_truth, epitope_two_ground_truth)
+    ).reshape(beta_dim, 2)
 
     parse_epitopes_output = parse_epitopes_tensor(epitope_dict, beta_dim, alphabet)
     torch.equal(epitope_mask, parse_epitopes_output)

@@ -255,7 +255,8 @@ def parse_epitopes(epitope_dict, alphabet):
 
 
 def parse_epitopes_tensor(epitope_dict, input_size, alphabet):
-    """Parse epitope dictionary and return matrix of beta indicies to be zeroed. """
+    """Parse epitope dictionary and return matrix of beta indicies to be
+    zeroed."""
     if epitope_dict is None:
         return None
 
