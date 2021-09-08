@@ -89,7 +89,7 @@ class Analysis:
         )
         self.gauge_mask[torch.cat((self.wt_idxs, self.unseen_idxs))] = 1
         self.epitope_mask = parse_epitopes(epitope_dict, self.model.alphabet)
-        self.model.fix_gauge(self.gauge_mask, self.epitope_mask)
+        self.model.fix_gauge(self.gauge_mask)
 
     def loss_of_targets_and_prediction(
         self, loss_fn, targets, predictions, per_target_loss_decay
@@ -206,7 +206,7 @@ class Analysis:
                             param.data.clamp_(0)
 
                 optimizer.step()
-                self.model.fix_gauge(self.gauge_mask, self.epitope_mask)
+                self.model.fix_gauge(self.gauge_mask)
                 # if k >=1, reconstruct beta matricies with truncated SVD
                 if beta_rank is not None:
                     # procedure for 2D models.
