@@ -12,7 +12,7 @@ from torchdms.utils import (
     get_mutation_indicies,
     get_observed_training_mutations,
     make_all_possible_mutations,
-    parse_epitopes_tensor,
+    parse_epitopes,
 )
 
 
@@ -84,13 +84,8 @@ class Analysis:
             make_all_possible_mutations(val_data).difference(self.training_mutations),
             self.model.alphabet,
         ).type(torch.LongTensor)
-        self.gauge_mask = torch.zeros(
-            self.model.sequence_length * len(self.model.alphabet), dtype=torch.bool
-        )
-        self.gauge_mask[torch.cat((self.wt_idxs, self.unseen_idxs))] = 1
-        self.epitope_mask = parse_epitopes_tensor(epitope_dict, self.model.input_size, self.model.alphabet)
-        if self.epitope_mask is not None and hasattr(self.model, 'num_epitopes'):
-            self.gauge_mask = torch.cat([self.gauge_mask.reshape(-1,1), self.epitope_mask], dim=1)
+        self.gauge_mask = parse_epitopes(epitope_dict, self.model)
+        self.gauge_mask[:, torch.cat((self.wt_idxs, self.unseen_idxs))] = 1
         self.model.fix_gauge(self.gauge_mask)
 
     def loss_of_targets_and_prediction(
