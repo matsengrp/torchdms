@@ -8,7 +8,7 @@ from pytest import approx
 from torchdms.analysis import Analysis
 from torchdms.utils import (
     from_pickle_file,
-    parse_epitopes_tensor,
+    parse_epitopes
 )
 from torchdms.loss import l1
 from torchdms.model import model_of_string
@@ -135,30 +135,3 @@ def test_zeroed_unseen_betas():
     for latent_dim in range(analysis.model.latent_dim):
         for idx in unseen_idxs:
             assert analysis.model.beta_coefficients()[latent_dim, int(idx)] == 0
-
-
-def test_epitope_mask():
-    """Ensure that a provided EscapeModel epitope mask works as expected."""
-    # When epitope masking, a few things to keep in mind:
-    # 1. The procedure is performed during EscapeModel's fix_gauge() call.
-    # 2. The easiest way to pass in an epitope mask is with a dictionary of sites.
-    # 3. The number of epitopes provided must match the number of epitopes in model_string.
-    # 4. For each epitope provided, make sure sites not-included are set to zero.
-    epitope_dict = {"1": ["1-10"], "2": ["50-60", "70-80"]}
-
-    epitopes = parse_epitopes_tensor(
-        epitope_dict, escape_model.input_size, escape_model.alphabet
-    )
-
-    for i in range(epitopes.shape[1]):
-        # Get column for epitope.
-        epitope_mask = epitopes[:, i]
-
-        # Grab beta indicies that should be zero according to this epitope.
-        test_betas = escape_model.beta_coefficients()[i, epitope_mask]
-        non_epi_betas = escape_model.beta_coefficients()[i, ~epitope_mask]
-        # Assert that all of the model betas are zero.
-        torch.equal(test_betas, torch.zeros_like(test_betas))
-
-        # Assert that all of the epitope betas aren't zero.
-        assert not torch.equal(non_epi_betas, torch.zeros_like(non_epi_betas))
