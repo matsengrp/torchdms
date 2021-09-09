@@ -225,12 +225,6 @@ class EscapeModel(TorchdmsModel):
     def str_summary(self):
         return "Escape"
 
-    def wt_activity(self):
-        """Returns wildtype activity of an epitope."""
-        return torch.cat(
-            [getattr(self, f"wt_activity_epi{i}") for i in range(self.num_epitopes)]
-        )
-
     def to_latent(self, x):
         """input features -> latent space."""
         return torch.cat(
@@ -248,10 +242,10 @@ class EscapeModel(TorchdmsModel):
         if concentrations is not None:
             concentrations = concentrations.unsqueeze(1)
             b_fractions = torch.sigmoid(
-                (x + self.wt_activity()) - torch.log(concentrations)
+                (x + torch.cat([getattr(self, f"wt_activity_epi{i}") for i in range(self.num_epitopes)])) - torch.log(concentrations)
             )
         else:
-            b_fractions = torch.sigmoid(x + self.wt_activity())
+            b_fractions = torch.sigmoid(x + torch.cat([getattr(self, f"wt_activity_epi{i}") for i in range(self.num_epitopes)]))
         b_fractions = torch.sigmoid(x)
         return torch.unsqueeze(torch.prod(b_fractions, 1), 1)
 
@@ -283,14 +277,7 @@ class EscapeModel(TorchdmsModel):
     def fix_gauge(self, gauge_mask):
         """Perform gauge-fixing procedure: zero WT betas and unseen
         mutaions."""
-        # Check to see if epitope_mask is only one column (no-epitope info)
-        if len(gauge_mask.shape) == 1:
-            # Zero WT and unseen betas.
-            self.beta_coefficients()[:, gauge_mask] = 0
-        else:
-            # Zero betas for WT and unseen (col 1) and epitopes (rest of cols)
-            for col in range(gauge_mask.shape[1]):
-                self.beta_coefficients()[:, gauge_mask[:, col]] = 0
+        self.beta_coefficients()[gauge_mask] = 0
 
 
 class FullyConnected(TorchdmsModel):
@@ -420,11 +407,11 @@ class FullyConnected(TorchdmsModel):
         """Perform gauge-fixing procedure: gauge mask is 1 hot for values that
         must be set to zero."""
         # zero WT and unseen betas
-        self.beta_coefficients()[:, gauge_mask] = 0
+        self.beta_coefficients()[gauge_mask] = 0
         # project mutant betas
         for latent_dim in range(self.latent_dim):
-            beta_vec = self.beta_coefficients()[latent_dim, ~gauge_mask]
-            self.beta_coefficients()[latent_dim, ~gauge_mask] = (
+            beta_vec = self.beta_coefficients()[latent_dim, ~gauge_mask[0]]
+            self.beta_coefficients()[latent_dim, ~gauge_mask[0]] = (
                 beta_vec - beta_vec.sum() / beta_vec.shape[0] - 1
             )
 
