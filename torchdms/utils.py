@@ -234,43 +234,23 @@ def get_mutation_indicies(mutation_list, alphabet):
     return torch.Tensor(indicies).type(torch.long)
 
 
-def parse_epitopes(epitope_dict, alphabet):
+def parse_epitopes(epitope_dict, model):
     """Parse epitope dictionary and return beta indicies for given alphabet."""
     if epitope_dict is None:
-        return None
-    epitope_mask = []
-
+        # Nothing will need to be zeroed, return matrix of 'False'
+        return torch.zeros_like(model.beta_coefficients(), dtype=torch.bool)
+    # Assume everything will be set to zero, and set epitope indicies to 'False'
+    epitope_mask = torch.ones_like(model.beta_coefficients(), dtype=torch.bool)
+    epitope_id = 0
     for sites in epitope_dict.values():
         epitope_idx = []
         for chunk in sites:
             site_1 = int(chunk.split("-")[0])
             site_2 = int(chunk.split("-")[1])
-            start = (site_1 - 1) * len(alphabet)
-            end = start + (site_2 - site_1 + 1) * len(alphabet)
+            start = (site_1 - 1) * len(model.alphabet)
+            end = start + (site_2 - site_1 + 1) * len(model.alphabet)
             epitope_idx.append(list(range(start, end)))
         epitope_idx = [y for x in epitope_idx for y in x]
-        epitope_mask.append(torch.Tensor(epitope_idx).type(torch.LongTensor))
-
-    return epitope_mask
-
-
-def parse_epitopes_tensor(epitope_dict, input_size, alphabet):
-    """Parse epitope dictionary and return matrix of beta indicies to be zeroed. """
-    if epitope_dict is None:
-        return None
-
-    epitope_mask = torch.ones((input_size, len(epitope_dict.keys())), dtype=torch.bool)
-    add_col = 0
-    for sites in epitope_dict.values():
-        epitope_idx = []
-        for chunk in sites:
-            site_1 = int(chunk.split("-")[0])
-            site_2 = int(chunk.split("-")[1])
-            start = (site_1 - 1) * len(alphabet)
-            end = start + (site_2 - site_1 + 1) * len(alphabet)
-            epitope_idx.append(list(range(start, end)))
-        epitope_idx = [y for x in epitope_idx for y in x]
-        epitope_mask[epitope_idx, add_col] = 0
-        add_col += 1
+        epitope_mask[epitope_id, epitope_idx] = 0
 
     return epitope_mask
