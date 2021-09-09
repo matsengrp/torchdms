@@ -49,7 +49,9 @@ def test_parse_epitopes():
     # mini alphabet for easy mental calculations.
     alphabet = set(range(5))
     beta_dim = len(alphabet) * 15
-    model = torchdms.model.EscapeModel(input_size=beta_dim, target_names=[], alphabet=alphabet, num_epitopes=2)
+    model = torchdms.model.EscapeModel(
+        input_size=beta_dim, target_names=[], alphabet=alphabet, num_epitopes=2
+    )
     epitope_one_ground_truth = torch.ones(beta_dim, dtype=torch.bool)
     epitope_two_ground_truth = torch.ones(beta_dim, dtype=torch.bool)
     # Epitope one will have zeros from idx 0:14
