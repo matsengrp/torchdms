@@ -58,7 +58,9 @@ def test_parse_epitopes():
     epitope_two_ground_truth[20:39] = 0
     epitope_two_ground_truth[45:59] = 0
 
-    epitope_mask = torch.cat((epitope_one_ground_truth, epitope_two_ground_truth)).reshape(beta_dim, 2)
+    epitope_mask = torch.cat(
+        (epitope_one_ground_truth, epitope_two_ground_truth)
+    ).reshape(beta_dim, 2)
 
     parse_epitopes_output = parse_epitopes(epitope_dict, model)
     torch.equal(epitope_mask, parse_epitopes_output)
