@@ -239,30 +239,7 @@ class EscapeModel(TorchdmsModel):
         self, x, concentrations=None
     ):  # pylint: disable=no-self-use
         """latent space in as 'x' -> escape fraction."""
-        if concentrations is not None:
-            concentrations = concentrations.unsqueeze(1)
-            b_fractions = torch.sigmoid(
-                (
-                    x
-                    + torch.cat(
-                        [
-                            getattr(self, f"wt_activity_epi{i}")
-                            for i in range(self.num_epitopes)
-                        ]
-                    )
-                )
-                - torch.log(concentrations)
-            )
-        else:
-            b_fractions = torch.sigmoid(
-                x
-                + torch.cat(
-                    [
-                        getattr(self, f"wt_activity_epi{i}")
-                        for i in range(self.num_epitopes)
-                    ]
-                )
-            )
+        b_fractions = torch.sigmoid(x + torch.cat([getattr(self, f"wt_activity_epi{i}") for i in range(self.num_epitopes)]) - (0 if concentrations is None else torch.log(concentrations.unsqueeze(1))))
         b_fractions = torch.sigmoid(x)
         return torch.unsqueeze(torch.prod(b_fractions, 1), 1)
 
