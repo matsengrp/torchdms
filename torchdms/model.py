@@ -40,7 +40,8 @@ class TorchdmsModel(nn.Module):
         pass
 
     @abstractmethod
-    def forward(self, x):  # pylint: disable=arguments-differ
+    def forward(self, x, **kwargs):  # pylint: disable=arguments-differ
+        # pylint: disable=unused-argument
         pass
 
     @abstractmethod
@@ -169,7 +170,7 @@ class LinearModel(TorchdmsModel):
     def characteristics(self):
         return {}
 
-    def forward(self, x):  # pylint: disable=arguments-differ
+    def forward(self, x, **kwargs):  # pylint: disable=arguments-differ
         return self.layer(x)
 
     def regularization_loss(self):
@@ -467,7 +468,7 @@ class FullyConnected(TorchdmsModel):
             out *= self.monotonic_sign
         return out
 
-    def forward(self, x):  # pylint: disable=arguments-differ
+    def forward(self, x, **kwargs):  # pylint: disable=unused-argument
         """Compose data --> latent --> output."""
         return self.from_latent_to_output(self.to_latent(x))
 
@@ -593,7 +594,7 @@ class Independent(TorchdmsModel):
             (self.model_bind.to_latent(x), self.model_stab.to_latent(x)), 1
         )
 
-    def forward(self, x):  # pylint: disable=arguments-differ
+    def forward(self, x, **kwargs):  # pylint: disable=unused-argument
         return self.from_latent_to_output(self.to_latent(x))
 
     def beta_coefficients(self):
