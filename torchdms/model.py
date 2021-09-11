@@ -252,7 +252,9 @@ class EscapeModel(TorchdmsModel):
 
     def forward(self, x, **kwargs):  # pylint: disable=arguments-differ
         """Compose data --> latent --> output."""
-        return self.from_latent_to_output(self.to_latent(x), kwargs.get('concentrations'))
+        return self.from_latent_to_output(
+            self.to_latent(x), kwargs.get("concentrations")
+        )
 
     def betas_with_grad(self):
         """Accessory method for retrieving beta coefficients."""
