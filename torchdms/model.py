@@ -169,7 +169,7 @@ class LinearModel(TorchdmsModel):
     def characteristics(self):
         return {}
 
-    def forward(self, x):  # pylint: disable=arguments-differ
+    def forward(self, x, **kwargs):  # pylint: disable=arguments-differ
         return self.layer(x)
 
     def regularization_loss(self):
@@ -255,9 +255,9 @@ class EscapeModel(TorchdmsModel):
         b_fractions = torch.sigmoid(x)
         return torch.unsqueeze(torch.prod(b_fractions, 1), 1)
 
-    def forward(self, x, concentrations=None):  # pylint: disable=arguments-differ
+    def forward(self, x, **kwargs):  # pylint: disable=arguments-differ
         """Compose data --> latent --> output."""
-        return self.from_latent_to_output(self.to_latent(x), concentrations)
+        return self.from_latent_to_output(self.to_latent(x), kwargs.get('concentrations'))
 
     def betas_with_grad(self):
         """Accessory method for retrieving beta coefficients."""
@@ -474,7 +474,7 @@ class FullyConnected(TorchdmsModel):
             out *= self.monotonic_sign
         return out
 
-    def forward(self, x):  # pylint: disable=arguments-differ
+    def forward(self, x, **kwargs):  # pylint: disable=arguments-differ
         """Compose data --> latent --> output."""
         return self.from_latent_to_output(self.to_latent(x))
 
@@ -600,7 +600,7 @@ class Independent(TorchdmsModel):
             (self.model_bind.to_latent(x), self.model_stab.to_latent(x)), 1
         )
 
-    def forward(self, x):  # pylint: disable=arguments-differ
+    def forward(self, x, **kwargs):  # pylint: disable=arguments-differ
         return self.from_latent_to_output(self.to_latent(x))
 
     def beta_coefficients(self):
