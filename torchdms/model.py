@@ -250,9 +250,9 @@ class EscapeModel(TorchdmsModel):
         b_fractions = torch.sigmoid(x)
         return torch.unsqueeze(torch.prod(b_fractions, 1), 1)
 
-    def forward(self, x, concentrations=None):  # pylint: disable=arguments-differ
+    def forward(self, x, **kwargs):  # pylint: disable=arguments-differ
         """Compose data --> latent --> output."""
-        return self.from_latent_to_output(self.to_latent(x), concentrations)
+        return self.from_latent_to_output(self.to_latent(x), kwargs.get('concentrations'))
 
     def betas_with_grad(self):
         """Accessory method for retrieving beta coefficients."""
