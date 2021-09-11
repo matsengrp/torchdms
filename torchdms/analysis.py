@@ -181,11 +181,9 @@ class Analysis:
 
                     batch = next(train_infinite_loader)
                     samples = batch["samples"].to(self.device)
-                    if self.val_data.samples_concentrations is not None:
-                        concentrations = batch["concentrations"].to(self.device)
-                        predictions = self.model(samples, concentrations)
-                    else:
-                        predictions = self.model(samples)
+                    concentrations = None if self.val_data.samples_concentrations is None else batch["concentrations"].to(self.device)
+                    forward_args = {'concentrations': concentrations}
+                    predictions = self.model(samples, **forward_args)
                     loss = self.complete_loss(
                         loss_fn, batch["targets"], predictions, per_stratum_loss_decays
                     )
