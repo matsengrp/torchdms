@@ -12,7 +12,7 @@ from torchdms.utils import (
     get_mutation_indicies,
     get_observed_training_mutations,
     make_all_possible_mutations,
-    parse_sites
+    parse_sites,
 )
 
 
@@ -84,7 +84,11 @@ class Analysis:
             make_all_possible_mutations(val_data).difference(self.training_mutations),
             self.model.alphabet,
         ).type(torch.LongTensor)
-        self.gauge_mask = torch.zeros_like(model.beta_coefficients(), dtype=torch.bool) if site_dict is None else parse_sites(site_dict, self.model)
+        self.gauge_mask = (
+            torch.zeros_like(model.beta_coefficients(), dtype=torch.bool)
+            if site_dict is None
+            else parse_sites(site_dict, self.model)
+        )
         self.gauge_mask[:, torch.cat((self.wt_idxs, self.unseen_idxs))] = 1
         self.model.fix_gauge(self.gauge_mask)
 

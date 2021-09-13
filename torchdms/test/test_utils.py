@@ -50,7 +50,7 @@ def test_parse_sites():
     alphabet = set(range(5))
     beta_dim = len(alphabet) * 15
     model = torchdms.model.EscapeModel(
-        input_size=beta_dim, target_names=[], alphabet=alphabet, num_sites=2
+        input_size=beta_dim, target_names=[], alphabet=alphabet, num_epitopes=2
     )
     site_one_ground_truth = torch.ones(beta_dim, dtype=torch.bool)
     site_two_ground_truth = torch.ones(beta_dim, dtype=torch.bool)
@@ -60,9 +60,9 @@ def test_parse_sites():
     site_two_ground_truth[20:39] = 0
     site_two_ground_truth[45:59] = 0
 
-    site_mask = torch.cat(
-        (site_one_ground_truth, site_two_ground_truth)
-    ).reshape(beta_dim, 2)
+    site_mask = torch.cat((site_one_ground_truth, site_two_ground_truth)).reshape(
+        beta_dim, 2
+    )
 
     parse_sites_output = parse_sites(site_dict, model)
     torch.equal(site_mask, parse_sites_output)
