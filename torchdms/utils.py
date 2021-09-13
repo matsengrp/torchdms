@@ -234,23 +234,20 @@ def get_mutation_indicies(mutation_list, alphabet):
     return torch.Tensor(indicies).type(torch.long)
 
 
-def parse_epitopes(epitope_dict, model):
-    """Parse epitope dictionary and return beta indicies for given alphabet."""
-    if epitope_dict is None:
-        # Nothing will need to be zeroed, return matrix of 'False'
-        return torch.zeros_like(model.beta_coefficients(), dtype=torch.bool)
-    # Assume everything will be set to zero, and set epitope indicies to 'False'
-    epitope_mask = torch.ones_like(model.beta_coefficients(), dtype=torch.bool)
-    epitope_id = 0
-    for sites in epitope_dict.values():
-        epitope_idx = []
+def parse_sites(site_dict, model):
+    """Parse site dictionary and return beta indicies for given alphabet."""
+    # Assume everything will be set to zero, and set site indicies to 'False'
+    site_mask = torch.ones_like(model.beta_coefficients(), dtype=torch.bool)
+    site_id = 0
+    for sites in site_dict.values():
+        site_idx = []
         for chunk in sites:
             site_1 = int(chunk.split("-")[0])
             site_2 = int(chunk.split("-")[1])
             start = (site_1 - 1) * len(model.alphabet)
             end = start + (site_2 - site_1 + 1) * len(model.alphabet)
-            epitope_idx.append(list(range(start, end)))
-        epitope_idx = [y for x in epitope_idx for y in x]
-        epitope_mask[epitope_id, epitope_idx] = 0
+            site_idx.append(list(range(start, end)))
+        site_idx = [y for x in site_idx for y in x]
+        site_mask[site_id, site_idx] = 0
 
-    return epitope_mask
+    return site_mask

@@ -195,17 +195,17 @@ class EscapeModel(TorchdmsModel):
         input_size,
         target_names,
         alphabet,
-        num_epitopes,
+        num_sites,
         beta_l1_coefficient=0.0,
         monotonic_sign=False,  # pylint: disable=unused-argument
     ):
         super().__init__(input_size, target_names, alphabet)
 
         # set model attributes
-        self.num_epitopes = num_epitopes
+        self.num_sites = num_sites
         self.beta_l1_coefficient = beta_l1_coefficient
 
-        for i in range(self.num_epitopes):
+        for i in range(self.num_sites):
             setattr(self, f"latent_layer_epi{i}", nn.Linear(input_size, 1, bias=False))
             setattr(self, f"wt_activity_epi{i}", nn.Parameter(torch.zeros(1)))
 
@@ -214,14 +214,14 @@ class EscapeModel(TorchdmsModel):
         """Return salient characteristics of the model that aren't represented
         in the PyTorch description."""
         return {
-            "num_epitopes": self.num_epitopes,
+            "num_sites": self.num_sites,
             "beta_l1_coefficient": self.beta_l1_coefficient,
         }
 
     @property
     def latent_dim(self):
         """number of dimensions in latent space."""
-        return self.num_epitopes
+        return self.num_sites
 
     def str_summary(self):
         return "Escape"
@@ -231,7 +231,7 @@ class EscapeModel(TorchdmsModel):
         return torch.cat(
             [
                 getattr(self, f"latent_layer_epi{i}")(x)
-                for i in range(self.num_epitopes)
+                for i in range(self.num_sites)
             ],
             axis=1,
         )
@@ -243,7 +243,7 @@ class EscapeModel(TorchdmsModel):
         b_fractions = torch.sigmoid(
             x
             + torch.cat(
-                [getattr(self, f"wt_activity_epi{i}") for i in range(self.num_epitopes)]
+                [getattr(self, f"wt_activity_epi{i}") for i in range(self.num_sites)]
             )
             - (0 if concentrations is None else torch.log(concentrations.unsqueeze(1)))
         )
@@ -262,7 +262,7 @@ class EscapeModel(TorchdmsModel):
             (
                 [
                     getattr(self, f"latent_layer_epi{i}").weight
-                    for i in range(self.num_epitopes)
+                    for i in range(self.num_sites)
                 ]
             )
         )
@@ -725,14 +725,14 @@ def model_of_string(model_string, data_path, **kwargs):
         if model_name == "Escape":
             if len(arguments) != 1:
                 raise IOError(
-                    "The Escape model expects exactly one argument: the number of epitopes."
+                    "The Escape model expects exactly one argument: the number of sites."
                 )
-            num_epitopes = int(arguments[0])
+            num_sites = int(arguments[0])
             model = EscapeModel(
                 test_dataset.feature_count(),
                 test_dataset.target_names,
                 alphabet=test_dataset.alphabet,
-                num_epitopes=num_epitopes,
+                num_sites=num_sites,
                 **kwargs,
             )
         elif arguments == [""]:

@@ -6,7 +6,7 @@ import os
 import pkg_resources
 from pytest import approx
 from torchdms.analysis import Analysis
-from torchdms.utils import from_pickle_file, parse_epitopes
+from torchdms.utils import from_pickle_file, parse_sites
 from torchdms.loss import l1
 from torchdms.model import model_of_string
 from torchdms.data import partition, prep_by_stratum_and_export
