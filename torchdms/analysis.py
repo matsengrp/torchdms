@@ -13,6 +13,7 @@ from torchdms.utils import (
     get_observed_training_mutations,
     make_all_possible_mutations,
     parse_sites,
+    to_pickle_file
 )
 
 
@@ -94,6 +95,7 @@ class Analysis:
         )
         self.gauge_mask[:, torch.cat((self.wt_idxs, self.unseen_idxs))] = 1
         self.model.fix_gauge(self.gauge_mask)
+        self.training_details_path = model_path + "_details.pkl"
 
     def loss_of_targets_and_prediction(
         self, loss_fn, targets, predictions, per_target_loss_decay
@@ -140,6 +142,10 @@ class Analysis:
         assert len(self.train_datasets) > 0
         target_count = self.train_datasets[0].target_count()
         assert self.model.output_size == target_count
+        training_details = {
+            "unseen_mutations": list(self.unseen_mutations),
+            "model": self.model,
+        }
 
         if exp_target is not None:
             loss_weight_span = None
@@ -274,6 +280,7 @@ class Analysis:
                             "Learning rate dropped below stated minimum. Stopping."
                         )
                         break
+        to_pickle_file(training_details, self.training_details_path)
 
     def multi_train(
         self,
