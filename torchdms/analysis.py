@@ -186,8 +186,7 @@ class Analysis:
                         if self.val_data.samples_concentrations is None
                         else batch["concentrations"].to(self.device)
                     )
-                    forward_args = {"concentrations": concentrations}
-                    predictions = self.model(samples, **forward_args)
+                    predictions = self.model(samples, concentrations=concentrations)
                     loss = self.complete_loss(
                         loss_fn, batch["targets"], predictions, per_stratum_loss_decays
                     )
