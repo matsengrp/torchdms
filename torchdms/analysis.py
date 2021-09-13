@@ -12,6 +12,7 @@ from torchdms.utils import (
     get_mutation_indicies,
     get_observed_training_mutations,
     make_all_possible_mutations,
+    parse_epitopes
 )
 
 
@@ -50,6 +51,7 @@ class Analysis:
         model_path,
         val_data,
         train_data_list,
+        epitope_dict=None,
         batch_size=500,
         learning_rate=5e-3,
         device="cpu",

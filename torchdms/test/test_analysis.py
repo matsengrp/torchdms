@@ -10,6 +10,7 @@ from torchdms.analysis import Analysis
 from torchdms.analysis import low_rank_approximation
 from torchdms.utils import (
     from_pickle_file,
+    parse_epitopes,
 )
 from torchdms.loss import l1
 from torchdms.model import model_of_string
@@ -78,7 +79,6 @@ def setup_module(module):
         "train_data_list": escape_split_df_prepped.train,
     }
     training_params = {"epoch_count": 1, "loss_fn": l1}
-    escape_training_params = {"epoch_count": 1, "loss_fn": l1}
     analysis = Analysis(**analysis_params)
     escape_analysis = Analysis(**escape_analysis_params)
     print("NOTE: Testing environment setup...")

@@ -394,6 +394,13 @@ def create(
     show_default=True,
     help="Number of epochs for full training.",
 )
+@click.option(
+    "--epitope-path",
+    required=False,
+    type=click.Path(exists=True),
+    default=None,
+    help="Path to .JSON file containing both epitope numbers and site numbers. ",
+)
 @dry_run_option
 @seed_option
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
@@ -415,6 +422,7 @@ def train(
     dry_run,
     seed,
     beta_rank,
+    epitope_path,
 ):
     """Train a model, saving trained model to original location."""
     if dry_run:
@@ -425,6 +433,13 @@ def train(
     model = torch.load(model_path)
     data = from_pickle_file(data_path)
 
+    epitope_dict = None
+    if epitope_path is not None:
+        try:
+            epitope_dict = from_json_file(epitope_path)["epitopes"]
+        except FileNotFoundError:
+            print(f"Could not find epitopes path {epitope_path}.")
+
     analysis_params = {
         "model": model,
         "model_path": model_path,
@@ -433,6 +448,7 @@ def train(
         "batch_size": batch_size,
         "learning_rate": learning_rate,
         "device": device,
+        "epitope_dict": epitope_dict,
     }
 
     analysis = Analysis(**analysis_params)
