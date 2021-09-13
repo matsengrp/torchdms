@@ -30,7 +30,6 @@ class TorchdmsModel(nn.Module):
         self.monotonic_sign = None
         self.layers = []
         self.training_style_sequence = [self.default_training_style]
-        self.unseen_mutations = None
 
     def __str__(self):
         return super().__str__() + "\n" + self.characteristics.__str__()

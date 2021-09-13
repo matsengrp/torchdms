@@ -11,6 +11,8 @@ from torchdms.analysis import low_rank_approximation
 from torchdms.utils import (
     from_pickle_file,
     parse_sites,
+    make_all_possible_mutations,
+    get_observed_training_mutations
 )
 from torchdms.loss import l1
 from torchdms.model import model_of_string
@@ -237,6 +239,10 @@ def test_escape_concentrations_forward():
         # Check that the correct site was preserved.
         not torch.allclose(site_betas, torch.zeros_like(site_betas))
 
-def test_model_has_unseen_mutations():
+
+def test_stored_unseen_mutations():
     """Test to make sure the set of unseen mutations are stored properly."""
-    assert analysis.unseen_mutations == analysis.model.unseen_mutations
+    all_possible_muts = make_all_possible_mutations(analysis.val_data)
+    observed_muts = get_observed_training_mutations(analysis.train_datasets)
+    unseen_muts = all_possible_muts.difference(observed_muts)
+    assert analysis.unseen_mutations == unseen_muts
