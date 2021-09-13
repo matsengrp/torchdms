@@ -41,6 +41,11 @@ class BinaryMapDataset(Dataset):
         self.wtseq = wtseq
         self.target_names = target_names
         self.alphabet = alphabet
+        self.samples_concentrations = (
+            torch.Tensor(original_df["concentration"].values)
+            if "concentration" in original_df.columns
+            else None
+        )
 
     @classmethod
     def of_raw(cls, pd_dataset, wtseq, targets):
@@ -82,6 +87,12 @@ class BinaryMapDataset(Dataset):
         return wt_encoding_idx
 
     def __getitem__(self, idxs):
+        if self.samples_concentrations is not None:
+            return {
+                "samples": self.samples[idxs],
+                "targets": self.targets[idxs],
+                "concentrations": self.samples_concentrations[idxs],
+            }
         return {"samples": self.samples[idxs], "targets": self.targets[idxs]}
 
     def __len__(self):

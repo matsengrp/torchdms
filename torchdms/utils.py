@@ -25,13 +25,13 @@ def to_pickle_file(obj, path):
 
 def from_json_file(path):
     """Load an object from a JSON file."""
-    with open(path, "r") as file:
+    with open(path, "r", encoding="UTF-8") as file:
         return json.load(file)
 
 
 def to_json_file(obj, path):
     """Write an object to a JSON file."""
-    with open(path, "w") as file:
+    with open(path, "w", encoding="UTF-8") as file:
         json.dump(obj, file, indent=4, sort_keys=True)
         file.write("\n")
 
@@ -232,3 +232,22 @@ def get_mutation_indicies(mutation_list, alphabet):
         indicies.append(((site - 1) * len(alphabet_dict)) + alphabet_dict[mut_aa])
 
     return torch.Tensor(indicies).type(torch.long)
+
+
+def parse_sites(site_dict, model):
+    """Parse site dictionary and return beta indicies for given alphabet."""
+    # Assume everything will be set to zero, and set site indicies to 'False'
+    site_mask = torch.ones_like(model.beta_coefficients(), dtype=torch.bool)
+    site_id = 0
+    for sites in site_dict.values():
+        site_idx = []
+        for chunk in sites:
+            site_1 = int(chunk.split("-")[0])
+            site_2 = int(chunk.split("-")[1])
+            start = (site_1 - 1) * len(model.alphabet)
+            end = start + (site_2 - site_1 + 1) * len(model.alphabet)
+            site_idx.append(list(range(start, end)))
+        site_idx = [y for x in site_idx for y in x]
+        site_mask[site_id, site_idx] = 0
+
+    return site_mask

@@ -40,7 +40,8 @@ class TorchdmsModel(nn.Module):
         pass
 
     @abstractmethod
-    def forward(self, x):  # pylint: disable=arguments-differ
+    def forward(self, x, **kwargs):  # pylint: disable=arguments-differ
+        # pylint: disable=unused-argument
         pass
 
     @abstractmethod
@@ -169,7 +170,7 @@ class LinearModel(TorchdmsModel):
     def characteristics(self):
         return {}
 
-    def forward(self, x):  # pylint: disable=arguments-differ
+    def forward(self, x, **kwargs):  # pylint: disable=arguments-differ
         return self.layer(x)
 
     def regularization_loss(self):
@@ -195,7 +196,7 @@ class EscapeModel(TorchdmsModel):
         target_names,
         alphabet,
         num_epitopes,
-        beta_l1_coefficient=None,
+        beta_l1_coefficient=0.0,
         monotonic_sign=False,  # pylint: disable=unused-argument
     ):
         super().__init__(input_size, target_names, alphabet)
@@ -204,9 +205,9 @@ class EscapeModel(TorchdmsModel):
         self.num_epitopes = num_epitopes
         self.beta_l1_coefficient = beta_l1_coefficient
 
-        # build the model
         for i in range(self.num_epitopes):
-            setattr(self, f"latent_layer_epi{i}", nn.Linear(input_size, 1, bias=True))
+            setattr(self, f"latent_layer_epi{i}", nn.Linear(input_size, 1, bias=False))
+            setattr(self, f"wt_activity_epi{i}", nn.Parameter(torch.zeros(1)))
 
     @property
     def characteristics(self):
@@ -227,21 +228,33 @@ class EscapeModel(TorchdmsModel):
 
     def to_latent(self, x):
         """input features -> latent space."""
-        latent_dims = []
-        for i in range(self.num_epitopes):
-            model_ = getattr(self, f"latent_layer_epi{i}")
-            latent_dims.append(model_(x))
+        return torch.cat(
+            [
+                getattr(self, f"latent_layer_epi{i}")(x)
+                for i in range(self.num_epitopes)
+            ],
+            axis=1,
+        )
 
-        return torch.cat(latent_dims, dim=1)
-
-    def from_latent_to_output(self, x):  # pylint: disable=no-self-use
+    def from_latent_to_output(
+        self, x, concentrations=None
+    ):  # pylint: disable=no-self-use
         """latent space in as 'x' -> escape fraction."""
+        b_fractions = torch.sigmoid(
+            x
+            + torch.cat(
+                [getattr(self, f"wt_activity_epi{i}") for i in range(self.num_epitopes)]
+            )
+            - (0 if concentrations is None else torch.log(concentrations.unsqueeze(1)))
+        )
         b_fractions = torch.sigmoid(x)
         return torch.unsqueeze(torch.prod(b_fractions, 1), 1)
 
-    def forward(self, x):  # pylint: disable=arguments-differ
+    def forward(self, x, **kwargs):  # pylint: disable=arguments-differ
         """Compose data --> latent --> output."""
-        return self.from_latent_to_output(self.to_latent(x))
+        return self.from_latent_to_output(
+            self.to_latent(x), kwargs.get("concentrations")
+        )
 
     def betas_with_grad(self):
         """Accessory method for retrieving beta coefficients."""
@@ -267,8 +280,7 @@ class EscapeModel(TorchdmsModel):
     def fix_gauge(self, gauge_mask):
         """Perform gauge-fixing procedure: zero WT betas and unseen
         mutaions."""
-        # Zero WT and unseen betas.
-        self.beta_coefficients()[:, gauge_mask] = 0
+        self.beta_coefficients()[gauge_mask] = 0
 
 
 class FullyConnected(TorchdmsModel):
@@ -398,11 +410,11 @@ class FullyConnected(TorchdmsModel):
         """Perform gauge-fixing procedure: gauge mask is 1 hot for values that
         must be set to zero."""
         # zero WT and unseen betas
-        self.beta_coefficients()[:, gauge_mask] = 0
+        self.beta_coefficients()[gauge_mask] = 0
         # project mutant betas
         for latent_dim in range(self.latent_dim):
-            beta_vec = self.beta_coefficients()[latent_dim, ~gauge_mask]
-            self.beta_coefficients()[latent_dim, ~gauge_mask] = (
+            beta_vec = self.beta_coefficients()[latent_dim, ~gauge_mask[0]]
+            self.beta_coefficients()[latent_dim, ~gauge_mask[0]] = (
                 beta_vec - beta_vec.sum() / beta_vec.shape[0] - 1
             )
 
@@ -458,7 +470,7 @@ class FullyConnected(TorchdmsModel):
             out *= self.monotonic_sign
         return out
 
-    def forward(self, x):  # pylint: disable=arguments-differ
+    def forward(self, x, **kwargs):  # pylint: disable=unused-argument
         """Compose data --> latent --> output."""
         return self.from_latent_to_output(self.to_latent(x))
 
@@ -584,7 +596,7 @@ class Independent(TorchdmsModel):
             (self.model_bind.to_latent(x), self.model_stab.to_latent(x)), 1
         )
 
-    def forward(self, x):  # pylint: disable=arguments-differ
+    def forward(self, x, **kwargs):  # pylint: disable=unused-argument
         return self.from_latent_to_output(self.to_latent(x))
 
     def beta_coefficients(self):
@@ -713,7 +725,7 @@ def model_of_string(model_string, data_path, **kwargs):
         if model_name == "Escape":
             if len(arguments) != 1:
                 raise IOError(
-                    "The Escape model expects exactly one argument: the number of epitopes."
+                    "The Escape model expects exactly one argument: the number of sites."
                 )
             num_epitopes = int(arguments[0])
             model = EscapeModel(

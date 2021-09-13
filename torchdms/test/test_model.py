@@ -1,17 +1,12 @@
 """
-Testing for helper methods in analysis.py
+Testing for methods in model.py
 """
-import numpy as np
 import torch
 import os
 import pkg_resources
 from pytest import approx
 from torchdms.analysis import Analysis
-from torchdms.analysis import low_rank_approximation
-from torchdms.utils import (
-    from_pickle_file,
-    parse_sites,
-)
+from torchdms.utils import from_pickle_file, parse_sites
 from torchdms.loss import l1
 from torchdms.model import model_of_string
 from torchdms.data import partition, prep_by_stratum_and_export
@@ -94,26 +89,7 @@ def teardown_module(module):
     print("NOTE: Testing environment torn down...")
 
 
-def test_low_rank_approximation():
-    """Tests low-rank approximation function."""
-    # define simple 2-rank matrix
-    test_matrix = np.array([[1, 4, 7], [2, 5, 8], [3, 6, 9]], dtype="float")
-
-    # store true 1-rank approximation here & flatten column-wise
-    approx_true = np.array(
-        [
-            [1.736218, 4.207153, 6.678088],
-            [2.071742, 5.020186, 7.968631],
-            [2.407267, 5.833220, 9.259173],
-        ]
-    ).flatten("F")
-
-    # take low-rank (1) approximation
-    approx_est = low_rank_approximation(test_matrix, 1)
-    # assert that values match up
-    assert torch.allclose(torch.from_numpy(approx_true), approx_est, rtol=0.001)
-
-
+# GAUGE FIXING TESTS
 def test_project_betas():
     """Test to ensure we get an average value of -1 for non-WT betas."""
     for latent_dim in range(analysis.model.latent_dim):
@@ -156,55 +132,3 @@ def test_zeroed_unseen_betas():
     for latent_dim in range(analysis.model.latent_dim):
         for idx in unseen_idxs:
             assert analysis.model.beta_coefficients()[latent_dim, int(idx)] == 0
-
-
-def test_concentrations_stored():
-    """Tests to make sure EscapeModel() is recieving concentration values as planned (tacking values on to end of encoding)."""
-    # Make sure the model's input size doesn't change
-    assert escape_model.input_size == len(escape_model.alphabet) * len(
-        escape_analysis.val_data.wtseq
-    )
-    # Ensure that concentrations are in dataframe
-    assert "concentration" in escape_analysis.val_data.original_df.columns
-    # and the concentrations attribute is true...
-    assert escape_analysis.val_data.samples_concentrations is not None
-
-
-def test_escape_concentrations_forward():
-    """Test to make sure concentrations aren't influencing betas in EscapeModel."""
-    # Make sure beta_coefficients() only returns sequence indices.
-    # The encoding for the polyclonal escape simulated data is 4221 slots.
-    # We have 2 sites in the test model.
-    test_dict = {"1": ["1-5"], "2": ["10-15"]}
-    all_indicies = np.arange(escape_model.input_size)
-    site_indicies = parse_sites(test_dict, escape_model)
-
-    assert escape_analysis.model.beta_coefficients().shape == (2, 4221)
-
-    escape_model.randomize_parameters()
-
-    # Jumble betas
-    not torch.allclose(
-        escape_model.beta_coefficients(),
-        torch.zeros_like(escape_model.beta_coefficients()),
-    )
-
-    # Now mask them.
-    escape_model.fix_gauge(escape_analysis.gauge_mask)
-
-    # Loop through sites.
-    for site_id, sites in test_dict.items():
-        latent_dim = int(site_id) - 1
-        zero_beta_indicies = torch.from_numpy(
-            np.setxor1d(all_indicies, site_indicies[latent_dim].numpy())
-        )
-        non_site_betas = escape_model.beta_coefficients()[
-            latent_dim, zero_beta_indicies
-        ]
-        site_betas = escape_model.beta_coefficients()[
-            latent_dim, site_indicies[latent_dim]
-        ]
-        # Check that all non-site betas are zero.
-        torch.allclose(non_site_betas, torch.zeros_like(non_site_betas))
-        # Check that the correct site was preserved.
-        not torch.allclose(site_betas, torch.zeros_like(site_betas))

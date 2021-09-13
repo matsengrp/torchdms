@@ -12,6 +12,7 @@ from torchdms.utils import (
     get_mutation_indicies,
     get_observed_training_mutations,
     make_all_possible_mutations,
+    parse_sites,
 )
 
 
@@ -50,6 +51,7 @@ class Analysis:
         model_path,
         val_data,
         train_data_list,
+        site_dict=None,
         batch_size=500,
         learning_rate=5e-3,
         device="cpu",
@@ -82,8 +84,12 @@ class Analysis:
             make_all_possible_mutations(val_data).difference(self.training_mutations),
             self.model.alphabet,
         ).type(torch.LongTensor)
-        self.gauge_mask = torch.zeros(self.model.input_size, dtype=torch.bool)
-        self.gauge_mask[torch.cat((self.wt_idxs, self.unseen_idxs))] = 1
+        self.gauge_mask = (
+            torch.zeros_like(model.beta_coefficients(), dtype=torch.bool)
+            if site_dict is None
+            else parse_sites(site_dict, self.model)
+        )
+        self.gauge_mask[:, torch.cat((self.wt_idxs, self.unseen_idxs))] = 1
         self.model.fix_gauge(self.gauge_mask)
 
     def loss_of_targets_and_prediction(
@@ -179,7 +185,12 @@ class Analysis:
 
                     batch = next(train_infinite_loader)
                     samples = batch["samples"].to(self.device)
-                    predictions = self.model(samples)
+                    concentrations = (
+                        None
+                        if self.val_data.samples_concentrations is None
+                        else batch["concentrations"].to(self.device)
+                    )
+                    predictions = self.model(samples, concentrations=concentrations)
                     loss = self.complete_loss(
                         loss_fn, batch["targets"], predictions, per_stratum_loss_decays
                     )
