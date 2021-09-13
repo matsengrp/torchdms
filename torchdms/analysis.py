@@ -82,10 +82,8 @@ class Analysis:
             make_all_possible_mutations(val_data).difference(self.training_mutations),
             self.model.alphabet,
         ).type(torch.LongTensor)
-        self.gauge_mask = torch.zeros(
-            self.model.sequence_length * len(self.model.alphabet), dtype=torch.bool
-        )
-        self.gauge_mask[torch.cat((self.wt_idxs, self.unseen_idxs))] = 1
+        self.gauge_mask = parse_epitopes(epitope_dict, self.model)
+        self.gauge_mask[:, torch.cat((self.wt_idxs, self.unseen_idxs))] = 1
         self.model.fix_gauge(self.gauge_mask)
 
     def loss_of_targets_and_prediction(
@@ -181,11 +179,13 @@ class Analysis:
 
                     batch = next(train_infinite_loader)
                     samples = batch["samples"].to(self.device)
-                    if self.val_data.samples_concentrations is not None:
-                        concentrations = batch["concentrations"].to(self.device)
-                        predictions = self.model(samples, concentrations)
-                    else:
-                        predictions = self.model(samples)
+                    concentrations = (
+                        None
+                        if self.val_data.samples_concentrations is None
+                        else batch["concentrations"].to(self.device)
+                    )
+                    forward_args = {"concentrations": concentrations}
+                    predictions = self.model(samples, **forward_args)
                     loss = self.complete_loss(
                         loss_fn, batch["targets"], predictions, per_stratum_loss_decays
                     )
