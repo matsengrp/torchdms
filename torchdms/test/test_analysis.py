@@ -234,3 +234,7 @@ def test_escape_concentrations_forward():
         torch.allclose(non_site_betas, torch.zeros_like(non_site_betas))
         # Check that the correct site was preserved.
         not torch.allclose(site_betas, torch.zeros_like(site_betas))
+
+def test_model_has_unseen_mutations():
+    """Test to make sure the set of unseen mutations are stored properly."""
+    assert analysis.unseen_mutations == analysis.model.unseen_mutations

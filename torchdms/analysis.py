@@ -74,6 +74,9 @@ class Analysis:
         self.val_loss_record = sys.float_info.max
         # Store all observed mutations
         self.training_mutations = get_observed_training_mutations(train_data_list)
+        self.unseen_mutations = make_all_possible_mutations(val_data).difference(
+            self.training_mutations
+        )
         # Store WT idxs
         self.wt_idxs = val_data.wt_idxs.type(torch.LongTensor)
         # Store all observed mutations in mutant idxs
@@ -81,7 +84,7 @@ class Analysis:
             self.training_mutations, self.model.alphabet
         ).type(torch.LongTensor)
         self.unseen_idxs = get_mutation_indicies(
-            make_all_possible_mutations(val_data).difference(self.training_mutations),
+            self.unseen_mutations,
             self.model.alphabet,
         ).type(torch.LongTensor)
         self.gauge_mask = (
