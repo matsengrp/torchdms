@@ -12,7 +12,7 @@ from torchdms.utils import (
     from_pickle_file,
     parse_sites,
     make_all_possible_mutations,
-    get_observed_training_mutations
+    get_observed_training_mutations,
 )
 from torchdms.loss import l1
 from torchdms.model import model_of_string

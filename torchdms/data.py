@@ -336,8 +336,12 @@ def partition(
         aa_func_scores["in_val"],
     ].reset_index(drop=True)
 
-    test_split["unseen_mutations"] = ~test_split["aa_substitutions"].str.split().map(observed_mutations.issuperset)
-    val_split["unseen_mutations"] = ~val_split["aa_substitutions"].str.split().map(observed_mutations.issuperset)
+    test_split["unseen_mutations"] = (
+        ~test_split["aa_substitutions"].str.split().map(observed_mutations.issuperset)
+    )
+    val_split["unseen_mutations"] = (
+        ~val_split["aa_substitutions"].str.split().map(observed_mutations.issuperset)
+    )
 
     if export_dataframe is not None:
         if partition_label is not None:

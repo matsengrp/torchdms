@@ -13,7 +13,7 @@ from torchdms.utils import (
     get_observed_training_mutations,
     make_all_possible_mutations,
     parse_sites,
-    to_pickle_file
+    to_pickle_file,
 )
 
 
