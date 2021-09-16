@@ -764,7 +764,6 @@ def transfer(source_path, dest_path):
     if len(dest_model.latent_layer.weight[0]) != len(init_weights[0]):
         raise ValueError("source & dest beta dimensions do not match.")
     dest_model.latent_layer.weight[0] = init_weights[0]
-    dest_model.freeze_betas = True
 
     torch.save(dest_model, dest_path)
     click.echo(f"LOG: Beta coefficients copied from {source_path} to {dest_path}")

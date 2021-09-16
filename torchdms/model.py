@@ -18,7 +18,6 @@ class TorchdmsModel(ABC, nn.Module):
                     for sequence of length :math:`L` and amino acid alphabet :math:`\mathcal{A}`.
         target_names: output names (e.g. ``"expression"``, ``"stability"``).
         alphabet: amino acid alphabet :math:`\mathcal{A}`.
-        freeze_betas: flag for making latent space coefficients static
         monotonic_sign: ``1`` or ``-1`` for monotonicity, or ``None``
     """
 
@@ -27,14 +26,12 @@ class TorchdmsModel(ABC, nn.Module):
         input_size: int,
         target_names: List[str],
         alphabet: str,
-        freeze_betas: bool = False,
         monotonic_sign: Optional[bool] = None,
     ) -> None:
         super().__init__()
         self.input_size = input_size
         self.target_names = target_names
         self.alphabet = alphabet
-        self.freeze_betas = freeze_betas
         self.monotonic_sign = monotonic_sign
 
         self.output_size: int = len(target_names)
@@ -188,8 +185,7 @@ class TorchdmsModel(ABC, nn.Module):
     def randomize_parameters(self):
         """Randomize model parameters."""
         for layer_name in self.layers:
-            if layer_name != "latent_layer" or not self.freeze_betas:
-                getattr(self, layer_name).reset_parameters()
+            getattr(self, layer_name).reset_parameters()
 
         if self.monotonic_sign is not None:
             self._reflect_monotonic_params()
