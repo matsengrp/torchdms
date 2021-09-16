@@ -323,6 +323,11 @@ def partition(
                 & (aa_func_scores["n_aa_substitutions"] == mutation_count)
             ].reset_index(drop=True)
         )
+    # Loop through the training data to get observed mutations
+    observed_mutations = set()
+    for stratum in test_split_strata:
+        aa_subs = stratum["aa_substitutions"]
+        observed_mutations.update([sub for muts in aa_subs for sub in muts.split()])
 
     test_split = aa_func_scores.loc[
         aa_func_scores["in_test"],
@@ -330,6 +335,13 @@ def partition(
     val_split = aa_func_scores.loc[
         aa_func_scores["in_val"],
     ].reset_index(drop=True)
+
+    test_split["unseen_mutations"] = (
+        ~test_split["aa_substitutions"].str.split().map(observed_mutations.issuperset)
+    )
+    val_split["unseen_mutations"] = (
+        ~val_split["aa_substitutions"].str.split().map(observed_mutations.issuperset)
+    )
 
     if export_dataframe is not None:
         if partition_label is not None:

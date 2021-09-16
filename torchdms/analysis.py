@@ -13,6 +13,7 @@ from torchdms.utils import (
     get_observed_training_mutations,
     make_all_possible_mutations,
     parse_sites,
+    to_pickle_file,
 )
 
 
@@ -74,6 +75,9 @@ class Analysis:
         self.val_loss_record = sys.float_info.max
         # Store all observed mutations
         self.training_mutations = get_observed_training_mutations(train_data_list)
+        self.unseen_mutations = make_all_possible_mutations(val_data).difference(
+            self.training_mutations
+        )
         # Store WT idxs
         self.wt_idxs = val_data.wt_idxs.type(torch.LongTensor)
         # Store all observed mutations in mutant idxs
@@ -81,7 +85,7 @@ class Analysis:
             self.training_mutations, self.model.alphabet
         ).type(torch.LongTensor)
         self.unseen_idxs = get_mutation_indicies(
-            make_all_possible_mutations(val_data).difference(self.training_mutations),
+            self.unseen_mutations,
             self.model.alphabet,
         ).type(torch.LongTensor)
         self.gauge_mask = (
@@ -91,6 +95,7 @@ class Analysis:
         )
         self.gauge_mask[:, torch.cat((self.wt_idxs, self.unseen_idxs))] = 1
         self.model.fix_gauge(self.gauge_mask)
+        self.training_details_path = model_path + "_details.pkl"
 
     def loss_of_targets_and_prediction(
         self, loss_fn, targets, predictions, per_target_loss_decay
@@ -137,6 +142,10 @@ class Analysis:
         assert len(self.train_datasets) > 0
         target_count = self.train_datasets[0].target_count()
         assert self.model.output_size == target_count
+        training_details = {
+            "unseen_mutations": list(self.unseen_mutations),
+            "model": self.model,
+        }
 
         if exp_target is not None:
             loss_weight_span = None
@@ -271,6 +280,7 @@ class Analysis:
                             "Learning rate dropped below stated minimum. Stopping."
                         )
                         break
+        to_pickle_file(training_details, self.training_details_path)
 
     def multi_train(
         self,

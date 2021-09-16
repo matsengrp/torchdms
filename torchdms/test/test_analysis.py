@@ -11,6 +11,8 @@ from torchdms.analysis import low_rank_approximation
 from torchdms.utils import (
     from_pickle_file,
     parse_sites,
+    make_all_possible_mutations,
+    get_observed_training_mutations,
 )
 from torchdms.loss import l1
 from torchdms.model import model_of_string
@@ -26,6 +28,7 @@ data_path = out_path + ".pkl"
 escape_data_path = escape_out_path + ".pkl"
 model_path = "run.model"
 escape_model_path = "run.escape.model"
+aux_path = model_path + "_details.pkl"
 
 
 def setup_module(module):
@@ -91,6 +94,7 @@ def teardown_module(module):
     os.remove(data_path)
     os.remove(escape_data_path)
     os.remove(escape_model_path)
+    os.remove(aux_path)
     print("NOTE: Testing environment torn down...")
 
 
@@ -234,3 +238,11 @@ def test_escape_concentrations_forward():
         torch.allclose(non_site_betas, torch.zeros_like(non_site_betas))
         # Check that the correct site was preserved.
         not torch.allclose(site_betas, torch.zeros_like(site_betas))
+
+
+def test_stored_unseen_mutations():
+    """Test to make sure the set of unseen mutations are stored properly."""
+    all_possible_muts = make_all_possible_mutations(analysis.val_data)
+    observed_muts = get_observed_training_mutations(analysis.train_datasets)
+    unseen_muts = all_possible_muts.difference(observed_muts)
+    assert analysis.unseen_mutations == unseen_muts
