@@ -3,26 +3,34 @@ import torch
 
 
 def weighted_loss(base_loss):
-    """Generic loss function decorator with loss decay or target exponentiation"""
+    """Generic loss function decorator with loss decay or target
+    exponentiation."""
+
     def wrapper(y_true, y_predicted, loss_decay=None, exp_target=None):
         if exp_target:
-            y_true = torch.pow(exp_target, y_true),
-            y_predicted = torch.pow(exp_target, y_predicted),
+            y_true = (torch.pow(exp_target, y_true),)
+            y_predicted = (torch.pow(exp_target, y_predicted),)
         if loss_decay:
             weights = torch.exp(loss_decay * y_true)
-            sample_losses = base_loss(y_true, y_predicted, reduction='none')
+            sample_losses = base_loss(y_true, y_predicted, reduction="none")
             return torch.mean(weights * sample_losses)
         # else:
         return base_loss(y_true, y_predicted)
-    wrapper.__doc__ = base_loss.__name__ + """, perhaps with loss decay or target exponentiation"""
+
+    wrapper.__doc__ = (
+        base_loss.__name__ + """, perhaps with loss decay or target exponentiation"""
+    )
     return wrapper
+
 
 l1 = weighted_loss(torch.nn.functional.l1_loss)
 
 mse = weighted_loss(torch.nn.functional.mse_loss)
 
+
 def rmse(*args, **kwargs):
-    """Root mean square error, perhaps with loss decay or target exponentiation."""
+    """Root mean square error, perhaps with loss decay or target
+    exponentiation."""
     return mse(*args, **kwargs).sqrt()
 
 

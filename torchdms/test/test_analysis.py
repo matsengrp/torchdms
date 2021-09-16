@@ -30,6 +30,7 @@ model_path = "run.model"
 escape_model_path = "run.escape.model"
 aux_path = model_path + "_details.pkl"
 
+
 def setup_module(module):
     """Loads in test data and model for future tests."""
     print("NOTE: Setting up testing environment...")
@@ -112,7 +113,7 @@ def test_low_rank_approximation():
     ).flatten("F")
 
     # take low-rank (1) approximation
-    approx_est = low_rank_approximation(test_matrix, 1)
+    approx_est = _low_rank_approximation(test_matrix, 1)
     # assert that values match up
     assert torch.allclose(torch.from_numpy(approx_true), approx_est, rtol=0.001)
 

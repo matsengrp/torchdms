@@ -6,7 +6,7 @@ import click
 import numpy as np
 import pandas as pd
 import torch
-import torch.nn as nn
+from torch import nn
 from torchdms.utils import from_pickle_file
 
 
@@ -102,9 +102,13 @@ class TorchdmsModel(ABC, nn.Module):
         return self.from_latent_to_output(self.to_latent(x, **kwargs), **kwargs)
 
     @abstractmethod
-    def fix_gauge(self, gauge_mask):
-        """Perform gauge-fixing procedure: zero WT betas and unseen mutaions,
-        and project mutant betas to hyperplane."""
+    def fix_gauge(self, gauge_mask: torch.Tensor):
+        """Perform gauge-fixing procedure on latent space parameters.
+
+        Args:
+            gauge_mask: 0/1 mask array the same shape as latent space with 1s
+                        for parameters that should be zeroed
+        """
 
     @property
     def sequence_length(self):
@@ -254,7 +258,7 @@ class LinearModel(TorchdmsModel):
     def beta_coefficients(self) -> torch.Tensor:
         return self.latent_layer.weights.data
 
-    def from_latent_to_output(self, z: torch.Tensor) -> torch.Tensor:
+    def from_latent_to_output(self, z: torch.Tensor, **kwargs) -> torch.Tensor:
         return self.latent_layer(z + self.wt_activity)
 
     def regularization_loss(self) -> torch.Tensor:
@@ -263,12 +267,11 @@ class LinearModel(TorchdmsModel):
     def str_summary(self) -> str:
         return "Linear"
 
-    def to_latent(self, x: torch.Tensor) -> torch.Tensor:
+    def to_latent(self, x: torch.Tensor, **kwargs) -> torch.Tensor:
         return self.latent_layer(x)
 
     def fix_gauge(self, gauge_mask):
-        """Perform gauge-fixing procedure: zero WT betas and unseen mutaions,
-        and project mutant betas to hyperplane."""
+        pass
 
 
 class EscapeModel(TorchdmsModel):
@@ -318,7 +321,7 @@ class EscapeModel(TorchdmsModel):
     def str_summary(self):
         return "Escape"
 
-    def to_latent(self, x: torch.Tensor) -> torch.Tensor:
+    def to_latent(self, x: torch.Tensor, **kwargs) -> torch.Tensor:
         return torch.cat(
             [
                 getattr(self, f"latent_layer_epi{i}")(x)
@@ -333,8 +336,13 @@ class EscapeModel(TorchdmsModel):
             [getattr(self, f"wt_activity_epi{i}") for i in range(self.num_epitopes)]
         )
 
-    def from_latent_to_output(self, z: torch.Tensor, concentrations: torch.Tensor=None) -> torch.Tensor:
-        log_concentrations = (0 if concentrations is None else torch.log(concentrations.unsqueeze(1))
+    def from_latent_to_output(
+        self, z: torch.Tensor, concentrations: torch.Tensor = None
+    ) -> torch.Tensor:
+        # pylint: disable=arguments-differ
+        log_concentrations = (
+            0 if concentrations is None else torch.log(concentrations.unsqueeze(1))
+        )
         escape_fractions = torch.sigmoid(z + self.wt_activity() - log_concentrations)
         return torch.unsqueeze(torch.prod(escape_fractions, 1), 1)
 
@@ -357,8 +365,6 @@ class EscapeModel(TorchdmsModel):
         return penalty
 
     def fix_gauge(self, gauge_mask):
-        """Perform gauge-fixing procedure: zero WT betas and unseen
-        mutaions."""
         self.beta_coefficients()[gauge_mask] = 0
 
 
@@ -384,7 +390,8 @@ class FullyConnected(TorchdmsModel):
 
     Example:
 
-        With ``layer_sizes = [10, 2, 10, 10]`` and ``activations = [nn.ReLU, nn.Identity, nn.ReLU, nn.ReLU]``
+        With ``layer_sizes = [10, 2, 10, 10]`` and
+        ``activations = [nn.ReLU, nn.Identity, nn.ReLU, nn.ReLU]``
         we have a latent space of 2 nodes, feeding into
         two more dense layers, each with 10 nodes, before the output.
         Layers before the latent layer are a nonlinear module for site-wise
@@ -508,8 +515,6 @@ class FullyConnected(TorchdmsModel):
         )
 
     def fix_gauge(self, gauge_mask):
-        """Perform gauge-fixing procedure: gauge mask is 1 hot for values that
-        must be set to zero."""
         # zero WT and unseen betas
         self.beta_coefficients()[gauge_mask] = 0
         # project mutant betas
@@ -519,7 +524,7 @@ class FullyConnected(TorchdmsModel):
                 beta_vec - beta_vec.sum() / beta_vec.shape[0] - 1
             )
 
-    def to_latent(self, x: torch.Tensor) -> torch.Tensor:
+    def to_latent(self, x: torch.Tensor, **kwargs) -> torch.Tensor:
         out = x
         if self.latent_idx > 0:
             # loop over pre-latent interaction layers
@@ -535,7 +540,7 @@ class FullyConnected(TorchdmsModel):
             getattr(self, self.layers[self.latent_idx])(out)
         )
 
-    def from_latent_to_output(self, z: torch.Tensor) -> torch.Tensor:
+    def from_latent_to_output(self, z: torch.Tensor, **kwargs) -> torch.Tensor:
         if self.is_linear:
             return z
         # else:
@@ -673,7 +678,7 @@ class Independent(TorchdmsModel):
             f"{self.model_stab.str_summary()})"
         )
 
-    def from_latent_to_output(self, z: torch.Tensor) -> torch.Tensor:
+    def from_latent_to_output(self, z: torch.Tensor, **kwargs) -> torch.Tensor:
         return torch.cat(
             (
                 self.model_bind.from_latent_to_output(z[:, 0, None]),
@@ -682,7 +687,7 @@ class Independent(TorchdmsModel):
             1,
         )
 
-    def to_latent(self, x: torch.Tensor) -> torch.Tensor:
+    def to_latent(self, x: torch.Tensor, **kwargs) -> torch.Tensor:
         return torch.cat(
             (self.model_bind.to_latent(x), self.model_stab.to_latent(x)), 1
         )
@@ -704,8 +709,6 @@ class Independent(TorchdmsModel):
         )
 
     def fix_gauge(self, gauge_mask):
-        """Perform gauge-fixing procedure: zero WT betas and unseen mutaions,
-        and project mutant betas to hyperplane."""
         self.model_bind.fix_gauge(gauge_mask)
         self.model_stab.fix_gauge(gauge_mask)
 
@@ -744,7 +747,7 @@ class Conditional(Independent):
             ),
         )
 
-    def from_latent_to_output(self, z: torch.Tensor) -> torch.Tensor:
+    def from_latent_to_output(self, z: torch.Tensor, **kwargs) -> torch.Tensor:
         return torch.cat(
             (
                 # The nonlinearity for the binding output gets to see all latent

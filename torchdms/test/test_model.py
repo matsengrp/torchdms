@@ -9,7 +9,7 @@ import os
 import pkg_resources
 from pytest import approx
 from torchdms.analysis import Analysis
-from torchdms.utils import from_pickle_file, parse_sites
+from torchdms.utils import from_pickle_file
 from torchdms.loss import l1
 from torchdms.data import partition, prep_by_stratum_and_export
 
@@ -45,6 +45,7 @@ def test_latent_origin():
         z_WT = model.to_latent(torch.zeros(1, input_size))
 
         assert torch.equal(z_WT, torch.zeros_like(z_WT))
+
 
 TEST_DATA_PATH = pkg_resources.resource_filename("torchdms", "data/test_df.pkl")
 ESCAPE_TEST_DATA_PATH = pkg_resources.resource_filename(

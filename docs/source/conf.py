@@ -31,29 +31,31 @@ extensions = [
     "sphinx.ext.autosummary",  # Create neat summary tables for modules/classes/methods etc
     "sphinx.ext.intersphinx",  # Link to other project's documentation (see mapping below)
     "sphinx.ext.viewcode",  # Add a link to the Python source code for classes, functions etc.
-    "sphinx.ext.napoleon", # support NumPy and Google style docstrings
+    "sphinx.ext.napoleon",  # support NumPy and Google style docstrings
     "sphinx_autodoc_typehints",  # Automatically document param types (less noise in class signature)
-    "sphinx.ext.todo", # track to do list items
+    "sphinx.ext.todo",  # track to do list items
 ]
 
 # show todos in output
 todo_include_todos = True
 
 # Mappings for sphinx.ext.intersphinx. Projects have to have Sphinx-generated doc! (.inv file)
-intersphinx_mapping = {"python": ("https://docs.python.org/3/", None),
-                       "PyTorch": ('http://pytorch.org/docs/master/', None)}
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/3/", None),
+    "PyTorch": ("http://pytorch.org/docs/master/", None),
+}
 
 autosummary_generate = True  # Turn on sphinx.ext.autosummary
 autoclass_content = "both"  # Add __init__ doc (ie. params) to class summaries
 html_show_sourcelink = (
-    False
-)  # Remove 'view source code' from top of page (for html, not python)
+    False  # Remove 'view source code' from top of page (for html, not python)
+)
 autodoc_inherit_docstrings = True  # If no class summary, inherit base class summary
 
 autodoc_default_options = {
-    'members':         True,
-    'member-order':    'bysource',
-    'special-members': '__init__',
+    "members": True,
+    "member-order": "bysource",
+    "special-members": "__init__",
 }
 
 # Add any paths that contain templates here, relative to this directory.
