@@ -1,6 +1,6 @@
 r"""Generalized global epistasis models."""
 from typing import List, Tuple, Callable, Dict, Generator, Optional
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 import re
 import click
 import numpy as np
@@ -10,7 +10,7 @@ import torch.nn as nn
 from torchdms.utils import from_pickle_file
 
 
-class TorchdmsModel(nn.Module):
+class TorchdmsModel(ABC, nn.Module):
     r"""An abstract superclass for our models to combine shared behavior.
 
     Args:
@@ -366,9 +366,6 @@ class EscapeModel(TorchdmsModel):
         self.beta_coefficients()[gauge_mask] = 0
 
 
-_identity = nn.Identity()
-
-
 class FullyConnected(TorchdmsModel):
     r"""A flexible fully connected neural network model.
 
@@ -377,8 +374,8 @@ class FullyConnected(TorchdmsModel):
 
     Args:
         layer_sizes: Sequence of widths for each layer between input and output.
-        activations: Corresponding activation function names for each layer.
-                     The first layer with ``"identity"`` activation is the latent space.
+        activations: Corresponding activation functions for each layer.
+                     The first layer with ``nn.Identity`` activation is the latent space.
 
                      .. todo::
                          allowable activation function names?
@@ -391,7 +388,7 @@ class FullyConnected(TorchdmsModel):
 
     Example:
 
-        With ``layer_sizes = [10, 2, 10, 10]`` and ``activations = [relu, identity, relu, relu]``
+        With ``layer_sizes = [10, 2, 10, 10]`` and ``activations = [nn.ReLU, nn.Identity, nn.ReLU, nn.ReLU]``
         we have a latent space of 2 nodes, feeding into
         two more dense layers, each with 10 nodes, before the output.
         Layers before the latent layer are a nonlinear module for site-wise
@@ -403,25 +400,28 @@ class FullyConnected(TorchdmsModel):
     def __init__(
         self,
         layer_sizes: List[int],
-        activations: List[str],
+        activations: List[Callable],
         *args,
         beta_l1_coefficient: float = 0.0,
         interaction_l1_coefficient: float = 0.0,
         **kwargs,
     ):
+        if not len(layer_sizes) == len(activations):
+            raise ValueError(
+                f"{len(layer_sizes)} layer sizes inconsistent with {len(activations)} activations"
+            )
+        for activation in activations:
+            if not callable(activation):
+                raise ValueError(f"activation function {activation} is not recognized")
+
         super().__init__(*args, **kwargs)
         self.layers = []
         self.activations = activations
         self.beta_l1_coefficient = beta_l1_coefficient
         self.interaction_l1_coefficient = interaction_l1_coefficient
 
-        if not len(layer_sizes) == len(activations):
-            raise ValueError(
-                f"{len(layer_sizes)} layer sizes inconsistent with {len(activations)} activations"
-            )
-
         try:
-            self.latent_idx = self.activations.index(_identity)
+            self.latent_idx = self.activations.index(nn.Identity)
         except ValueError:
             self.latent_idx = 0
 
@@ -588,8 +588,8 @@ class Independent(TorchdmsModel):
     Args:
         layer_sizes: Sequence of widths for each layer between input and output *for both
                      submodules*.
-        activations: Corresponding activation function names for each layer *for both submodules*.
-                     The first layer with ``"identity"`` activation is the latent space.
+        activations: Corresponding activation functions for each layer *for both submodules*.
+                     The first layer with ``nn.Identity`` activation is the latent space.
 
                      .. todo::
                          allowable activation function names?
@@ -605,7 +605,7 @@ class Independent(TorchdmsModel):
     def __init__(
         self,
         layer_sizes: List[int],
-        activations: List[str],
+        activations: List[Callable],
         *args,
         beta_l1_coefficients: Tuple[float] = (0.0, 0.0),
         interaction_l1_coefficients: Tuple[float] = (0.0, 0.0),
@@ -803,7 +803,7 @@ KNOWN_MODELS = {
 
 def _activation_of_string(string):
     if string == "identity":
-        return _identity
+        return nn.Identity
     # else:
     if hasattr(torch, string):
         return getattr(torch, string)
