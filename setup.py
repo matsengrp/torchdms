@@ -23,9 +23,8 @@ setup(
         "click-config-file",
         "dms_variants",
         "matplotlib==3.3.1",
-        "plotnine==0.6.0",
+        "plotnine==0.8.0",
         "scipy",
-        "torch==1.4.0",
-        "versioneer",
+        "torch",
     ],
 )

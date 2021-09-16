@@ -49,7 +49,7 @@ from torchdms.utils import (
 def json_provider(file_path, cmd_name):
     """Enable loading of flags from a JSON file via click_config_file."""
     if cmd_name:
-        with open(file_path) as config_data:
+        with open(file_path, encoding="UTF-8") as config_data:
             config_dict = json.load(config_data)
             if cmd_name not in config_dict:
                 if "default" in config_dict:
@@ -319,9 +319,7 @@ def create(
             kwargs["interaction_l1_coefficient"] = interaction_l1_coefficients[0]
         else:
             kwargs["interaction_l1_coefficients"] = interaction_l1_coefficients
-
     model = model_of_string(model_string, data_path, **kwargs)
-
     torch.save(model, out_path)
     click.echo(f"LOG: Model defined as: {model}")
     click.echo(f"LOG: Saved model to {out_path}")
@@ -396,6 +394,13 @@ def create(
     show_default=True,
     help="Number of epochs for full training.",
 )
+@click.option(
+    "--site-path",
+    required=False,
+    type=click.Path(exists=True),
+    default=None,
+    help="Path to .JSON file containing both site numbers and site numbers. ",
+)
 @dry_run_option
 @seed_option
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
@@ -417,6 +422,7 @@ def train(
     dry_run,
     seed,
     beta_rank,
+    site_path,
 ):
     """Train a model, saving trained model to original location."""
     if dry_run:
@@ -427,6 +433,13 @@ def train(
     model = torch.load(model_path)
     data = from_pickle_file(data_path)
 
+    site_dict = None
+    if site_path is not None:
+        try:
+            site_dict = from_json_file(site_path)["sites"]
+        except FileNotFoundError:
+            print(f"Could not find sites path {site_path}.")
+
     analysis_params = {
         "model": model,
         "model_path": model_path,
@@ -435,6 +448,7 @@ def train(
         "batch_size": batch_size,
         "learning_rate": learning_rate,
         "device": device,
+        "site_dict": site_dict,
     }
 
     analysis = Analysis(**analysis_params)
@@ -634,7 +648,7 @@ def svd(model_path, data_path, out):
     click.echo(f"LOG: Singular values of beta plotted and dumped to {out}")
 
 
-### Plot protein profiles
+# Plot protein profiles
 @cli.command()
 @click.argument("model_path", type=click.Path(exists=True))
 @click.argument("data_path", type=click.Path(exists=True))

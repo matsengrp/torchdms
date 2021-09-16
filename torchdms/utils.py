@@ -8,6 +8,7 @@ import json
 import re
 import pandas as pd
 import numpy as np
+import torch
 
 
 def from_pickle_file(path):
@@ -24,13 +25,13 @@ def to_pickle_file(obj, path):
 
 def from_json_file(path):
     """Load an object from a JSON file."""
-    with open(path, "r") as file:
+    with open(path, "r", encoding="UTF-8") as file:
         return json.load(file)
 
 
 def to_json_file(obj, path):
     """Write an object to a JSON file."""
-    with open(path, "w") as file:
+    with open(path, "w", encoding="UTF-8") as file:
         json.dump(obj, file, indent=4, sort_keys=True)
         file.write("\n")
 
@@ -207,3 +208,45 @@ def make_all_possible_mutations(wtseq, alphabet):
     assert len(all_possible_mutations) == (len(alphabet) - 1) * len(wtseq)
     assert len(set(all_possible_mutations)) == len(all_possible_mutations)
     return set(all_possible_mutations)
+
+
+def get_observed_training_mutations(train_data_list):
+    """Returns a list of all aa subs in training data list."""
+    observed_mutations = set()
+    for train_dataset in train_data_list:
+        train_muts = train_dataset.original_df["aa_substitutions"]
+        train_muts_split = [sub for muts in train_muts for sub in muts.split()]
+        observed_mutations.update(train_muts_split)
+    return observed_mutations
+
+
+def get_mutation_indicies(mutation_list, alphabet):
+    """Returns a list of beta indicies for a given list of mutations(aa - site -
+    aa fomat)."""
+    indicies = []
+    alphabet_dict = {letter: idx for idx, letter in enumerate(alphabet)}
+    for mut in mutation_list:
+        mut_aa = mut[-1]
+        site = int(mut[1:-1])
+        indicies.append(((site - 1) * len(alphabet_dict)) + alphabet_dict[mut_aa])
+
+    return torch.Tensor(indicies).type(torch.long)
+
+
+def parse_sites(site_dict, model):
+    """Parse site dictionary and return beta indicies for given alphabet."""
+    # Assume everything will be set to zero, and set site indicies to 'False'
+    site_mask = torch.ones_like(model.beta_coefficients(), dtype=torch.bool)
+    site_id = 0
+    for sites in site_dict.values():
+        site_idx = []
+        for chunk in sites:
+            site_1 = int(chunk.split("-")[0])
+            site_2 = int(chunk.split("-")[1])
+            start = (site_1 - 1) * len(model.alphabet)
+            end = start + (site_2 - site_1 + 1) * len(model.alphabet)
+            site_idx.append(list(range(start, end)))
+        site_idx = [y for x in site_idx for y in x]
+        site_mask[site_id, site_idx] = 0
+
+    return site_mask

@@ -1,0 +1,12 @@
+{
+    "default": {
+        "beta_l1_coefficients": "0",
+        "data_path": "_ignore/test_escape_df.prepped.pkl",
+        "site_path": "test_site_key.json",
+        "epochs": 1,
+        "independent_starts": 1,
+        "model_string": "Escape(3)",
+        "prefix": "_ignore/run",
+        "seed": 42
+    }
+}

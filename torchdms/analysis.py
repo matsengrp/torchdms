@@ -7,7 +7,14 @@ import torch
 from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torchdms.data import BinaryMapDataset
-from torchdms.utils import build_beta_map, make_all_possible_mutations
+from torchdms.utils import (
+    build_beta_map,
+    get_mutation_indicies,
+    get_observed_training_mutations,
+    make_all_possible_mutations,
+    parse_sites,
+    to_pickle_file,
+)
 
 
 def _make_data_loader_infinite(data_loader):
@@ -45,6 +52,7 @@ class Analysis:
         model_path,
         val_data,
         train_data_list,
+        site_dict=None,
         batch_size=500,
         learning_rate=5e-3,
         device="cpu",
@@ -65,23 +73,29 @@ class Analysis:
             for train_loader in self.train_loaders
         ]
         self.val_loss_record = sys.float_info.max
-        self.all_possible_mutations = make_all_possible_mutations(
-            self.val_data.wtseq, self.val_data.alphabet
+        # Store all observed mutations
+        self.training_mutations = get_observed_training_mutations(train_data_list)
+        self.unseen_mutations = make_all_possible_mutations(val_data).difference(
+            self.training_mutations
         )
-        self._zero_wildtype_betas()
-        # set unseen training mutations
-        observed_mutations = set()
-        for train_dataset in self.train_datasets:
-            train_muts = train_dataset.original_df["aa_substitutions"]
-            train_muts_split = [sub for muts in train_muts for sub in muts.split()]
-            observed_mutations.update(train_muts_split)
-        assert len(self.model.unseen_mutations) == 0
-        self.model.unseen_mutations = self.all_possible_mutations.difference(
-            observed_mutations
+        # Store WT idxs
+        self.wt_idxs = val_data.wt_idxs.type(torch.LongTensor)
+        # Store all observed mutations in mutant idxs
+        self.mutant_idxs = get_mutation_indicies(
+            self.training_mutations, self.model.alphabet
+        ).type(torch.LongTensor)
+        self.unseen_idxs = get_mutation_indicies(
+            self.unseen_mutations,
+            self.model.alphabet,
+        ).type(torch.LongTensor)
+        self.gauge_mask = (
+            torch.zeros_like(model.beta_coefficients(), dtype=torch.bool)
+            if site_dict is None
+            else parse_sites(site_dict, self.model)
         )
-        assert len(self.model.unseen_mutations) + len(observed_mutations) == len(
-            self.all_possible_mutations
-        ), "Unseen and observed mutation numbers don't add up!"
+        self.gauge_mask[:, torch.cat((self.wt_idxs, self.unseen_idxs))] = 1
+        self.model.fix_gauge(self.gauge_mask)
+        self.training_details_path = model_path + "_details.pkl"
 
     def loss_of_targets_and_prediction(
         self, loss_fn, targets, predictions, per_target_loss_decay
@@ -114,18 +128,6 @@ class Analysis:
         ]
         return sum(per_target_loss) + self.model.regularization_loss()
 
-    def _zero_wildtype_betas(self):
-        if hasattr(self.model, "model_bind") and hasattr(self.model, "model_stab"):
-            for latent_dim in range(self.model.model_bind.latent_dim):
-                for idx in self.val_data.wt_idxs:
-                    self.model.model_bind.beta_coefficients()[latent_dim, idx] = 0
-                    self.model.model_stab.beta_coefficients()[latent_dim, idx] = 0
-        else:
-            # here we set the WT betas to zero before the forward pass
-            for latent_dim in range(self.model.latent_dim):
-                for idx in self.val_data.wt_idxs:
-                    self.model.beta_coefficients()[latent_dim, idx] = 0
-
     def train(
         self,
         epoch_count,
@@ -140,6 +142,10 @@ class Analysis:
         assert len(self.train_datasets) > 0
         target_count = self.train_datasets[0].target_count()
         assert self.model.output_size == target_count
+        training_details = {
+            "unseen_mutations": list(self.unseen_mutations),
+            "model": self.model,
+        }
 
         if exp_target is not None:
             loss_weight_span = None
@@ -188,7 +194,12 @@ class Analysis:
 
                     batch = next(train_infinite_loader)
                     samples = batch["samples"].to(self.device)
-                    predictions = self.model(samples)
+                    concentrations = (
+                        None
+                        if self.val_data.samples_concentrations is None
+                        else batch["concentrations"].to(self.device)
+                    )
+                    predictions = self.model(samples, concentrations=concentrations)
                     loss = self.complete_loss(
                         loss_fn, batch["targets"], predictions, per_stratum_loss_decays
                     )
@@ -206,7 +217,7 @@ class Analysis:
                             param.data.clamp_(0)
 
                 optimizer.step()
-                self._zero_wildtype_betas()
+                self.model.fix_gauge(self.gauge_mask)
                 # if k >=1, reconstruct beta matricies with truncated SVD
                 if beta_rank is not None:
                     # procedure for 2D models.
@@ -269,6 +280,7 @@ class Analysis:
                             "Learning rate dropped below stated minimum. Stopping."
                         )
                         break
+        to_pickle_file(training_details, self.training_details_path)
 
     def multi_train(
         self,

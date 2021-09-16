@@ -43,8 +43,6 @@ class TorchdmsModel(nn.Module):
         """list of layer names"""
         self.training_style_sequence: List[Callable] = [self._default_training_style]
         """list of training style functions that (de)activate gradients in submodules"""
-        self.unseen_mutations: set = set()
-        """set of mutations not observed in training data"""
 
     def __str__(self):
         return super().__str__() + "\n" + self.characteristics.__str__()
@@ -73,7 +71,7 @@ class TorchdmsModel(nn.Module):
         r"""Single mutant effects :math:`\beta`"""
 
     @abstractmethod
-    def to_latent(self, x: torch.Tensor) -> torch.Tensor:
+    def to_latent(self, x: torch.Tensor, **kwargs) -> torch.Tensor:
         r"""Latent space representation :math:`Z`
 
         .. math::
@@ -84,7 +82,7 @@ class TorchdmsModel(nn.Module):
         """
 
     @abstractmethod
-    def from_latent_to_output(self, z: torch.Tensor) -> torch.Tensor:
+    def from_latent_to_output(self, z: torch.Tensor, **kwargs) -> torch.Tensor:
         r"""Evaluate the mapping from the latent space to output.
 
         .. math::
@@ -94,7 +92,7 @@ class TorchdmsModel(nn.Module):
             z: latent space representation
         """
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, **kwargs) -> torch.Tensor:
         # pylint: disable=arguments-differ
         r"""data :math:`X` :math:`\rightarrow` output :math:`Y`.
 
@@ -104,7 +102,12 @@ class TorchdmsModel(nn.Module):
         Args:
             x: input data tensor :math:`X`
         """
-        return self.from_latent_to_output(self.to_latent(x))
+        return self.from_latent_to_output(self.to_latent(x, **kwargs), **kwargs)
+
+    @abstractmethod
+    def fix_gauge(self, gauge_mask):
+        """Perform gauge-fixing procedure: zero WT betas and unseen mutaions,
+        and project mutant betas to hyperplane."""
 
     @property
     def sequence_length(self):
@@ -205,6 +208,28 @@ class TorchdmsModel(nn.Module):
         click.echo("Training in default style.")
         self.set_require_grad_for_all_parameters(True)
 
+    def seq_to_binary(self, seq):
+        """Takes a string of amino acids and creates an appropriate one-hot
+        encoding."""
+        # Get indices to place 1s for present amino acids.
+        assert self.input_size == len(seq) * len(
+            self.alphabet
+        ), "Sequence size doesn't match training sequences."
+        assert set(seq).issubset(
+            self.alphabet
+        ), "Input sequence has character(s) outside of model's alphabet."
+        alphabet_dict = {letter: idx for idx, letter in enumerate(self.alphabet)}
+        amino_acid_idx = [alphabet_dict[aa] for aa in seq]
+        indices = torch.zeros(len(seq), dtype=torch.long, requires_grad=False)
+        for site, _ in enumerate(seq):
+            indices[site] = (site * len(self.alphabet)) + amino_acid_idx[site]
+
+        # Generate encoding.
+        encoding = torch.zeros((1, len(seq) * len(self.alphabet)), requires_grad=False)
+        encoding[0, indices.data] = 1.0
+
+        return encoding[0]
+
 
 class LinearModel(TorchdmsModel):
     r"""A linear model, expressed as a single layer neural network with no nonlinear activations.
@@ -245,6 +270,10 @@ class LinearModel(TorchdmsModel):
     def to_latent(self, x: torch.Tensor) -> torch.Tensor:
         return self.latent_layer(x)
 
+    def fix_gauge(self, gauge_mask):
+        """Perform gauge-fixing procedure: zero WT betas and unseen mutaions,
+        and project mutant betas to hyperplane."""
+
 
 class EscapeModel(TorchdmsModel):
     r"""A model of viral escape with multiple epitopes, each with its own latent layer.
@@ -270,7 +299,6 @@ class EscapeModel(TorchdmsModel):
         self.num_epitopes = num_epitopes
         self.beta_l1_coefficient = beta_l1_coefficient
 
-        # build the model
         for i in range(self.num_epitopes):
             # NOTE: we track the wt activity as a separate layer, rather than
             # a bias term in the latent layer, so that the wt sequences is at
@@ -309,8 +337,9 @@ class EscapeModel(TorchdmsModel):
             [getattr(self, f"wt_activity_epi{i}") for i in range(self.num_epitopes)]
         )
 
-    def from_latent_to_output(self, z: torch.Tensor) -> torch.Tensor:
-        escape_fractions = torch.sigmoid(z + self.wt_activity())
+    def from_latent_to_output(self, z: torch.Tensor, concentrations: torch.Tensor=None) -> torch.Tensor:
+        log_concentrations = (0 if concentrations is None else torch.log(concentrations.unsqueeze(1))
+        escape_fractions = torch.sigmoid(z + self.wt_activity() - log_concentrations)
         return torch.unsqueeze(torch.prod(escape_fractions, 1), 1)
 
     def beta_coefficients(self):
@@ -330,6 +359,11 @@ class EscapeModel(TorchdmsModel):
             for i in range(self.num_epitopes)
         )
         return penalty
+
+    def fix_gauge(self, gauge_mask):
+        """Perform gauge-fixing procedure: zero WT betas and unseen
+        mutaions."""
+        self.beta_coefficients()[gauge_mask] = 0
 
 
 _identity = nn.Identity()
@@ -477,6 +511,18 @@ class FullyConnected(TorchdmsModel):
             ]
         )
 
+    def fix_gauge(self, gauge_mask):
+        """Perform gauge-fixing procedure: gauge mask is 1 hot for values that
+        must be set to zero."""
+        # zero WT and unseen betas
+        self.beta_coefficients()[gauge_mask] = 0
+        # project mutant betas
+        for latent_dim in range(self.latent_dim):
+            beta_vec = self.beta_coefficients()[latent_dim, ~gauge_mask[0]]
+            self.beta_coefficients()[latent_dim, ~gauge_mask[0]] = (
+                beta_vec - beta_vec.sum() / beta_vec.shape[0] - 1
+            )
+
     def to_latent(self, x: torch.Tensor) -> torch.Tensor:
         out = x
         if self.latent_idx > 0:
@@ -511,6 +557,8 @@ class FullyConnected(TorchdmsModel):
         return out
 
     def beta_coefficients(self) -> torch.Tensor:
+        """Beta coefficients (single mutant effects only, no interaction
+        terms)"""
         # This implementation assumes the single mutant terms are indexed first
         return self.latent_layer.weight.data[:, : self.input_size]
 
@@ -644,6 +692,7 @@ class Independent(TorchdmsModel):
         )
 
     def beta_coefficients(self) -> torch.Tensor:
+        """beta coefficients, skip coefficients only if interaction module."""
         beta_coefficients_data = torch.cat(
             (
                 self.model_bind.latent_layer.weight.data,
@@ -657,6 +706,12 @@ class Independent(TorchdmsModel):
             self.model_bind.regularization_loss()
             + self.model_stab.regularization_loss()
         )
+
+    def fix_gauge(self, gauge_mask):
+        """Perform gauge-fixing procedure: zero WT betas and unseen mutaions,
+        and project mutant betas to hyperplane."""
+        self.model_bind.fix_gauge(gauge_mask)
+        self.model_stab.fix_gauge(gauge_mask)
 
 
 class Conditional(Independent):
@@ -785,7 +840,7 @@ def model_of_string(model_string: str, data_path: str, **kwargs):
         if model_name == "Escape":
             if len(arguments) != 1:
                 raise IOError(
-                    "The Escape model expects exactly one argument: the number of epitopes."
+                    "The Escape model expects exactly one argument: the number of sites."
                 )
             num_epitopes = int(arguments[0])
             model = EscapeModel(
@@ -837,4 +892,5 @@ def model_of_string(model_string: str, data_path: str, **kwargs):
         )
     elif model_name != "Escape":
         raise NotImplementedError(model_name)
+
     return model
