@@ -106,7 +106,7 @@ class TorchdmsModel(ABC, nn.Module):
         """Perform gauge-fixing procedure on latent space parameters.
 
         Args:
-            gauge_mask: 0/1 mask array the same shape as latent space with 1s
+            gauge_mask: 0/1 mask array the same shape as latent space input with 1s
                         for parameters that should be zeroed
         """
 
@@ -714,8 +714,8 @@ class Independent(TorchdmsModel):
         )
 
     def fix_gauge(self, gauge_mask):
-        self.model_bind.fix_gauge(gauge_mask)
-        self.model_stab.fix_gauge(gauge_mask)
+        self.model_bind.fix_gauge(torch.unsqueeze(gauge_mask[0], dim=0))
+        self.model_stab.fix_gauge(torch.unsqueeze(gauge_mask[1], dim=0)) 
 
 
 class Conditional(Independent):
