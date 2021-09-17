@@ -242,7 +242,7 @@ def test_escape_concentrations_forward():
 
 def test_stored_unseen_mutations():
     """Test to make sure the set of unseen mutations are stored properly."""
-    all_possible_muts = make_all_possible_mutations(analysis.val_data)
+    all_possible_muts = make_all_possible_mutations(analysis.val_data.wtseq, analysis.val_data.alphabet)
     observed_muts = get_observed_training_mutations(analysis.train_datasets)
     unseen_muts = all_possible_muts.difference(observed_muts)
     assert analysis.unseen_mutations == unseen_muts
