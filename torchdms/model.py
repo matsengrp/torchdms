@@ -323,17 +323,17 @@ class EscapeModel(TorchdmsModel):
 
     def to_latent(self, x: torch.Tensor, **kwargs) -> torch.Tensor:
         return torch.cat(
-            [
+            tuple(
                 getattr(self, f"latent_layer_epi{i}")(x)
                 for i in range(self.num_epitopes)
-            ],
+            ),
             dim=1,
         )
 
     def wt_activity(self) -> torch.Tensor:
         r"""Wild type activity values for each epitope"""
         return torch.cat(
-            [getattr(self, f"wt_activity_epi{i}") for i in range(self.num_epitopes)]
+            tuple(getattr(self, f"wt_activity_epi{i}") for i in range(self.num_epitopes))
         )
 
     def from_latent_to_output(
@@ -348,7 +348,7 @@ class EscapeModel(TorchdmsModel):
 
     def beta_coefficients(self):
         beta_coefficients_data = torch.cat(
-            (
+            tuple(
                 getattr(self, f"latent_layer_epi{i}").weight.data
                 for i in range(self.num_epitopes)
             )
