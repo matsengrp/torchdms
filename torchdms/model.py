@@ -377,7 +377,8 @@ class FullyConnected(TorchdmsModel):
     Args:
         layer_sizes: Sequence of widths for each layer between input and output.
         activations: Corresponding activation functions for each layer.
-                     The first layer with ``nn.Identity`` activation is the latent space.
+                     The first layer with ``None`` or ``nn.Identity()`` activation
+                     is the latent space.
 
                      .. todo::
                          allowable activation function names?
@@ -391,7 +392,7 @@ class FullyConnected(TorchdmsModel):
     Example:
 
         With ``layer_sizes = [10, 2, 10, 10]`` and
-        ``activations = [nn.ReLU, nn.Identity, nn.ReLU, nn.ReLU]``
+        ``activations = [nn.ReLU, None, nn.ReLU, nn.ReLU]``
         we have a latent space of 2 nodes, feeding into
         two more dense layers, each with 10 nodes, before the output.
         Layers before the latent layer are a nonlinear module for site-wise
@@ -413,8 +414,10 @@ class FullyConnected(TorchdmsModel):
             raise ValueError(
                 f"{len(layer_sizes)} layer sizes inconsistent with {len(activations)} activations"
             )
-        for activation in activations:
-            if not callable(activation):
+        for idx, activation in enumerate(activations):
+            if activation is None:
+                activations[idx] = nn.Identity()
+            elif not callable(activation):
                 raise ValueError(f"activation function {activation} is not recognized")
 
         super().__init__(*args, **kwargs)
@@ -424,7 +427,7 @@ class FullyConnected(TorchdmsModel):
         self.interaction_l1_coefficient = interaction_l1_coefficient
 
         try:
-            self.latent_idx = self.activations.index(nn.Identity)
+            self.latent_idx = [type(activation) for activation in self.activations].index(nn.Identity)
         except ValueError:
             self.latent_idx = 0
 
@@ -549,6 +552,7 @@ class FullyConnected(TorchdmsModel):
             self.layers[self.latent_idx + 1 : -1],
             self.activations[self.latent_idx + 1 :],
         ):
+            print(getattr(self, layer_name)(out))
             out = activation(getattr(self, layer_name)(out))
         # The last layer acts without an activation, which is on purpose because we
         # don't want to be limited to the range of the activation.
@@ -590,7 +594,8 @@ class Independent(TorchdmsModel):
         layer_sizes: Sequence of widths for each layer between input and output *for both
                      submodules*.
         activations: Corresponding activation functions for each layer *for both submodules*.
-                     The first layer with ``nn.Identity`` activation is the latent space.
+                     The first layer with ``None`` or ``nn.Identity()`` activation is the
+                     latent space.
 
                      .. todo::
                          allowable activation function names?
@@ -802,7 +807,7 @@ KNOWN_MODELS = {
 
 def _activation_of_string(string):
     if string == "identity":
-        return nn.Identity
+        return nn.Identity()
     # else:
     if hasattr(torch, string):
         return getattr(torch, string)
