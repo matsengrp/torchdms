@@ -3,6 +3,7 @@ Testing for helper methods in analysis.py
 """
 import numpy as np
 import torch
+import torch.nn as nn
 import os
 import pkg_resources
 from pytest import approx
@@ -15,7 +16,7 @@ from torchdms.utils import (
     get_observed_training_mutations,
 )
 from torchdms.loss import l1
-from torchdms.model import model_of_string
+import torchdms.model
 from torchdms.data import partition, prep_by_stratum_and_export
 
 TEST_DATA_PATH = pkg_resources.resource_filename("torchdms", "data/test_df.pkl")
@@ -60,12 +61,19 @@ def setup_module(module):
     escape_split_df_prepped = from_pickle_file(escape_data_path)
 
     # GE models
-    model_string = "FullyConnected(1,identity,10,relu)"
-    model = model_of_string(model_string, data_path)
+    model = torchdms.model.FullyConnected(
+        [1, 10],
+        [None, nn.ReLU()],
+        split_df_prepped.test.feature_count(),
+        split_df_prepped.test.target_names,
+        split_df_prepped.test.alphabet)
 
     # Escape models
-    escape_model_string = "Escape(2)"
-    escape_model = model_of_string(escape_model_string, escape_data_path)
+    escape_model = torchdms.model.EscapeModel(
+            2,
+            escape_split_df_prepped.test.feature_count(),
+            escape_split_df_prepped.test.target_names,
+            escape_split_df_prepped.test.alphabet)
 
     torch.save(model, model_path)
     torch.save(escape_model, escape_model_path)
@@ -207,7 +215,7 @@ def test_escape_concentrations_forward():
     # We have 2 sites in the test model.
     test_dict = {"1": ["1-5"], "2": ["10-15"]}
     all_indicies = np.arange(escape_model.input_size)
-    site_indicies = parse_sites(test_dict, escape_model)
+    site_indicies = parse_sites(test_dict, escape_model.alphabet)
 
     assert escape_analysis.model.beta_coefficients().shape == (2, 4221)
 

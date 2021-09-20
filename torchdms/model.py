@@ -291,7 +291,7 @@ class EscapeModel(TorchdmsModel):
 
     """
 
-    def __init__(self, num_epitopes, *args, beta_l1_coefficient=None, **kwargs):
+    def __init__(self, num_epitopes, *args, beta_l1_coefficient: float = 0, **kwargs):
         super().__init__(*args, **kwargs)
 
         # set model attributes
@@ -392,7 +392,7 @@ class FullyConnected(TorchdmsModel):
     Example:
 
         With ``layer_sizes = [10, 2, 10, 10]`` and
-        ``activations = [nn.ReLU, None, nn.ReLU, nn.ReLU]``
+        ``activations = [nn.ReLU(), None, nn.ReLU(), nn.ReLU()]``
         we have a latent space of 2 nodes, feeding into
         two more dense layers, each with 10 nodes, before the output.
         Layers before the latent layer are a nonlinear module for site-wise
@@ -475,9 +475,7 @@ class FullyConnected(TorchdmsModel):
     @property
     def characteristics(self) -> Dict:
         return {
-            "activations": str(
-                [activation.__name__ for activation in self.activations]
-            ),
+            "activations": str(self.activations),
             "monotonic": self.monotonic_sign,
             "beta_l1_coefficient": self.beta_l1_coefficient,
             "interaction_l1_coefficient": self.interaction_l1_coefficient,
@@ -505,7 +503,6 @@ class FullyConnected(TorchdmsModel):
         if self.is_linear:
             return "linear"
         # else:
-        activation_names = [activation.__name__ for activation in self.activations]
         if self.monotonic_sign is None:
             monotonic = "non-mono"
         else:
@@ -513,14 +510,14 @@ class FullyConnected(TorchdmsModel):
         return f"{monotonic};" + ";".join(
             [
                 f"{dim};{name}"
-                for dim, name in zip(self.internal_layer_dimensions, activation_names)
+                for dim, name in zip(self.internal_layer_dimensions, self.activations)
             ]
         )
 
     def fix_gauge(self, gauge_mask):
-        # zero WT and unseen betas
+        # use mask to zero out coefficients
         self.beta_coefficients()[gauge_mask] = 0
-        # project mutant betas
+        # project remaining nonzero coefficients such that mean is -1
         for latent_dim in range(self.latent_dim):
             beta_vec = self.beta_coefficients()[latent_dim, ~gauge_mask[0]]
             self.beta_coefficients()[latent_dim, ~gauge_mask[0]] = (
@@ -715,7 +712,7 @@ class Independent(TorchdmsModel):
 
     def fix_gauge(self, gauge_mask):
         self.model_bind.fix_gauge(torch.unsqueeze(gauge_mask[0], dim=0))
-        self.model_stab.fix_gauge(torch.unsqueeze(gauge_mask[1], dim=0)) 
+        self.model_stab.fix_gauge(torch.unsqueeze(gauge_mask[1], dim=0))
 
 
 class Conditional(Independent):
@@ -793,108 +790,3 @@ class ConditionalSequential(Conditional):
         click.echo("Only training stab.")
         self.set_require_grad_for_all_parameters(True)
         self.model_bind.set_require_grad_for_all_parameters(False)
-
-
-KNOWN_MODELS = {
-    "Linear": LinearModel,
-    "FullyConnected": FullyConnected,
-    "Independent": Independent,
-    "Conditional": Conditional,
-    "ConditionalSequential": ConditionalSequential,
-    "Escape": EscapeModel,
-}
-
-
-def _activation_of_string(string):
-    if string == "identity":
-        return nn.Identity()
-    # else:
-    if hasattr(torch, string):
-        return getattr(torch, string)
-    # else:
-    if hasattr(nn.functional, string):
-        return getattr(nn.functional, string)
-    # else:
-    raise IOError(f"Don't know activation named {string}.")
-
-
-def model_of_string(model_string: str, data_path: str, **kwargs):
-    r"""Build a model out of a string specification.
-
-    .. todo::
-        Add a lot more detail and examples, or point to quickstart. Maybe the
-        ``data_path`` arg should be the unpickled data object, for more clear
-        documentation and introspection
-
-    Args:
-        model_string: the model specification string
-        data_path: path to some data
-    """
-
-    data = from_pickle_file(data_path)
-    test_dataset = data.test
-
-    try:
-        model_regex = re.compile(r"(.*)\((.*)\)")
-        match = model_regex.match(model_string)
-        model_name = match.group(1)
-        if model_name not in KNOWN_MODELS:
-            raise IOError(model_name + " not known")
-        arguments = match.group(2).split(",")
-        if model_name == "Escape":
-            if len(arguments) != 1:
-                raise IOError(
-                    "The Escape model expects exactly one argument: the number of sites."
-                )
-            num_epitopes = int(arguments[0])
-            model = EscapeModel(
-                num_epitopes,
-                test_dataset.feature_count(),
-                test_dataset.target_names,
-                test_dataset.alphabet,
-                **kwargs,
-            )
-        elif arguments == [""]:
-            arguments = []
-        else:
-            if len(arguments) % 2 != 0:
-                raise IOError(
-                    "The number of arguments to your model specification must be "
-                    "even, alternating between layer sizes and activations."
-                )
-            layers = list(map(int, arguments[0::2]))
-            activations = list(map(_activation_of_string, arguments[1::2]))
-    except Exception:
-        click.echo(f"ERROR: Couldn't parse model description: '{model_string}'.")
-        raise
-
-    if model_name == "FullyConnected":
-        if len(layers) == 0:
-            click.echo("LOG: No layers provided, so I'm creating a linear model.")
-        model = FullyConnected(
-            layers,
-            activations,
-            test_dataset.feature_count(),
-            test_dataset.target_names,
-            test_dataset.alphabet,
-            **kwargs,
-        )
-    elif model_name == "Linear":
-        model = LinearModel(
-            test_dataset.feature_count(),
-            test_dataset.target_names,
-            test_dataset.alphabet,
-        )
-    elif model_name in ("Independent", "Conditional", "ConditionalSequential"):
-        model = KNOWN_MODELS[model_name](
-            layers,
-            activations,
-            test_dataset.feature_count(),
-            test_dataset.target_names,
-            test_dataset.alphabet,
-            **kwargs,
-        )
-    elif model_name != "Escape":
-        raise NotImplementedError(model_name)
-
-    return model

@@ -3,7 +3,6 @@ Testing model module
 """
 import torch
 import torchdms.model
-from torchdms.model import model_of_string
 import torch.nn as nn
 import os
 import pkg_resources
@@ -12,39 +11,6 @@ from torchdms.analysis import Analysis
 from torchdms.utils import from_pickle_file
 from torchdms.loss import l1
 from torchdms.data import partition, prep_by_stratum_and_export
-
-
-def test_latent_origin():
-    """The WT sequence (zero tensor input) should lie at the origin of the latent space."""
-
-    for model_name in torchdms.model.KNOWN_MODELS:
-
-        input_size = 100
-        base_args = [input_size, [None, None], None]
-
-        activations = [nn.Identity(), nn.ReLU()]
-        layer_sizes = [1, 10]
-
-        if model_name == "Linear":
-            args = base_args
-        elif model_name == "Escape":
-            num_epitopes = 2
-            args = [num_epitopes, *base_args]
-        elif model_name in (
-            "FullyConnected",
-            "Independent",
-            "Conditional",
-            "ConditionalSequential",
-        ):
-            args = [layer_sizes, activations, *base_args]
-        else:
-            raise NotImplementedError(model_name)
-
-        model = torchdms.model.KNOWN_MODELS[model_name](*args)
-
-        z_WT = model.to_latent(torch.zeros(1, input_size))
-
-        assert torch.equal(z_WT, torch.zeros_like(z_WT))
 
 
 TEST_DATA_PATH = pkg_resources.resource_filename("torchdms", "data/test_df.pkl")
@@ -89,12 +55,19 @@ def setup_module(module):
     escape_split_df_prepped = from_pickle_file(escape_data_path)
 
     # GE models
-    model_string = "FullyConnected(1,identity,10,relu)"
-    model = model_of_string(model_string, data_path)
+    model = torchdms.model.FullyConnected(
+        [1, 10],
+        [None, nn.ReLU()],
+        split_df_prepped.test.feature_count(),
+        split_df_prepped.test.target_names,
+        split_df_prepped.test.alphabet)
 
     # Escape models
-    escape_model_string = "Escape(2)"
-    escape_model = model_of_string(escape_model_string, escape_data_path)
+    escape_model = torchdms.model.EscapeModel(
+            2,
+            escape_split_df_prepped.test.feature_count(),
+            escape_split_df_prepped.test.target_names,
+            escape_split_df_prepped.test.alphabet)
 
     torch.save(model, model_path)
     torch.save(escape_model, escape_model_path)
@@ -170,3 +143,13 @@ def test_zeroed_unseen_betas():
     for latent_dim in range(analysis.model.latent_dim):
         for idx in unseen_idxs:
             assert analysis.model.beta_coefficients()[latent_dim, int(idx)] == 0
+
+def test_latent_origin():
+    """The WT sequence should lie at the origin of the latent space in all models."""
+    for analysis_ in (analysis, escape_analysis):
+
+        # Train model with analysis object for 1 epoch
+        analysis_.train(**training_params)
+
+        z_WT = analysis_.model.to_latent(torch.unsqueeze(analysis_.model.seq_to_binary(analysis_.val_data.wtseq), 0))
+        assert torch.equal(z_WT, torch.zeros_like(z_WT))

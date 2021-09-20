@@ -8,6 +8,7 @@ import click
 import click_config_file
 import pandas as pd
 import torch
+from torch import nn
 import torchdms
 from torchdms.analysis import Analysis
 from torchdms.data import (
@@ -23,7 +24,7 @@ from torchdms.evaluation import (
     error_df_of_evaluation_dict,
 )
 from torchdms.loss import l1, mse, rmse
-from torchdms.model import model_of_string
+import torchdms.model
 from torchdms.plot import (
     beta_coefficients,
     build_geplot_df,
@@ -319,7 +320,16 @@ def create(
             kwargs["interaction_l1_coefficient"] = interaction_l1_coefficients[0]
         else:
             kwargs["interaction_l1_coefficients"] = interaction_l1_coefficients
-    model = model_of_string(model_string, data_path, **kwargs)
+    data = from_pickle_file(data_path)
+    model_name, *model_architecture = model_string.split(";")
+    model_name = eval(f"torchdms.model.{model_name}")
+    model_architecture = tuple(eval(arg) for arg in model_architecture)
+    model = model_name(
+                *model_architecture,
+                data.test.feature_count(),
+                data.test.target_names,
+                data.test.alphabet,
+                **kwargs)
     torch.save(model, out_path)
     click.echo(f"LOG: Model defined as: {model}")
     click.echo(f"LOG: Saved model to {out_path}")

@@ -40,7 +40,7 @@ Now we create a model:
 
 .. code-block:: console
 
-    tdms create prepped_libA2.pkl my.model "Conditional(1,identity,20,relu,20,relu)"
+    tdms create prepped_libA2.pkl my.model "Conditional;[100, 10, 1, 20];[nn.ReLU(), nn.ReLU(), None, nn.ReLU()]"
 
 We can train the model with various settings:
 
@@ -58,7 +58,7 @@ Rather than use command line flags, you can use a JSON-format configuration file
         "default": {
             "data_path": "/path/to/data.pkl",
             "loss_fn": "l1",
-            "model_string": "Conditional(100,relu,10,relu,1,identity,20,relu)",
+            "model_string": "Conditional;[100, 10, 1, 20];[nn.ReLU(), nn.ReLU(), None, nn.ReLU()]",
             "prefix": "run",
             "seed": 0
         }
