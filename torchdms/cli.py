@@ -328,7 +328,7 @@ def create(
 
     # detect activation strings and replace with functions
     for i, x in enumerate(model_architecture):
-        if isinstance(x) == list:
+        if isinstance(x, list):
             try:
                 model_architecture[i] = [activation_of_string(y) for y in x]
             except TypeError:
