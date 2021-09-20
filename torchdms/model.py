@@ -1,13 +1,11 @@
 r"""Generalized global epistasis models."""
 from typing import List, Tuple, Callable, Dict, Generator, Optional
 from abc import ABC, abstractmethod
-import re
 import click
 import numpy as np
 import pandas as pd
 import torch
 from torch import nn
-from torchdms.utils import from_pickle_file
 
 
 class TorchdmsModel(ABC, nn.Module):
@@ -333,7 +331,9 @@ class Escape(TorchdmsModel):
     def wt_activity(self) -> torch.Tensor:
         r"""Wild type activity values for each epitope"""
         return torch.cat(
-            tuple(getattr(self, f"wt_activity_epi{i}") for i in range(self.num_epitopes))
+            tuple(
+                getattr(self, f"wt_activity_epi{i}") for i in range(self.num_epitopes)
+            )
         )
 
     def from_latent_to_output(
@@ -392,7 +392,7 @@ class FullyConnected(TorchdmsModel):
     Example:
 
         With ``layer_sizes = [10, 2, 10, 10]`` and
-        ``activations = [nn.ReLU(), None, nn.ReLU(), nn.ReLU()]``
+        ``activations = ["relu", None, "relu", "relu"]``
         we have a latent space of 2 nodes, feeding into
         two more dense layers, each with 10 nodes, before the output.
         Layers before the latent layer are a nonlinear module for site-wise
@@ -435,35 +435,33 @@ class FullyConnected(TorchdmsModel):
         except ValueError:
             self.latent_idx = 0
 
-        # all other models
-        else:
-            input_size = self.input_size
-            prefix = "interaction"
-            # the pre-latent interaction network should have zero bias, as well as
-            # the latent layer, so that WT is at the origin
-            bias = False
-            for layer_index, num_nodes in enumerate(layer_sizes):
-                if layer_index == self.latent_idx:
-                    layer_name = "latent_layer"
-                    if layer_index > 0:
-                        # skip connection
-                        input_size += self.input_size
-                    prefix = "nonlinearity"
-                else:
-                    layer_name = f"{prefix}_{layer_index}"
+        input_size = self.input_size
+        prefix = "interaction"
+        # the pre-latent interaction network should have zero bias, as well as
+        # the latent layer, so that WT is at the origin
+        bias = False
+        for layer_index, num_nodes in enumerate(layer_sizes):
+            if layer_index == self.latent_idx:
+                layer_name = "latent_layer"
+                if layer_index > 0:
+                    # skip connection
+                    input_size += self.input_size
+                prefix = "nonlinearity"
+            else:
+                layer_name = f"{prefix}_{layer_index}"
 
-                self.layers.append(layer_name)
-                setattr(self, layer_name, nn.Linear(input_size, num_nodes, bias=bias))
-                input_size = layer_sizes[layer_index]
-
-                # Location parameter(s) for WT sequence are learned in the nonlinearity
-                if prefix == "nonlinearity":
-                    bias = True
-
-            # final layer
-            layer_name = "output_layer"
             self.layers.append(layer_name)
-            setattr(self, layer_name, nn.Linear(layer_sizes[-1], self.output_size))
+            setattr(self, layer_name, nn.Linear(input_size, num_nodes, bias=bias))
+            input_size = layer_sizes[layer_index]
+
+            # Location parameter(s) for WT sequence are learned in the nonlinearity
+            if prefix == "nonlinearity":
+                bias = True
+
+        # final layer
+        layer_name = "output_layer"
+        self.layers.append(layer_name)
+        setattr(self, layer_name, nn.Linear(layer_sizes[-1], self.output_size))
 
         if self.monotonic_sign is not None:
             # If monotonic, we want to initialize all parameters

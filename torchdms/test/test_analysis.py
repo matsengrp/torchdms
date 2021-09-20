@@ -66,14 +66,16 @@ def setup_module(module):
         [None, nn.ReLU()],
         split_df_prepped.test.feature_count(),
         split_df_prepped.test.target_names,
-        split_df_prepped.test.alphabet)
+        split_df_prepped.test.alphabet,
+    )
 
     # Escape models
     escape_model = torchdms.model.Escape(
-            2,
-            escape_split_df_prepped.test.feature_count(),
-            escape_split_df_prepped.test.target_names,
-            escape_split_df_prepped.test.alphabet)
+        2,
+        escape_split_df_prepped.test.feature_count(),
+        escape_split_df_prepped.test.target_names,
+        escape_split_df_prepped.test.alphabet,
+    )
 
     torch.save(model, model_path)
     torch.save(escape_model, escape_model_path)
@@ -180,8 +182,12 @@ def test_seq_to_binary():
     assert wtseq == "NIT"
 
     # Ground truth indicies for valid cases
-    wt_ground_truth = torch.zeros(len(wtseq) * len(analysis.model.alphabet), dtype=torch.float)
-    mut_ground_truth = torch.zeros(len(wtseq) * len(analysis.model.alphabet), dtype=torch.float)
+    wt_ground_truth = torch.zeros(
+        len(wtseq) * len(analysis.model.alphabet), dtype=torch.float
+    )
+    mut_ground_truth = torch.zeros(
+        len(wtseq) * len(analysis.model.alphabet), dtype=torch.float
+    )
     wt_ground_truth[analysis.wt_idxs] = 1
     mut_ground_truth[torch.tensor([11, 27, 58], dtype=torch.long)] = 1
     wt_test = analysis.model.seq_to_binary(wtseq)
@@ -246,16 +252,21 @@ def test_escape_concentrations_forward():
 
 def test_stored_unseen_mutations():
     """Test to make sure the set of unseen mutations are stored properly."""
-    all_possible_muts = make_all_possible_mutations(analysis.val_data.wtseq, analysis.val_data.alphabet)
+    all_possible_muts = make_all_possible_mutations(
+        analysis.val_data.wtseq, analysis.val_data.alphabet
+    )
     observed_muts = get_observed_training_mutations(analysis.train_datasets)
     unseen_muts = all_possible_muts.difference(observed_muts)
     assert analysis.unseen_mutations == unseen_muts
+
 
 def test_latent_origin():
     """The WT sequence should lie at the origin of the latent space in all models."""
     for analysis_ in (analysis, escape_analysis):
 
-        wt_rep = torch.unsqueeze(analysis_.model.seq_to_binary(analysis_.val_data.wtseq), 0)
+        wt_rep = torch.unsqueeze(
+            analysis_.model.seq_to_binary(analysis_.val_data.wtseq), 0
+        )
 
         # check on init
         z_WT = analysis_.model.to_latent(wt_rep)

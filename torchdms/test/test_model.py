@@ -60,14 +60,16 @@ def setup_module(module):
         [None, nn.ReLU()],
         split_df_prepped.test.feature_count(),
         split_df_prepped.test.target_names,
-        split_df_prepped.test.alphabet)
+        split_df_prepped.test.alphabet,
+    )
 
     # Escape models
     escape_model = torchdms.model.Escape(
-            2,
-            escape_split_df_prepped.test.feature_count(),
-            escape_split_df_prepped.test.target_names,
-            escape_split_df_prepped.test.alphabet)
+        2,
+        escape_split_df_prepped.test.feature_count(),
+        escape_split_df_prepped.test.target_names,
+        escape_split_df_prepped.test.alphabet,
+    )
 
     torch.save(model, model_path)
     torch.save(escape_model, escape_model_path)

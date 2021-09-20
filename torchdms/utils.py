@@ -9,6 +9,8 @@ import re
 import pandas as pd
 import numpy as np
 import torch
+from torch import nn
+import torch.nn.functional
 
 
 def from_pickle_file(path):
@@ -230,6 +232,7 @@ def get_mutation_indicies(mutation_list, alphabet):
         site = int(mut[1:-1])
         indicies.append(((site - 1) * len(alphabet_dict)) + alphabet_dict[mut_aa])
 
+    # pylint: disable=not-callable
     return torch.tensor(indicies, dtype=torch.long)
 
 
@@ -245,3 +248,16 @@ def parse_sites(site_dict, model):
             site_mask[region_id, start:end] = False
 
     return site_mask
+
+
+def activation_of_string(string):
+    if string == "identity" or string is None:
+        return nn.Identity()
+    # else:
+    if hasattr(torch, string):
+        return getattr(torch, string)
+    # else:
+    if hasattr(torch.nn.functional, string):
+        return getattr(torch.nn.functional, string)
+    # else:
+    raise IOError(f"Don't know activation named {string}.")

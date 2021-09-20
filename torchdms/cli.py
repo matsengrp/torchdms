@@ -4,11 +4,11 @@ import pathlib
 import json
 import os
 import random
+from ast import literal_eval
 import click
 import click_config_file
 import pandas as pd
 import torch
-from torch import nn
 import torchdms
 from torchdms.analysis import Analysis
 from torchdms.data import (
@@ -44,6 +44,7 @@ from torchdms.utils import (
     from_json_file,
     make_cartesian_product_hierarchy,
     to_pickle_file,
+    activation_of_string,
 )
 
 
@@ -322,14 +323,23 @@ def create(
             kwargs["interaction_l1_coefficients"] = interaction_l1_coefficients
     data = from_pickle_file(data_path)
     model_name, *model_architecture = model_string.split(";")
-    model_name = eval(f"torchdms.model.{model_name}")
-    model_architecture = tuple(eval(arg) for arg in model_architecture)
+    model_name = getattr(torchdms.model, model_name)
+    model_architecture = [literal_eval(arg) for arg in model_architecture]
+
+    # detect activation strings and replace with functions
+    for i, x in enumerate(model_architecture):
+        if isinstance(x) == list:
+            try:
+                model_architecture[i] = [activation_of_string(y) for y in x]
+            except TypeError:
+                pass
     model = model_name(
-                *model_architecture,
-                data.test.feature_count(),
-                data.test.target_names,
-                data.test.alphabet,
-                **kwargs)
+        *model_architecture,
+        data.test.feature_count(),
+        data.test.target_names,
+        data.test.alphabet,
+        **kwargs,
+    )
     torch.save(model, out_path)
     click.echo(f"LOG: Model defined as: {model}")
     click.echo(f"LOG: Saved model to {out_path}")
