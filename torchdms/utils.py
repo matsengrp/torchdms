@@ -230,7 +230,7 @@ def get_mutation_indicies(mutation_list, alphabet):
         site = int(mut[1:-1])
         indicies.append(((site - 1) * len(alphabet_dict)) + alphabet_dict[mut_aa])
 
-    return torch.Tensor(indicies).type(torch.long)
+    return torch.tensor(indicies, dtype=torch.long)
 
 
 def parse_sites(site_dict, model):

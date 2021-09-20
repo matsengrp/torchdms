@@ -84,15 +84,10 @@ class Analysis:
             val_data.wtseq, val_data.alphabet
         ).difference(self.training_mutations)
         # Store WT idxs
-        self.wt_idxs = val_data.wt_idxs.type(torch.LongTensor)
+        self.wt_idxs = val_data.wt_idxs
         # Store all observed mutations in mutant idxs
-        self.mutant_idxs = get_mutation_indicies(
-            self.training_mutations, self.model.alphabet
-        ).type(torch.LongTensor)
-        self.unseen_idxs = get_mutation_indicies(
-            self.unseen_mutations,
-            self.model.alphabet,
-        ).type(torch.LongTensor)
+        self.mutant_idxs = get_mutation_indicies(self.training_mutations, self.model.alphabet)
+        self.unseen_idxs = get_mutation_indicies(self.unseen_mutations, self.model.alphabet)
         self.gauge_mask = (
             torch.zeros_like(model.beta_coefficients(), dtype=torch.bool)
             if site_dict is None

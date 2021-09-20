@@ -180,14 +180,10 @@ def test_seq_to_binary():
     assert wtseq == "NIT"
 
     # Ground truth indicies for valid cases
-    wt_ground_truth = torch.zeros(len(wtseq) * len(analysis.model.alphabet)).type(
-        torch.FloatTensor
-    )
-    mut_ground_truth = torch.zeros(len(wtseq) * len(analysis.model.alphabet)).type(
-        torch.FloatTensor
-    )
-    wt_ground_truth[analysis.wt_idxs] = 1.0
-    mut_ground_truth[torch.tensor([11, 27, 58]).type(torch.LongTensor)] = 1.0
+    wt_ground_truth = torch.zeros(len(wtseq) * len(analysis.model.alphabet), dtype=torch.float)
+    mut_ground_truth = torch.zeros(len(wtseq) * len(analysis.model.alphabet), dtype=torch.float)
+    wt_ground_truth[analysis.wt_idxs] = 1
+    mut_ground_truth[torch.tensor([11, 27, 58], dtype=torch.long)] = 1
     wt_test = analysis.model.seq_to_binary(wtseq)
     mut_test = analysis.model.seq_to_binary(mutseq_valid)
 
