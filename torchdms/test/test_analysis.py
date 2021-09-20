@@ -136,20 +136,20 @@ def test_project_betas():
 
 def test_zeroed_wt_betas():
     """Test to ensure WT betas of a model are (and remain) 0."""
-    wt_idxs = analysis.val_data.wt_idxs
-    assert analysis.val_data.wtseq == "NIT"
-    # Assert that wt betas are 0 upon initializaiton.
-    for latent_dim in range(analysis.model.latent_dim):
-        for idx in wt_idxs:
-            assert analysis.model.beta_coefficients()[latent_dim, int(idx)] == 0
+    for analysis_ in (analysis, escape_analysis):
+        wt_idxs = analysis_.val_data.wt_idxs
+        # Assert that wt betas are 0 upon initializaiton.
+        for latent_dim in range(analysis_.model.latent_dim):
+            for idx in wt_idxs:
+                assert analysis_.model.beta_coefficients()[latent_dim, int(idx)] == 0
 
-    # Train model with analysis object for 1 epoch
-    analysis.train(**training_params)
+        # Train model with analysis object for 1 epoch
+        analysis_.train(**training_params)
 
-    # Assert that wt betas are still 0.
-    for latent_dim in range(analysis.model.latent_dim):
-        for idx in wt_idxs:
-            assert analysis.model.beta_coefficients()[latent_dim, int(idx)] == 0
+        # Assert that wt betas are still 0.
+        for latent_dim in range(analysis_.model.latent_dim):
+            for idx in wt_idxs:
+                assert analysis_.model.beta_coefficients()[latent_dim, int(idx)] == 0
 
 
 def test_zeroed_unseen_betas():
@@ -254,3 +254,20 @@ def test_stored_unseen_mutations():
     observed_muts = get_observed_training_mutations(analysis.train_datasets)
     unseen_muts = all_possible_muts.difference(observed_muts)
     assert analysis.unseen_mutations == unseen_muts
+
+def test_latent_origin():
+    """The WT sequence should lie at the origin of the latent space in all models."""
+    for analysis_ in (analysis, escape_analysis):
+
+        wt_rep = torch.unsqueeze(analysis_.model.seq_to_binary(analysis_.val_data.wtseq), 0)
+
+        # check on init
+        z_WT = analysis_.model.to_latent(wt_rep)
+        assert torch.equal(z_WT, torch.zeros_like(z_WT))
+
+        # Train model with analysis object for 1 epoch
+        analysis_.train(**training_params)
+
+        # check after training
+        z_WT = analysis_.model.to_latent(wt_rep)
+        assert torch.equal(z_WT, torch.zeros_like(z_WT))

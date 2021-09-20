@@ -143,13 +143,3 @@ def test_zeroed_unseen_betas():
     for latent_dim in range(analysis.model.latent_dim):
         for idx in unseen_idxs:
             assert analysis.model.beta_coefficients()[latent_dim, int(idx)] == 0
-
-def test_latent_origin():
-    """The WT sequence should lie at the origin of the latent space in all models."""
-    for analysis_ in (analysis, escape_analysis):
-
-        # Train model with analysis object for 1 epoch
-        analysis_.train(**training_params)
-
-        z_WT = analysis_.model.to_latent(torch.unsqueeze(analysis_.model.seq_to_binary(analysis_.val_data.wtseq), 0))
-        assert torch.equal(z_WT, torch.zeros_like(z_WT))
