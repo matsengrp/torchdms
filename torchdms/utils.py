@@ -237,16 +237,11 @@ def parse_sites(site_dict, model):
     """Parse site dictionary and return beta indicies for given alphabet."""
     # Assume everything will be set to zero, and set site indicies to 'False'
     site_mask = torch.ones_like(model.beta_coefficients(), dtype=torch.bool)
-    site_id = 0
-    for sites in site_dict.values():
-        site_idx = []
-        for chunk in sites:
-            site_1 = int(chunk.split("-")[0])
-            site_2 = int(chunk.split("-")[1])
+    for region_id, region_sites in enumerate(site_dict.values()):
+        for chunk in region_sites:
+            site_1, site_2 = [int(x) for x in chunk.split("-")]
             start = (site_1 - 1) * len(model.alphabet)
             end = start + (site_2 - site_1 + 1) * len(model.alphabet)
-            site_idx.append(list(range(start, end)))
-        site_idx = [y for x in site_idx for y in x]
-        site_mask[site_id, site_idx] = 0
+            site_mask[region_id, start:end] = False
 
     return site_mask

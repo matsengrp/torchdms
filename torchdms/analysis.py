@@ -44,7 +44,12 @@ def _make_beta_matrix_low_rank(model, latent_dim, beta_rank, wtseq, alphabet):
 
 
 class Analysis:
-    """A wrapper class for training models."""
+    r"""A wrapper class for training models.
+
+    .. todo::
+        much more documentation needed
+
+    """
 
     def __init__(
         self,
@@ -93,7 +98,7 @@ class Analysis:
             if site_dict is None
             else parse_sites(site_dict, self.model)
         )
-        self.gauge_mask[:, torch.cat((self.wt_idxs, self.unseen_idxs))] = 1
+        self.gauge_mask[:, torch.cat((self.wt_idxs, self.unseen_idxs))] = True
         self.model.fix_gauge(self.gauge_mask)
         self.training_details_path = model_path + "_details.pkl"
 

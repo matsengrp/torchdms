@@ -215,7 +215,7 @@ def test_escape_concentrations_forward():
     # We have 2 sites in the test model.
     test_dict = {"1": ["1-5"], "2": ["10-15"]}
     all_indicies = np.arange(escape_model.input_size)
-    site_indicies = parse_sites(test_dict, escape_model.alphabet)
+    site_indicies = parse_sites(test_dict, escape_model)
 
     assert escape_analysis.model.beta_coefficients().shape == (2, 4221)
 
