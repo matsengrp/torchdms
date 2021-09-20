@@ -274,7 +274,7 @@ class LinearModel(TorchdmsModel):
         pass
 
 
-class EscapeModel(TorchdmsModel):
+class Escape(TorchdmsModel):
     r"""A model of viral escape with multiple epitopes, each with its own latent layer.
 
     The output is assumed to be escape fraction :math:`\in (0, 1)`. The nonlinearity is

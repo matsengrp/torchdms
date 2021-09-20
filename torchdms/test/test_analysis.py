@@ -69,7 +69,7 @@ def setup_module(module):
         split_df_prepped.test.alphabet)
 
     # Escape models
-    escape_model = torchdms.model.EscapeModel(
+    escape_model = torchdms.model.Escape(
             2,
             escape_split_df_prepped.test.feature_count(),
             escape_split_df_prepped.test.target_names,
@@ -193,7 +193,7 @@ def test_seq_to_binary():
 
 
 def test_concentrations_stored():
-    """Tests to make sure EscapeModel() is recieving concentration values as planned (tacking values on to end of encoding)."""
+    """Tests to make sure Escape() is recieving concentration values as planned (tacking values on to end of encoding)."""
     # Make sure the model's input size doesn't change
     assert escape_model.input_size == len(escape_model.alphabet) * len(
         escape_analysis.val_data.wtseq
@@ -205,7 +205,7 @@ def test_concentrations_stored():
 
 
 def test_escape_concentrations_forward():
-    """Test to make sure concentrations aren't influencing betas in EscapeModel."""
+    """Test to make sure concentrations aren't influencing betas in Escape."""
     # Make sure beta_coefficients() only returns sequence indices.
     # The encoding for the polyclonal escape simulated data is 4221 slots.
     # We have 2 sites in the test model.

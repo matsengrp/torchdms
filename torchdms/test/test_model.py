@@ -63,7 +63,7 @@ def setup_module(module):
         split_df_prepped.test.alphabet)
 
     # Escape models
-    escape_model = torchdms.model.EscapeModel(
+    escape_model = torchdms.model.Escape(
             2,
             escape_split_df_prepped.test.feature_count(),
             escape_split_df_prepped.test.target_names,

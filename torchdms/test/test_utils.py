@@ -49,7 +49,7 @@ def test_parse_sites():
     # mini alphabet for easy mental calculations.
     alphabet = set(range(5))
     beta_dim = len(alphabet) * 15
-    model = torchdms.model.EscapeModel(
+    model = torchdms.model.Escape(
         input_size=beta_dim, target_names=[], alphabet=alphabet, num_epitopes=2
     )
     site_one_ground_truth = torch.ones(beta_dim, dtype=torch.bool)
