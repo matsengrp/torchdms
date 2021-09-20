@@ -231,7 +231,7 @@ class TorchdmsModel(ABC, nn.Module):
         return encoding[0]
 
 
-class LinearModel(TorchdmsModel):
+class Linear(TorchdmsModel):
     r"""A linear model, expressed as a single layer neural network with no nonlinear activations.
 
     Args:
@@ -410,6 +410,8 @@ class FullyConnected(TorchdmsModel):
         interaction_l1_coefficient: float = 0.0,
         **kwargs,
     ):
+        if len(layer_sizes) == 0:
+            raise ValueError("layer sizes cannot be empty")
         if not len(layer_sizes) == len(activations):
             raise ValueError(
                 f"{len(layer_sizes)} layer sizes inconsistent with {len(activations)} activations"
@@ -427,15 +429,11 @@ class FullyConnected(TorchdmsModel):
         self.interaction_l1_coefficient = interaction_l1_coefficient
 
         try:
-            self.latent_idx = [type(activation) for activation in self.activations].index(nn.Identity)
+            self.latent_idx = [
+                type(activation) for activation in self.activations
+            ].index(nn.Identity)
         except ValueError:
             self.latent_idx = 0
-
-        # additive model
-        if len(layer_sizes) == 0:
-            layer_name = "latent_layer"
-            self.layers.append(layer_name)
-            setattr(self, layer_name, nn.Linear(self.input_size, self.output_size))
 
         # all other models
         else:
@@ -487,11 +485,6 @@ class FullyConnected(TorchdmsModel):
         return [getattr(self, layer).out_features for layer in self.layers[:-1]]
 
     @property
-    def is_linear(self) -> bool:
-        """is this a linear model (no internal layers)?"""
-        return len(self.internal_layer_dimensions) == 0
-
-    @property
     def latent_dim(self) -> int:
         dims = self.internal_layer_dimensions
         if len(dims) == 0:
@@ -500,9 +493,6 @@ class FullyConnected(TorchdmsModel):
         return dims[self.latent_idx]
 
     def str_summary(self) -> str:
-        if self.is_linear:
-            return "linear"
-        # else:
         if self.monotonic_sign is None:
             monotonic = "non-mono"
         else:
@@ -541,9 +531,6 @@ class FullyConnected(TorchdmsModel):
         )
 
     def from_latent_to_output(self, z: torch.Tensor, **kwargs) -> torch.Tensor:
-        if self.is_linear:
-            return z
-        # else:
         out = z
         for layer_name, activation in zip(
             self.layers[self.latent_idx + 1 : -1],
@@ -665,10 +652,6 @@ class Independent(TorchdmsModel):
     @property
     def internal_layer_dimensions(self) -> List[int]:
         return self.model_bind.internal_layer_dimensions
-
-    @property
-    def is_linear(self) -> bool:
-        return self.internal_layer_dimensions.is_linear
 
     @property
     def latent_dim(self) -> int:
