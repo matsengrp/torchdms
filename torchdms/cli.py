@@ -4,6 +4,7 @@ import pathlib
 import json
 import os
 import random
+from ast import literal_eval
 import click
 import click_config_file
 import pandas as pd
@@ -23,7 +24,7 @@ from torchdms.evaluation import (
     error_df_of_evaluation_dict,
 )
 from torchdms.loss import l1, mse, rmse
-from torchdms.model import model_of_string
+import torchdms.model
 from torchdms.plot import (
     beta_coefficients,
     build_geplot_df,
@@ -43,6 +44,7 @@ from torchdms.utils import (
     from_json_file,
     make_cartesian_product_hierarchy,
     to_pickle_file,
+    activation_of_string,
 )
 
 
@@ -319,7 +321,25 @@ def create(
             kwargs["interaction_l1_coefficient"] = interaction_l1_coefficients[0]
         else:
             kwargs["interaction_l1_coefficients"] = interaction_l1_coefficients
-    model = model_of_string(model_string, data_path, **kwargs)
+    data = from_pickle_file(data_path)
+    model_name, *model_architecture = model_string.split(";")
+    model_name = getattr(torchdms.model, model_name)
+    model_architecture = [literal_eval(arg) for arg in model_architecture]
+
+    # detect activation strings and replace with functions
+    for i, x in enumerate(model_architecture):
+        if isinstance(x, list):
+            try:
+                model_architecture[i] = [activation_of_string(y) for y in x]
+            except TypeError:
+                pass
+    model = model_name(
+        *model_architecture,
+        data.test.feature_count(),
+        data.test.target_names,
+        data.test.alphabet,
+        **kwargs,
+    )
     torch.save(model, out_path)
     click.echo(f"LOG: Model defined as: {model}")
     click.echo(f"LOG: Saved model to {out_path}")
@@ -764,7 +784,6 @@ def transfer(source_path, dest_path):
     if len(dest_model.latent_layer.weight[0]) != len(init_weights[0]):
         raise ValueError("source & dest beta dimensions do not match.")
     dest_model.latent_layer.weight[0] = init_weights[0]
-    dest_model.freeze_betas = True
 
     torch.save(dest_model, dest_path)
     click.echo(f"LOG: Beta coefficients copied from {source_path} to {dest_path}")

@@ -5,7 +5,7 @@
         "site_path": "test_site_key.json",
         "epochs": 1,
         "independent_starts": 1,
-        "model_string": "Escape(3)",
+        "model_string": "Escape;3",
         "prefix": "_ignore/run",
         "seed": 42
     }

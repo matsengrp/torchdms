@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import torch
-from matplotlib import cm, colors, patches
+from matplotlib import colors, patches
 from plotnine import (
     aes,
     facet_grid,
@@ -401,7 +401,7 @@ def plot_svd_profiles(model, test_data, out):
         rank = np.linalg.matrix_rank(beta_map)
         u_vecs, _, v_vecs = torch.svd(torch.from_numpy(beta_map))
         # Plot amino acid profiles
-        aa_profiles = ax[0].imshow(u_vecs[:, :rank], aspect="auto", cmap=cm.Reds)
+        aa_profiles = ax[0].imshow(u_vecs[:, :rank], aspect="auto", cmap="Reds")
         fig.colorbar(aa_profiles, ax=ax[0], orientation="horizontal")
         ax[0].set(
             title=f"Amino acid profiles for latent dim {latent_dim}, rank={rank}",
@@ -412,7 +412,7 @@ def plot_svd_profiles(model, test_data, out):
             ylabel="Amino acid",
         )
         # add second heatmap for folding latent space
-        site_profiles = ax[1].imshow(v_vecs[:, :rank], aspect="auto", cmap=cm.Reds)
+        site_profiles = ax[1].imshow(v_vecs[:, :rank], aspect="auto", cmap="Reds")
         fig.colorbar(site_profiles, ax=ax[1], orientation="horizontal")
         ax[1].set(
             title=f"Per-site profile usage for latent dim {latent_dim}, rank={rank}",
@@ -432,7 +432,7 @@ def plot_svd_profiles(model, test_data, out):
             u_vecs, _, v_vecs = torch.svd(torch.from_numpy(beta_map))
             # Plot amino acid profiles
             aa_profiles = ax[latent_dim, 0].imshow(
-                u_vecs[:, :rank], aspect="auto", cmap=cm.Reds
+                u_vecs[:, :rank], aspect="auto", cmap="Reds"
             )
             fig.colorbar(aa_profiles, ax=ax[latent_dim, 0], orientation="horizontal")
             ax[latent_dim, 0].set(
@@ -445,7 +445,7 @@ def plot_svd_profiles(model, test_data, out):
             )
             # add second heatmap for folding latent space
             site_profiles = ax[latent_dim, 1].imshow(
-                v_vecs[:, :rank], aspect="auto", cmap=cm.Reds
+                v_vecs[:, :rank], aspect="auto", cmap="Reds"
             )
             fig.colorbar(site_profiles, ax=ax[latent_dim, 1], orientation="horizontal")
             ax[latent_dim, 1].set(

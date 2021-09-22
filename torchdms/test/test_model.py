@@ -1,15 +1,17 @@
 """
-Testing for methods in model.py
+Testing model module
 """
 import torch
+import torchdms.model
+import torch.nn as nn
 import os
 import pkg_resources
 from pytest import approx
 from torchdms.analysis import Analysis
-from torchdms.utils import from_pickle_file, parse_sites
+from torchdms.utils import from_pickle_file
 from torchdms.loss import l1
-from torchdms.model import model_of_string
 from torchdms.data import partition, prep_by_stratum_and_export
+
 
 TEST_DATA_PATH = pkg_resources.resource_filename("torchdms", "data/test_df.pkl")
 ESCAPE_TEST_DATA_PATH = pkg_resources.resource_filename(
@@ -53,12 +55,21 @@ def setup_module(module):
     escape_split_df_prepped = from_pickle_file(escape_data_path)
 
     # GE models
-    model_string = "FullyConnected(1,identity,10,relu)"
-    model = model_of_string(model_string, data_path)
+    model = torchdms.model.FullyConnected(
+        [1, 10],
+        [None, nn.ReLU()],
+        split_df_prepped.test.feature_count(),
+        split_df_prepped.test.target_names,
+        split_df_prepped.test.alphabet,
+    )
 
     # Escape models
-    escape_model_string = "Escape(2)"
-    escape_model = model_of_string(escape_model_string, escape_data_path)
+    escape_model = torchdms.model.Escape(
+        2,
+        escape_split_df_prepped.test.feature_count(),
+        escape_split_df_prepped.test.target_names,
+        escape_split_df_prepped.test.alphabet,
+    )
 
     torch.save(model, model_path)
     torch.save(escape_model, escape_model_path)

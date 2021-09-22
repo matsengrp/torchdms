@@ -2,49 +2,36 @@
 import torch
 
 
-def make_squoze_y_pair(y_true, y_predicted, exp_target):
-    """Make squeezed versions of y_true and y_predicted, perhaps using
-    exp_target as a base for exponentiation."""
-    if exp_target is not None:
-        return (
-            torch.pow(exp_target, y_true.squeeze()),
-            torch.pow(exp_target, y_predicted.squeeze()),
-        )
-    # else:
-    return y_true.squeeze(), y_predicted.squeeze()
+def weighted_loss(base_loss):
+    """Generic loss function decorator with loss decay or target
+    exponentiation."""
 
+    def wrapper(y_true, y_predicted, loss_decay=None, exp_target=None):
+        if exp_target:
+            y_true = (torch.pow(exp_target, y_true),)
+            y_predicted = (torch.pow(exp_target, y_predicted),)
+        if loss_decay:
+            weights = torch.exp(loss_decay * y_true)
+            sample_losses = base_loss(y_true, y_predicted, reduction="none")
+            return torch.mean(weights * sample_losses)
+        # else:
+        return base_loss(y_true, y_predicted)
 
-def l1(y_true, y_predicted, loss_decay=None, exp_target=None):
-    """Mean square error, perhaps with loss decay."""
-    y_true_squoze, y_predicted_squoze = make_squoze_y_pair(
-        y_true, y_predicted, exp_target
+    wrapper.__doc__ = (
+        base_loss.__name__ + """, perhaps with loss decay or target exponentiation"""
     )
-    if loss_decay:
-        return torch.sum(
-            torch.exp(loss_decay * y_true_squoze)
-            * (y_true_squoze - y_predicted_squoze).abs()
-        )
-    # else:
-    return torch.nn.functional.l1_loss(y_true_squoze, y_predicted_squoze)
+    return wrapper
 
 
-def mse(y_true, y_predicted, loss_decay=None, exp_target=None):
-    """Mean square error, perhaps with loss decay."""
-    y_true_squoze, y_predicted_squoze = make_squoze_y_pair(
-        y_true, y_predicted, exp_target
-    )
-    if loss_decay:
-        return torch.sum(
-            torch.exp(loss_decay * y_true_squoze)
-            * (y_true_squoze - y_predicted_squoze) ** 2
-        )
-    # else:
-    return torch.nn.functional.mse_loss(y_true_squoze, y_predicted_squoze)
+l1 = weighted_loss(torch.nn.functional.l1_loss)
+
+mse = weighted_loss(torch.nn.functional.mse_loss)
 
 
-def rmse(y_true, y_predicted, loss_decay=None):
-    """Root mean square error, perhaps with loss decay."""
-    return mse(y_true, y_predicted, loss_decay).sqrt()
+def rmse(*args, **kwargs):
+    """Root mean square error, perhaps with loss decay or target
+    exponentiation."""
+    return mse(*args, **kwargs).sqrt()
 
 
 def sitewise_group_lasso(matrix):
@@ -54,20 +41,13 @@ def sitewise_group_lasso(matrix):
     in our case.
     """
     assert len(matrix.shape) == 2
-    return torch.sum(torch.pow(torch.sum(torch.pow(matrix, 2), 0), 0.5))
-
-
-def l1_penalty(betas):
-    """textbook L1-regularization."""
-    penalty = torch.zeros(1)
-    for i in range(betas.size()[0]):
-        penalty += torch.sum(torch.abs(betas[i]))
-    return penalty
+    return torch.norm(matrix, p=2, dim=0).sum()
 
 
 def product_penalty(betas):
     """Computes l1 norm of product of betas across latent dimensions."""
-    return torch.sum(torch.abs(torch.prod(betas, 0)))
+    assert len(betas.shape) == 3
+    return torch.prod(betas, 0).norm(1)
 
 
 def diff_penalty(betas):
@@ -75,7 +55,7 @@ def diff_penalty(betas):
     latent dimension."""
     penalty = torch.zeros(1)
     for i in range(betas.size()[0]):
-        penalty += torch.sum(torch.abs(betas[i][1:] - betas[i][:-1]))
+        penalty += (betas[i][1:] - betas[i][:-1]).norm(1)
     return penalty
 
 
@@ -87,5 +67,5 @@ def sum_diff_penalty(betas):
         torch.abs(betas.view(betas.size()[0], int(betas.size()[1] / 21), 21)), 2
     )
     for i in range(betas.size()[0]):
-        penalty += torch.sum(torch.abs(site_sums[i][1:] - site_sums[i][:-1]))
+        penalty += (site_sums[i][1:] - site_sums[i][:-1]).norm(1)
     return penalty

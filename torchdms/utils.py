@@ -9,6 +9,8 @@ import re
 import pandas as pd
 import numpy as np
 import torch
+from torch import nn
+import torch.nn.functional
 
 
 def from_pickle_file(path):
@@ -192,21 +194,20 @@ def build_beta_map(wtseq, alphabet, beta_vec):
     return beta_vec.reshape(len(wtseq), len(alphabet)).transpose()
 
 
-def make_all_possible_mutations(test_data):
+def make_all_possible_mutations(wtseq, alphabet):
     """This function creates a set of all possible amino acid substitutions.
 
-    Takes a data set (preferably the testing data). Returns a 20*L list
-    of possible mutations.
+    Takes a wild type sequence, and a character alphabet. Returns a 20*L
+    list of possible mutations.
     """
-    wtseq = test_data.wtseq
     all_possible_mutations = [
         wt_aa + str(site + 1) + alt_aa
         for site, wt_aa in enumerate(wtseq)
-        for alt_aa in test_data.alphabet
+        for alt_aa in alphabet
         if alt_aa != wt_aa
     ]
     # make sure all mutations from WT are stored.
-    assert len(all_possible_mutations) == (len(test_data.alphabet) - 1) * len(wtseq)
+    assert len(all_possible_mutations) == (len(alphabet) - 1) * len(wtseq)
     assert len(set(all_possible_mutations)) == len(all_possible_mutations)
     return set(all_possible_mutations)
 
@@ -231,23 +232,32 @@ def get_mutation_indicies(mutation_list, alphabet):
         site = int(mut[1:-1])
         indicies.append(((site - 1) * len(alphabet_dict)) + alphabet_dict[mut_aa])
 
-    return torch.Tensor(indicies).type(torch.long)
+    # pylint: disable=not-callable
+    return torch.tensor(indicies, dtype=torch.long)
 
 
 def parse_sites(site_dict, model):
     """Parse site dictionary and return beta indicies for given alphabet."""
     # Assume everything will be set to zero, and set site indicies to 'False'
     site_mask = torch.ones_like(model.beta_coefficients(), dtype=torch.bool)
-    site_id = 0
-    for sites in site_dict.values():
-        site_idx = []
-        for chunk in sites:
-            site_1 = int(chunk.split("-")[0])
-            site_2 = int(chunk.split("-")[1])
+    for region_id, region_sites in enumerate(site_dict.values()):
+        for chunk in region_sites:
+            site_1, site_2 = [int(x) for x in chunk.split("-")]
             start = (site_1 - 1) * len(model.alphabet)
             end = start + (site_2 - site_1 + 1) * len(model.alphabet)
-            site_idx.append(list(range(start, end)))
-        site_idx = [y for x in site_idx for y in x]
-        site_mask[site_id, site_idx] = 0
+            site_mask[region_id, start:end] = False
 
     return site_mask
+
+
+def activation_of_string(string):
+    if string == "identity" or string is None:
+        return nn.Identity()
+    # else:
+    if hasattr(torch, string):
+        return getattr(torch, string)
+    # else:
+    if hasattr(torch.nn.functional, string):
+        return getattr(torch.nn.functional, string)
+    # else:
+    raise IOError(f"Don't know activation named {string}.")

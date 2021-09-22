@@ -3,11 +3,12 @@ Testing for helper methods in analysis.py
 """
 import numpy as np
 import torch
+import torch.nn as nn
 import os
 import pkg_resources
 from pytest import approx
 from torchdms.analysis import Analysis
-from torchdms.analysis import low_rank_approximation
+from torchdms.analysis import _low_rank_approximation
 from torchdms.utils import (
     from_pickle_file,
     parse_sites,
@@ -15,7 +16,7 @@ from torchdms.utils import (
     get_observed_training_mutations,
 )
 from torchdms.loss import l1
-from torchdms.model import model_of_string
+import torchdms.model
 from torchdms.data import partition, prep_by_stratum_and_export
 
 TEST_DATA_PATH = pkg_resources.resource_filename("torchdms", "data/test_df.pkl")
@@ -60,12 +61,21 @@ def setup_module(module):
     escape_split_df_prepped = from_pickle_file(escape_data_path)
 
     # GE models
-    model_string = "FullyConnected(1,identity,10,relu)"
-    model = model_of_string(model_string, data_path)
+    model = torchdms.model.FullyConnected(
+        [1, 10],
+        [None, nn.ReLU()],
+        split_df_prepped.test.feature_count(),
+        split_df_prepped.test.target_names,
+        split_df_prepped.test.alphabet,
+    )
 
     # Escape models
-    escape_model_string = "Escape(2)"
-    escape_model = model_of_string(escape_model_string, escape_data_path)
+    escape_model = torchdms.model.Escape(
+        2,
+        escape_split_df_prepped.test.feature_count(),
+        escape_split_df_prepped.test.target_names,
+        escape_split_df_prepped.test.alphabet,
+    )
 
     torch.save(model, model_path)
     torch.save(escape_model, escape_model_path)
@@ -113,7 +123,7 @@ def test_low_rank_approximation():
     ).flatten("F")
 
     # take low-rank (1) approximation
-    approx_est = low_rank_approximation(test_matrix, 1)
+    approx_est = _low_rank_approximation(test_matrix, 1)
     # assert that values match up
     assert torch.allclose(torch.from_numpy(approx_true), approx_est, rtol=0.001)
 
@@ -128,20 +138,20 @@ def test_project_betas():
 
 def test_zeroed_wt_betas():
     """Test to ensure WT betas of a model are (and remain) 0."""
-    wt_idxs = analysis.val_data.wt_idxs
-    assert analysis.val_data.wtseq == "NIT"
-    # Assert that wt betas are 0 upon initializaiton.
-    for latent_dim in range(analysis.model.latent_dim):
-        for idx in wt_idxs:
-            assert analysis.model.beta_coefficients()[latent_dim, int(idx)] == 0
+    for analysis_ in (analysis, escape_analysis):
+        wt_idxs = analysis_.val_data.wt_idxs
+        # Assert that wt betas are 0 upon initializaiton.
+        for latent_dim in range(analysis_.model.latent_dim):
+            for idx in wt_idxs:
+                assert analysis_.model.beta_coefficients()[latent_dim, int(idx)] == 0
 
-    # Train model with analysis object for 1 epoch
-    analysis.train(**training_params)
+        # Train model with analysis object for 1 epoch
+        analysis_.train(**training_params)
 
-    # Assert that wt betas are still 0.
-    for latent_dim in range(analysis.model.latent_dim):
-        for idx in wt_idxs:
-            assert analysis.model.beta_coefficients()[latent_dim, int(idx)] == 0
+        # Assert that wt betas are still 0.
+        for latent_dim in range(analysis_.model.latent_dim):
+            for idx in wt_idxs:
+                assert analysis_.model.beta_coefficients()[latent_dim, int(idx)] == 0
 
 
 def test_zeroed_unseen_betas():
@@ -172,14 +182,14 @@ def test_seq_to_binary():
     assert wtseq == "NIT"
 
     # Ground truth indicies for valid cases
-    wt_ground_truth = torch.zeros(len(wtseq) * len(analysis.model.alphabet)).type(
-        torch.FloatTensor
+    wt_ground_truth = torch.zeros(
+        len(wtseq) * len(analysis.model.alphabet), dtype=torch.float
     )
-    mut_ground_truth = torch.zeros(len(wtseq) * len(analysis.model.alphabet)).type(
-        torch.FloatTensor
+    mut_ground_truth = torch.zeros(
+        len(wtseq) * len(analysis.model.alphabet), dtype=torch.float
     )
-    wt_ground_truth[analysis.wt_idxs] = 1.0
-    mut_ground_truth[torch.tensor([11, 27, 58]).type(torch.LongTensor)] = 1.0
+    wt_ground_truth[analysis.wt_idxs] = 1
+    mut_ground_truth[torch.tensor([11, 27, 58], dtype=torch.long)] = 1
     wt_test = analysis.model.seq_to_binary(wtseq)
     mut_test = analysis.model.seq_to_binary(mutseq_valid)
 
@@ -189,7 +199,7 @@ def test_seq_to_binary():
 
 
 def test_concentrations_stored():
-    """Tests to make sure EscapeModel() is recieving concentration values as planned (tacking values on to end of encoding)."""
+    """Tests to make sure Escape() is recieving concentration values as planned (tacking values on to end of encoding)."""
     # Make sure the model's input size doesn't change
     assert escape_model.input_size == len(escape_model.alphabet) * len(
         escape_analysis.val_data.wtseq
@@ -201,7 +211,7 @@ def test_concentrations_stored():
 
 
 def test_escape_concentrations_forward():
-    """Test to make sure concentrations aren't influencing betas in EscapeModel."""
+    """Test to make sure concentrations aren't influencing betas in Escape."""
     # Make sure beta_coefficients() only returns sequence indices.
     # The encoding for the polyclonal escape simulated data is 4221 slots.
     # We have 2 sites in the test model.
@@ -242,7 +252,29 @@ def test_escape_concentrations_forward():
 
 def test_stored_unseen_mutations():
     """Test to make sure the set of unseen mutations are stored properly."""
-    all_possible_muts = make_all_possible_mutations(analysis.val_data)
+    all_possible_muts = make_all_possible_mutations(
+        analysis.val_data.wtseq, analysis.val_data.alphabet
+    )
     observed_muts = get_observed_training_mutations(analysis.train_datasets)
     unseen_muts = all_possible_muts.difference(observed_muts)
     assert analysis.unseen_mutations == unseen_muts
+
+
+def test_latent_origin():
+    """The WT sequence should lie at the origin of the latent space in all models."""
+    for analysis_ in (analysis, escape_analysis):
+
+        wt_rep = torch.unsqueeze(
+            analysis_.model.seq_to_binary(analysis_.val_data.wtseq), 0
+        )
+
+        # check on init
+        z_WT = analysis_.model.to_latent(wt_rep)
+        assert torch.equal(z_WT, torch.zeros_like(z_WT))
+
+        # Train model with analysis object for 1 epoch
+        analysis_.train(**training_params)
+
+        # check after training
+        z_WT = analysis_.model.to_latent(wt_rep)
+        assert torch.equal(z_WT, torch.zeros_like(z_WT))

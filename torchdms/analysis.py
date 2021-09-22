@@ -17,7 +17,7 @@ from torchdms.utils import (
 )
 
 
-def make_data_loader_infinite(data_loader):
+def _make_data_loader_infinite(data_loader):
     """With this we can always just ask for more data with next(), going
     through minibatches as guided by DataLoader."""
     for loader in itertools.repeat(data_loader):
@@ -25,7 +25,7 @@ def make_data_loader_infinite(data_loader):
             yield data
 
 
-def low_rank_approximation(beta_map, beta_rank):
+def _low_rank_approximation(beta_map, beta_rank):
     """Returns low-rank approximation of beta matrix."""
     assert beta_rank > 0
     u_vecs, s_vals, v_vecs = torch.svd(torch.from_numpy(beta_map))
@@ -40,11 +40,16 @@ def _make_beta_matrix_low_rank(model, latent_dim, beta_rank, wtseq, alphabet):
     """Assigns low-rank beta approximations to tdms models."""
     beta_vec = model.beta_coefficients()[latent_dim].detach().clone().numpy()
     beta_map = build_beta_map(wtseq, alphabet, beta_vec)
-    model.beta_coefficients()[latent_dim] = low_rank_approximation(beta_map, beta_rank)
+    model.beta_coefficients()[latent_dim] = _low_rank_approximation(beta_map, beta_rank)
 
 
 class Analysis:
-    """A wrapper class for training models."""
+    r"""A wrapper class for training models.
+
+    .. todo::
+        much more documentation needed
+
+    """
 
     def __init__(
         self,
@@ -69,31 +74,30 @@ class Analysis:
             for train_dataset in train_data_list
         ]
         self.train_infinite_loaders = [
-            make_data_loader_infinite(train_loader)
+            _make_data_loader_infinite(train_loader)
             for train_loader in self.train_loaders
         ]
         self.val_loss_record = sys.float_info.max
         # Store all observed mutations
         self.training_mutations = get_observed_training_mutations(train_data_list)
-        self.unseen_mutations = make_all_possible_mutations(val_data).difference(
-            self.training_mutations
-        )
+        self.unseen_mutations = make_all_possible_mutations(
+            val_data.wtseq, val_data.alphabet
+        ).difference(self.training_mutations)
         # Store WT idxs
-        self.wt_idxs = val_data.wt_idxs.type(torch.LongTensor)
+        self.wt_idxs = val_data.wt_idxs
         # Store all observed mutations in mutant idxs
         self.mutant_idxs = get_mutation_indicies(
             self.training_mutations, self.model.alphabet
-        ).type(torch.LongTensor)
+        )
         self.unseen_idxs = get_mutation_indicies(
-            self.unseen_mutations,
-            self.model.alphabet,
-        ).type(torch.LongTensor)
+            self.unseen_mutations, self.model.alphabet
+        )
         self.gauge_mask = (
             torch.zeros_like(model.beta_coefficients(), dtype=torch.bool)
             if site_dict is None
             else parse_sites(site_dict, self.model)
         )
-        self.gauge_mask[:, torch.cat((self.wt_idxs, self.unseen_idxs))] = 1
+        self.gauge_mask[:, torch.cat((self.wt_idxs, self.unseen_idxs))] = True
         self.model.fix_gauge(self.gauge_mask)
         self.training_details_path = model_path + "_details.pkl"
 
@@ -344,7 +348,7 @@ class Analysis:
         self.model.to(self.device)
 
         train_infinite_loaders = [
-            make_data_loader_infinite(
+            _make_data_loader_infinite(
                 DataLoader(
                     BinaryMapDataset.cat(self.train_datasets),
                     batch_size=self.batch_size,
