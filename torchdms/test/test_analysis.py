@@ -30,6 +30,7 @@ escape_data_path = escape_out_path + ".pkl"
 model_path = "run.model"
 escape_model_path = "run.escape.model"
 aux_path = model_path + "_details.pkl"
+escape_aux_path = escape_model_path + "_details.pkl"
 
 
 def setup_module(module):
@@ -105,6 +106,7 @@ def teardown_module(module):
     os.remove(escape_data_path)
     os.remove(escape_model_path)
     os.remove(aux_path)
+    os.remove(escape_aux_path)
     print("NOTE: Testing environment torn down...")
 
 
