@@ -7,8 +7,8 @@ import numpy as np
 import pandas as pd
 import torch
 from torch.utils.data import Dataset
-from dms_variants.binarymap import BinaryMap
-from torchdms.plot import plot_exploded_dms_variants_dataframe_summary
+from binarymap import BinaryMap
+from torchdms.plot import plot_exploded_binarymap_dataframe_summary
 from torchdms.utils import (
     cat_list_values,
     count_variants_with_a_mutation_towards_an_aa,
@@ -167,10 +167,10 @@ class SplitDataset:
             else:
                 expanded_plot_prefix = None
             print(f"summary of the {label} split:")
-            summarize_dms_variants_dataframe(split.original_df, expanded_plot_prefix)
+            summarize_binarymap_dataframe(split.original_df, expanded_plot_prefix)
 
 
-def summarize_dms_variants_dataframe(df, plot_prefix):
+def summarize_binarymap_dataframe(df, plot_prefix):
     print(f"    {len(df)} variants")
 
     def count_variants(aa):
@@ -180,8 +180,8 @@ def summarize_dms_variants_dataframe(df, plot_prefix):
         print(f"    {count_variants(aa)} variants with a mutation to '{aa}'")
 
     if plot_prefix is not None:
-        plot_exploded_dms_variants_dataframe_summary(
-            explode_dms_variants_dataframe(df), plot_prefix + ".pdf"
+        plot_exploded_binarymap_dataframe_summary(
+            explode_binarymap_dataframe(df), plot_prefix + ".pdf"
         )
 
 
@@ -195,7 +195,7 @@ def expand_substitutions_into_df(substitution_series):
     )
 
 
-def explode_dms_variants_dataframe(in_df):
+def explode_binarymap_dataframe(in_df):
     """Make a dataframe that has one row for each mutation of every mutated
     variant, showing the wt_AA, the site, and the mut_AA.
 
@@ -235,7 +235,7 @@ def check_onehot_encoding(dataset):
             idxs[variant.loc[mut_idx, "site"] - 1] = variant.loc[mut_idx, "mut_AA_idx"]
         return idxs
 
-    exploded = explode_dms_variants_dataframe(dataset.original_df)
+    exploded = explode_binarymap_dataframe(dataset.original_df)
     exploded["wt_AA_idx"] = exploded["wt_AA"].apply(alphabet_dict.get)
     exploded["mut_AA_idx"] = exploded["mut_AA"].apply(alphabet_dict.get)
     exploded["site"] = exploded["site"].astype("int")

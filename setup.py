@@ -21,7 +21,7 @@ setup(
     install_requires=[
         "click",
         "click-config-file",
-        "dms_variants",
+        "binarymap",
         "matplotlib==3.3.1",
         "plotnine==0.8.0",
         "scipy",

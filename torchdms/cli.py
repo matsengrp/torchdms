@@ -16,7 +16,7 @@ from torchdms.data import (
     partition,
     prep_by_stratum_and_export,
     SplitDataset,
-    summarize_dms_variants_dataframe,
+    summarize_binarymap_dataframe,
 )
 from torchdms.evaluation import (
     build_evaluation_dict,
@@ -244,9 +244,9 @@ def summarize(data_path, out_prefix):
     """Report various summaries of the data."""
     data = from_pickle_file(data_path)
     if isinstance(data, list):
-        summarize_dms_variants_dataframe(data[0], out_prefix)
+        summarize_binarymap_dataframe(data[0], out_prefix)
     if isinstance(data, pd.DataFrame):
-        summarize_dms_variants_dataframe(data, out_prefix)
+        summarize_binarymap_dataframe(data, out_prefix)
     elif isinstance(data, SplitDataset):
         data.summarize(out_prefix)
     else:
