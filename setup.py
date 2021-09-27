@@ -17,11 +17,11 @@ setup(
     entry_points={"console_scripts": ["tdms=torchdms.cli:cli"]},
     version=versioneer.get_version(),
     cmdclass=versioneer.get_cmdclass(),
-    python_requires=">=3.7",
+    python_requires=">=3.8",
     install_requires=[
         "click",
         "click-config-file",
-        "dms_variants",
+        "binarymap",
         "matplotlib==3.3.1",
         "plotnine==0.8.0",
         "scipy",

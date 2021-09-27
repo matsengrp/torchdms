@@ -3,7 +3,7 @@
 import math
 import os.path
 import warnings
-import dms_variants as dms
+import binarymap
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -32,7 +32,7 @@ from scipy import stats
 from torchdms.utils import build_beta_map
 
 
-def plot_exploded_dms_variants_dataframe_summary(exploded_df, out_path):
+def plot_exploded_binarymap_dataframe_summary(exploded_df, out_path):
     plots = [
         (
             ggplot(exploded_df, aes("site"))
@@ -200,7 +200,7 @@ def beta_coefficients(model, test_data, out):
     mutation.
     """
 
-    bmap = dms.binarymap.BinaryMap(
+    bmap = binarymap.BinaryMap(
         test_data.original_df,
     )
 
