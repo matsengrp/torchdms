@@ -346,7 +346,7 @@ class Escape(TorchdmsModel):
         escape_fractions = torch.sigmoid(z + self.wt_activity() - log_concentrations)
         return torch.unsqueeze(torch.prod(escape_fractions, 1), 1)
 
-    def beta_coefficients(self):
+    def beta_coefficients(self) -> torch.Tensor:
         beta_coefficients_data = torch.cat(
             tuple(
                 getattr(self, f"latent_layer_epi{i}").weight.data
@@ -365,7 +365,11 @@ class Escape(TorchdmsModel):
         return penalty
 
     def fix_gauge(self, gauge_mask):
-        self.beta_coefficients()[gauge_mask] = 0
+        for epi_row in range(gauge_mask.shape[0]):
+            indicies_to_zero = torch.unsqueeze(gauge_mask[epi_row], dim=0)
+            getattr(self, f"latent_layer_epi{epi_row}").weight.data[
+                indicies_to_zero
+            ] = 0
 
 
 class FullyConnected(TorchdmsModel):
