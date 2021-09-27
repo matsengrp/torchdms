@@ -367,7 +367,9 @@ class Escape(TorchdmsModel):
     def fix_gauge(self, gauge_mask):
         for epi_row in range(gauge_mask.shape[0]):
             indicies_to_zero = torch.unsqueeze(gauge_mask[epi_row], dim=0)
-            getattr(self, f"latent_layer_epi{epi_row}").weight.data[indicies_to_zero] = 0
+            getattr(self, f"latent_layer_epi{epi_row}").weight.data[
+                indicies_to_zero
+            ] = 0
 
 
 class FullyConnected(TorchdmsModel):
