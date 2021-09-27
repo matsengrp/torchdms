@@ -5,9 +5,9 @@ import re
 import click
 import numpy as np
 import pandas as pd
+import binarymap
 import torch
 from torch.utils.data import Dataset
-from binarymap import BinaryMap
 from torchdms.plot import plot_exploded_binarymap_dataframe_summary
 from torchdms.utils import (
     cat_list_values,
@@ -49,7 +49,7 @@ class BinaryMapDataset(Dataset):
 
     @classmethod
     def of_raw(cls, pd_dataset, wtseq, targets):
-        bmap = BinaryMap(pd_dataset, expand=True, wtseq=wtseq)
+        bmap = binarymap.BinaryMap(pd_dataset, expand=True, wtseq=wtseq)
         return cls(
             torch.from_numpy(bmap.binary_variants.toarray()).float(),
             torch.from_numpy(pd_dataset[targets].to_numpy()).float(),
