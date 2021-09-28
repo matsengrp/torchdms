@@ -538,7 +538,6 @@ class FullyConnected(TorchdmsModel):
             self.layers[self.latent_idx + 1 : -1],
             self.activations[self.latent_idx + 1 :],
         ):
-            print(getattr(self, layer_name)(out))
             out = activation(getattr(self, layer_name)(out))
         # The last layer acts without an activation, which is on purpose because we
         # don't want to be limited to the range of the activation.
