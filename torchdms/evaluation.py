@@ -46,6 +46,7 @@ def error_df_of_evaluation_dict(evaluation_dict):
                 "n_aa_substitutions": evaluation_dict["original_df"][
                     "n_aa_substitutions"
                 ],
+                "aa_substitutions": evaluation_dict["original_df"]["aa_substitutions"],
                 "target": evaluation_dict["target_names"][target_idx],
             }
         )
