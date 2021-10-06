@@ -42,6 +42,23 @@ def test_partition_is_clean():
         )
 
 
+def test_partition_all_single_mutants_to_test():
+    """Ensure there are no single mutants in the validation and testing datasets."""
+    data, _ = from_pickle_file(TEST_DATA_PATH)
+    split_df = partition(
+        data,
+        per_stratum_variants_for_test=10,
+        skip_stratum_if_count_is_smaller_than=30,
+        export_dataframe=None,
+        partition_label=None,
+        train_on_all_single_mutants=True,
+    )
+    train_data = pd.concat(split_df.train)
+    assert len(train_data[train_data.n_aa_substitutions == 1]) > 0
+    assert len(split_df.val[split_df.val.n_aa_substitutions == 1]) == 0
+    assert len(split_df.test[split_df.test.n_aa_substitutions == 1]) == 0
+
+
 def test_summarize():
     """
     Make sure we are calculating summaries correctly.

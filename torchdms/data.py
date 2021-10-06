@@ -258,6 +258,7 @@ def partition(
     skip_stratum_if_count_is_smaller_than,
     export_dataframe,
     partition_label,
+    train_on_all_single_mutants=False,
 ):
     """Partition the data as needed and build a SplitDataframe.
 
@@ -286,6 +287,15 @@ def partition(
             continue
         labeled_examples = grouped.dropna()
         if len(labeled_examples) < skip_stratum_if_count_is_smaller_than:
+            continue
+        if train_on_all_single_mutants and mutation_count == 1:
+            test_split_strata.append(
+                aa_func_scores.loc[
+                    (~aa_func_scores["in_test"])
+                    & (~aa_func_scores["in_val"])
+                    & (aa_func_scores["n_aa_substitutions"] == mutation_count)
+                ].reset_index(drop=True)
+            )
             continue
 
         # Here, we grab a subset of unique variants so that we are not training on the
