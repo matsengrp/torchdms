@@ -254,7 +254,7 @@ class Linear(TorchdmsModel):
         return 1
 
     def beta_coefficients(self) -> torch.Tensor:
-        return self.latent_layer.weights.data
+        return self.latent_layer.weight.data
 
     def from_latent_to_output(self, z: torch.Tensor, **kwargs) -> torch.Tensor:
         return self.latent_layer(z + self.wt_activity)
