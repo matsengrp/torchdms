@@ -501,7 +501,7 @@ class FullyConnected(TorchdmsModel):
             monotonic = "mono"
         return f"{monotonic};" + ";".join(
             [
-                f"{dim};{name}"
+                f"{dim};{name.__name__}"
                 for dim, name in zip(self.internal_layer_dimensions, self.activations)
             ]
         )
