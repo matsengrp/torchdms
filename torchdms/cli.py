@@ -154,6 +154,11 @@ def cli(version):
     help="Column name containing a feature by which the data should be split into "
     "independent datasets for partitioning; e.g. 'library'.",
 )
+@click.option(
+    "--train-on-all-single-mutants",
+    is_flag=True,
+    help="Place all single-mutants into training set.",
+)
 @dry_run_option
 @seed_option
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
@@ -170,6 +175,7 @@ def prep(
     partition_by,
     dry_run,
     seed,
+    train_on_all_single_mutants,
 ):
     """Prepare data for training.
 
@@ -201,6 +207,8 @@ def prep(
             "WARNING: you have a 'library' column but haven't specified a partition "
             "via '--partition-by'"
         )
+    if train_on_all_single_mutants:
+        click.echo("LOG: placing all single mutants in training dataset as requested.")
 
     def prep_by_stratum_and_export_of_partition_label_and_df(partition_label, df):
         split_df = partition(
@@ -209,6 +217,7 @@ def prep(
             skip_stratum_if_count_is_smaller_than,
             export_dataframe,
             partition_label,
+            train_on_all_single_mutants=train_on_all_single_mutants,
         )
 
         prep_by_stratum_and_export(
