@@ -8,7 +8,6 @@ from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torchdms.data import BinaryMapDataset
 from torchdms.utils import (
-    build_beta_map,
     get_mutation_indicies,
     get_observed_training_mutations,
     make_all_possible_mutations,
@@ -23,24 +22,6 @@ def _make_data_loader_infinite(data_loader):
     for loader in itertools.repeat(data_loader):
         for data in loader:
             yield data
-
-
-def _low_rank_approximation(beta_map, beta_rank):
-    """Returns low-rank approximation of beta matrix."""
-    assert beta_rank > 0
-    u_vecs, s_vals, v_vecs = torch.svd(torch.from_numpy(beta_map))
-    # truncate S
-    s_vals[beta_rank:] = 0
-    # reconstruct beta-map
-    beta_approx = (u_vecs.mm(torch.diag(s_vals))).mm(torch.transpose(v_vecs, 0, 1))
-    return beta_approx.transpose(1, 0).flatten()
-
-
-def _make_beta_matrix_low_rank(model, latent_dim, beta_rank, wtseq, alphabet):
-    """Assigns low-rank beta approximations to tdms models."""
-    beta_vec = model.beta_coefficients()[latent_dim].detach().clone().numpy()
-    beta_map = build_beta_map(wtseq, alphabet, beta_vec)
-    model.beta_coefficients()[latent_dim] = _low_rank_approximation(beta_map, beta_rank)
 
 
 class Analysis:
@@ -224,36 +205,37 @@ class Analysis:
                 self.model.fix_gauge(self.gauge_mask)
                 # if k >=1, reconstruct beta matricies with truncated SVD
                 if beta_rank is not None:
-                    # procedure for 2D models.
-                    if hasattr(self.model, "model_bind") and hasattr(
-                        self.model, "model_stab"
-                    ):
-                        num_latent_dims = self.model.model_bind.latent_dim
-                        for latent_dim in range(num_latent_dims):
-                            _make_beta_matrix_low_rank(
-                                self.model.model_bind,
-                                latent_dim,
-                                beta_rank,
-                                self.val_data.wtseq,
-                                self.val_data.alphabet,
-                            )
-                            _make_beta_matrix_low_rank(
-                                self.model.model_stab,
-                                latent_dim,
-                                beta_rank,
-                                self.val_data.wtseq,
-                                self.val_data.alphabet,
-                            )
-                    else:
-                        num_latent_dims = self.model.latent_dim
-                        for latent_dim in range(num_latent_dims):
-                            _make_beta_matrix_low_rank(
-                                self.model,
-                                latent_dim,
-                                beta_rank,
-                                self.val_data.wtseq,
-                                self.val_data.alphabet,
-                            )
+                    self.model.low_rank_approximation(beta_rank)
+                    # # procedure for 2D models.
+                    # if hasattr(self.model, "model_bind") and hasattr(
+                    #     self.model, "model_stab"
+                    # ):
+                    #     num_latent_dims = self.model.model_bind.latent_dim
+                    #     for latent_dim in range(num_latent_dims):
+                    #         _make_beta_matrix_low_rank(
+                    #             self.model.model_bind,
+                    #             latent_dim,
+                    #             beta_rank,
+                    #             self.val_data.wtseq,
+                    #             self.val_data.alphabet,
+                    #         )
+                    #         _make_beta_matrix_low_rank(
+                    #             self.model.model_stab,
+                    #             latent_dim,
+                    #             beta_rank,
+                    #             self.val_data.wtseq,
+                    #             self.val_data.alphabet,
+                    #         )
+                    # else:
+                    #     num_latent_dims = self.model.latent_dim
+                    #     for latent_dim in range(num_latent_dims):
+                    #         _make_beta_matrix_low_rank(
+                    #             self.model,
+                    #             latent_dim,
+                    #             beta_rank,
+                    #             self.val_data.wtseq,
+                    #             self.val_data.alphabet,
+                    #         )
 
             val_samples = self.val_data.samples.to(self.device)
             val_predictions = self.model(val_samples)
