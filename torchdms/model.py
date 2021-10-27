@@ -502,6 +502,8 @@ class FullyConnected(TorchdmsModel):
         return f"{monotonic};" + ";".join(
             [
                 f"{dim};{name.__name__}"
+                if hasattr(name, "__name__")
+                else f"{dim};{name}"
                 for dim, name in zip(self.internal_layer_dimensions, self.activations)
             ]
         )
