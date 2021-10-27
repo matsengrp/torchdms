@@ -2,10 +2,11 @@
 Testing for loss.py.
 """
 from math import exp
-from torch import Tensor
+from torch import Tensor, allclose
 from torchdms.loss import (
     l1,
     mse,
+    huber,
     sitewise_group_lasso,
     product_penalty,
     diff_penalty,
@@ -53,3 +54,16 @@ def test_diff_penalty():
     betas = Tensor([[0.1, 2, 5], [1, 0, -0.5]])
     correct_sum = abs(2 - 0.1) + abs(5 - 2) + abs(0 - 1) + abs(-0.5 - 0)
     assert diff_penalty(betas) == correct_sum
+
+
+def test_huber_loss():
+    """Test huber loss with loss decay."""
+    y_true = Tensor([0.1, 4.0])
+    y_predicted = Tensor([0.2, 9.0])
+
+    correct_decayed_loss = (
+        (exp(0.3 * 0.1) * (0.5 * ((0.1 - 0.2) ** 2)))
+        + (exp(0.3 * 4.0) * (abs(4.0 - 9.0) - 0.5))
+    ) / 2
+    # Using allclose here because of some slight numerical differences after 7 digits.
+    assert allclose(huber(y_true, y_predicted, 0.3), Tensor([correct_decayed_loss]))
