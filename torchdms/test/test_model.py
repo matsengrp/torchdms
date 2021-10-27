@@ -145,3 +145,55 @@ def test_zeroed_unseen_betas():
     for latent_dim in range(analysis.model.latent_dim):
         for idx in unseen_idxs:
             assert analysis.model.beta_coefficients()[latent_dim, int(idx)] == 0
+
+
+# Low-rank approxmation tests
+def test_low_rank_approximation():
+    """Test to ensure the beta matrix has the proper rank after approximation."""
+    beta_rank = 1
+    for latent_dim in range(model.latent_dim):
+        assert (
+            torch.matrix_rank(
+                model._make_beta_matrix(model.beta_coefficients()[latent_dim])
+            )
+            > beta_rank
+        )
+        model.low_rank_approximation(beta_rank)
+        assert (
+            torch.matrix_rank(
+                model._make_beta_matrix(model.beta_coefficients()[latent_dim])
+            )
+            == beta_rank
+        )
+    beta_rank = 1
+    for epitope in range(escape_model.num_epitopes):
+        pre_betas = getattr(escape_model, f"latent_layer_epi{epitope}").weight.data
+        assert torch.matrix_rank(escape_model._make_beta_matrix(pre_betas)) > beta_rank
+
+    escape_model.low_rank_approximation(beta_rank)
+
+    for epitope in range(escape_model.num_epitopes):
+        post_betas = getattr(escape_model, f"latent_layer_epi{epitope}").weight.data
+        assert (
+            torch.matrix_rank(escape_model._make_beta_matrix(post_betas)) == beta_rank
+        )
+
+
+def test_gauge_and_svd():
+    """Test to see if gauge fixing is impacted by low-rank approximation."""
+    wt_idxs = analysis.val_data.wt_idxs
+    analysis.model.fix_gauge(analysis.gauge_mask)
+    # Assert that wt betas are 0 upon initializaiton.
+    for latent_dim in range(analysis.model.latent_dim):
+        for idx in wt_idxs:
+            assert analysis.model.beta_coefficients()[latent_dim, int(idx)] == 0
+
+    # Train model with analysis object for 1 epoch
+    analysis.train(**training_params)
+
+    # Now call low-rank approximation
+    analysis.model.low_rank_approximation(2)
+    # Assert that wt betas are still 0.
+    for latent_dim in range(analysis.model.latent_dim):
+        for idx in wt_idxs:
+            assert analysis.model.beta_coefficients()[latent_dim, int(idx)] == 0

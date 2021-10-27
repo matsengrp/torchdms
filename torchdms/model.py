@@ -108,6 +108,16 @@ class TorchdmsModel(ABC, nn.Module):
                         for parameters that should be zeroed
         """
 
+    @abstractmethod
+    def low_rank_approximation(self, beta_rank):
+        r"""Calculate truncated-SVD for beta coefficents.
+
+        Args:
+            beta_rank: an integer of the desired number of compoenents to use in
+                       the reconstruction of each dimension of the latent layer.
+
+        """
+
     @property
     def sequence_length(self):
         r"""input amino acid sequence length"""
@@ -228,6 +238,14 @@ class TorchdmsModel(ABC, nn.Module):
 
         return encoding[0]
 
+    def _make_beta_matrix(self, betas):
+        """Takes a vector of beta coefficients and returns a AxL matrix.
+
+        Args:
+            betas: The vector of betas to reshape.
+        """
+        return betas.reshape(self.sequence_length, len(self.alphabet)).transpose(0, 1)
+
 
 class Linear(TorchdmsModel):
     r"""A linear model, expressed as a single layer neural network with no nonlinear activations.
@@ -270,6 +288,19 @@ class Linear(TorchdmsModel):
 
     def fix_gauge(self, gauge_mask):
         pass
+
+    def low_rank_approximation(self, beta_rank):
+        assert beta_rank > 0 and beta_rank <= self.sequence_length
+        for latent_dim in range(self.latent_dim):
+            beta_map = self._make_beta_matrix(self.beta_coefficients()[latent_dim])
+            u_vecs, s_vals, v_vecs = torch.svd(beta_map)
+            # truncate S
+            s_vals[beta_rank:] = 0
+            # reconstruct beta-map
+            beta_approx = (u_vecs.mm(torch.diag(s_vals))).mm(
+                torch.transpose(v_vecs, 0, 1)
+            )
+            self.beta_coefficients()[latent_dim] = beta_approx.transpose(1, 0).flatten()
 
 
 class Escape(TorchdmsModel):
@@ -370,6 +401,25 @@ class Escape(TorchdmsModel):
             getattr(self, f"latent_layer_epi{epi_row}").weight.data[
                 indicies_to_zero
             ] = 0
+
+    def low_rank_approximation(self, beta_rank):
+        assert beta_rank > 0 and beta_rank <= min(
+            len(self.alphabet), self.sequence_length
+        )
+        for epitope in range(self.num_epitopes):
+            beta_map = self._make_beta_matrix(
+                getattr(self, f"latent_layer_epi{epitope}").weight.data
+            )
+            u_vecs, s_vals, v_vecs = torch.svd(beta_map)
+            # truncate S
+            s_vals[beta_rank:] = 0
+            # reconstruct beta-map
+            beta_approx = (u_vecs.mm(torch.diag(s_vals))).mm(
+                torch.transpose(v_vecs, 0, 1)
+            )
+            getattr(
+                self, f"latent_layer_epi{epitope}"
+            ).weight.data = beta_approx.transpose(1, 0).flatten()
 
 
 class FullyConnected(TorchdmsModel):
@@ -517,6 +567,21 @@ class FullyConnected(TorchdmsModel):
             self.beta_coefficients()[latent_dim, ~gauge_mask[0]] = (
                 beta_vec - beta_vec.sum() / beta_vec.shape[0] - 1
             )
+
+    def low_rank_approximation(self, beta_rank):
+        assert beta_rank > 0 and beta_rank <= min(
+            len(self.alphabet), self.sequence_length
+        )
+        for latent_dim in range(self.latent_dim):
+            beta_map = self._make_beta_matrix(self.beta_coefficients()[latent_dim])
+            u_vecs, s_vals, v_vecs = torch.svd(beta_map)
+            # truncate S
+            s_vals[beta_rank:] = 0
+            # reconstruct beta-map
+            beta_approx = (u_vecs.mm(torch.diag(s_vals))).mm(
+                torch.transpose(v_vecs, 0, 1)
+            )
+            self.beta_coefficients()[latent_dim] = beta_approx.transpose(1, 0).flatten()
 
     def to_latent(self, x: torch.Tensor, **kwargs) -> torch.Tensor:
         out = x
@@ -699,6 +764,13 @@ class Independent(TorchdmsModel):
     def fix_gauge(self, gauge_mask):
         self.model_bind.fix_gauge(torch.unsqueeze(gauge_mask[0], dim=0))
         self.model_stab.fix_gauge(torch.unsqueeze(gauge_mask[1], dim=0))
+
+    def low_rank_approximation(self, beta_rank):
+        assert beta_rank > 0 and beta_rank <= min(
+            len(self.alphabet), self.sequence_length
+        )
+        self.model_bind.low_rank_approximation(beta_rank)
+        self.model_stab.low_rank_approximation(beta_rank)
 
 
 class Conditional(Independent):
