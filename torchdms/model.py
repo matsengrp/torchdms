@@ -257,7 +257,7 @@ class Linear(TorchdmsModel):
         return self.latent_layer.weight.data
 
     def from_latent_to_output(self, z: torch.Tensor, **kwargs) -> torch.Tensor:
-        return self.latent_layer(z + self.wt_activity)
+        return z + self.wt_activity
 
     def regularization_loss(self) -> torch.Tensor:
         return 0.0
