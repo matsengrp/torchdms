@@ -107,10 +107,14 @@ def plot_test_correlation(evaluation_dict, model, out, cmap="plasma"):
         ax[target].set_xlabel("Predicted")
         ax[target].set_ylabel("Observed")
         target_name = evaluation_dict["target_names"][target]
+        ####
+        str_sum_nl =  "\n".join(model.str_summary().split(";"))
         plot_title = (
-            f"{target_name}: {model.str_summary()}\npearsonr = {round(corr[0],3)}"
+            f"{target_name}: \n{str_sum_nl}\n"
         )
         ax[target].set_title(plot_title)
+        ax[target].annotate(f"$R^{2}$ = {round(corr[0],3)}")
+        ####
         print(plot_title)
 
         per_target_df = pd.DataFrame(
