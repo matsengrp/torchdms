@@ -299,6 +299,8 @@ def validate(data_path):
     help="Coefficients with which to l1-regularize site interaction weights, "
     "a comma-seperated list of coefficients for each latent dimension",
 )
+@click.option("--non-lin-bias/--no-non-lin-bias", default=False)
+@click.option("--output-bias/--no-output-bias", default=False)
 @seed_option
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
 def create(
@@ -309,6 +311,8 @@ def create(
     beta_l1_coefficients,
     interaction_l1_coefficients,
     seed,
+    non_lin_bias,
+    output_bias,
 ):
     """Create a model.
 

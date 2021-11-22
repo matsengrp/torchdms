@@ -22,6 +22,7 @@ escape_out_path = "test_df_escape-prepped"
 data_path = out_path + ".pkl"
 escape_data_path = escape_out_path + ".pkl"
 model_path = "run.model"
+bias_model_path = "run.bias.model"
 escape_model_path = "run.escape.model"
 aux_path = model_path + "_details.pkl"
 
@@ -29,7 +30,11 @@ aux_path = model_path + "_details.pkl"
 def setup_module(module):
     """Loads in test data and model for future tests."""
     print("NOTE: Setting up testing environment...")
-    global model, escape_model, escape_analysis, analysis, training_params
+    global training_params
+    global model, analysis
+    global escape_model, escape_analysis
+    global bias_model, bias_analysis
+
     data, wtseq = from_pickle_file(TEST_DATA_PATH)
     escape_data, escape_wtseq = from_pickle_file(ESCAPE_TEST_DATA_PATH)
     split_df = partition(
@@ -54,13 +59,24 @@ def setup_module(module):
     split_df_prepped = from_pickle_file(data_path)
     escape_split_df_prepped = from_pickle_file(escape_data_path)
 
-    # GE models
+    # GE models (w/o non-lin and output bias parameters)
     model = torchdms.model.FullyConnected(
         [1, 10],
         [None, nn.ReLU()],
         split_df_prepped.test.feature_count(),
         split_df_prepped.test.target_names,
         split_df_prepped.test.alphabet,
+    )
+
+    # GE models (w/ non-lin and output bias parameters)
+    bias_model = torchdms.model.FullyConnected(
+        [1, 10],
+        [None, nn.ReLU()],
+        split_df_prepped.test.feature_count(),
+        split_df_prepped.test.target_names,
+        split_df_prepped.test.alphabet,
+        non_lin_bias=True,
+        output_bias=True,
     )
 
     # Escape models
@@ -72,6 +88,7 @@ def setup_module(module):
     )
 
     torch.save(model, model_path)
+    torch.save(bias_model, bias_model_path)
     torch.save(escape_model, escape_model_path)
     analysis_params = {
         "model": model,
@@ -79,6 +96,14 @@ def setup_module(module):
         "val_data": split_df_prepped.val,
         "train_data_list": split_df_prepped.train,
     }
+
+    bias_analysis_params = {
+        "model": bias_model,
+        "model_path": bias_model_path,
+        "val_data": split_df_prepped.val,
+        "train_data_list": split_df_prepped.train,
+    }
+
     escape_analysis_params = {
         "model": escape_model,
         "model_path": escape_model_path,
@@ -87,6 +112,7 @@ def setup_module(module):
     }
     training_params = {"epoch_count": 1, "loss_fn": l1}
     analysis = Analysis(**analysis_params)
+    bias_analysis = Analysis(**bias_analysis_params)
     escape_analysis = Analysis(**escape_analysis_params)
     print("NOTE: Testing environment setup...")
 
@@ -145,3 +171,37 @@ def test_zeroed_unseen_betas():
     for latent_dim in range(analysis.model.latent_dim):
         for idx in unseen_idxs:
             assert analysis.model.beta_coefficients()[latent_dim, int(idx)] == 0
+
+
+def test_bias_contrait_predicts_zero_on_wt():
+    """test to ensure the bias constrained (default) model predicts zero on wt seq"""
+    unseen_idxs = analysis.unseen_idxs
+    assert analysis.val_data.wtseq == "NIT"
+    # Assert that wt betas are 0 upon initializaiton.
+    for latent_dim in range(analysis.model.latent_dim):
+        for idx in unseen_idxs:
+            assert analysis.model.beta_coefficients()[latent_dim, int(idx)] == 0
+
+    # Train model with analysis object for 1 epoch
+    analysis.train(**training_params)
+
+    wt_pred = analysis.model(analysis.model.seq_to_binary(analysis.val_data.wtseq))
+    assert torch.equal(wt_pred, torch.tensor([0.0]))
+
+
+def test_bias_predicts_non_zero_on_wt():
+    """test to ensure the bias model predicts non-zero on wt seq"""
+    unseen_idxs = bias_analysis.unseen_idxs
+    assert bias_analysis.val_data.wtseq == "NIT"
+    # Assert that wt betas are 0 upon initializaiton.
+    for latent_dim in range(bias_analysis.model.latent_dim):
+        for idx in unseen_idxs:
+            assert bias_analysis.model.beta_coefficients()[latent_dim, int(idx)] == 0
+
+    # Train model with bias_analysis object for 1 epoch
+    bias_analysis.train(**training_params)
+
+    wt_pred = bias_analysis.model(
+        bias_analysis.model.seq_to_binary(bias_analysis.val_data.wtseq)
+    )
+    assert not torch.equal(wt_pred, torch.tensor([0.0]))
