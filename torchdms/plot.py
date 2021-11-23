@@ -102,18 +102,27 @@ def plot_test_correlation(evaluation_dict, model, out, cmap="plasma"):
             cmap=cmap,
             c=np.array(n_aa_substitutions)[has_unseen_mutation],
             marker="x",
-            s=24.0,
+            s=32.0,
+            alpha=0.8
         )
         ax[target].set_xlabel("Predicted")
         ax[target].set_ylabel("Observed")
         target_name = evaluation_dict["target_names"][target]
         ####
-        str_sum_nl =  "\n".join(model.str_summary().split(";"))
         plot_title = (
-            f"{target_name}: \n{str_sum_nl}\n"
+            f"{target_name}:"
         )
-        ax[target].set_title(plot_title)
-        ax[target].annotate(f"$R^{2}$ = {round(corr[0],3)}")
+        ax[target].set_title(plot_title, size=16)
+
+        ax[target].text(
+            0.15, 0.95,
+            f"$R^{2}$ = {round(corr[0],3)}",
+            horizontalalignment='center',
+            verticalalignment='center', 
+            transform=ax[target].transAxes,
+            size=15,
+        )
+        #ax[target].text(0.2, 0.2,f"$R^{2}$ = {round(corr[0],3)}")
         ####
         print(plot_title)
 
@@ -127,6 +136,19 @@ def plot_test_correlation(evaluation_dict, model, out, cmap="plasma"):
         correlation_series["correlation " + str(target)] = (
             per_target_df.groupby("n_aa_substitutions").corr().iloc[0::2, -1]
         )
+    model_type = model.str_summary().split(":")[0]
+    model_architecture = "\n".join(model.str_summary().split(":")[1].split())[1:-1]
+    print(model_architecture)
+    
+    #print(type(fig))
+    ax[0].text(
+        0.5, -0.2,
+        f"{model_type}\n{model_architecture}",
+        horizontalalignment='center',
+        verticalalignment='center', 
+        transform=ax[0].transAxes,
+        size=15,
+    )
 
     correlation_df = pd.DataFrame(correlation_series)
     correlation_df.index = correlation_df.index.droplevel(1)
@@ -139,6 +161,7 @@ def plot_test_correlation(evaluation_dict, model, out, cmap="plasma"):
     ax[0].legend(
         *scatter.legend_elements(), bbox_to_anchor=(-0.20, 1), title="n-mutant"
     )
+    plt.tight_layout()
     fig.savefig(out)
 
 
