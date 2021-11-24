@@ -108,7 +108,6 @@ def plot_test_correlation(evaluation_dict, model, out, cmap="plasma"):
         ax[target].set_xlabel("Predicted")
         ax[target].set_ylabel("Observed")
         target_name = evaluation_dict["target_names"][target]
-        ####
         plot_title = (
             f"{target_name}:"
         )
@@ -122,8 +121,6 @@ def plot_test_correlation(evaluation_dict, model, out, cmap="plasma"):
             transform=ax[target].transAxes,
             size=15,
         )
-        #ax[target].text(0.2, 0.2,f"$R^{2}$ = {round(corr[0],3)}")
-        ####
         print(plot_title)
 
         per_target_df = pd.DataFrame(
@@ -136,19 +133,29 @@ def plot_test_correlation(evaluation_dict, model, out, cmap="plasma"):
         correlation_series["correlation " + str(target)] = (
             per_target_df.groupby("n_aa_substitutions").corr().iloc[0::2, -1]
         )
+
     model_type = model.str_summary().split(":")[0]
-    model_architecture = "\n".join(model.str_summary().split(":")[1].split())[1:-1]
-    print(model_architecture)
-    
-    #print(type(fig))
     ax[0].text(
         0.5, -0.2,
-        f"{model_type}\n{model_architecture}",
+        f"{model_type}",
         horizontalalignment='center',
         verticalalignment='center', 
         transform=ax[0].transAxes,
         size=15,
     )
+
+    if len(model.str_summary().split(":")) > 1:
+
+        model_architecture = "\n".join(model.str_summary().split(":")[1].split())[1:-1]
+        
+        ax[0].text(
+            0.5, -0.2,
+            f"\n{model_architecture}",
+            horizontalalignment='center',
+            verticalalignment='center', 
+            transform=ax[0].transAxes,
+            size=15,
+        )
 
     correlation_df = pd.DataFrame(correlation_series)
     correlation_df.index = correlation_df.index.droplevel(1)
