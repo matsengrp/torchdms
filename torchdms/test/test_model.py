@@ -25,6 +25,8 @@ model_path = "run.model"
 bias_model_path = "run.bias.model"
 escape_model_path = "run.escape.model"
 aux_path = model_path + "_details.pkl"
+bias_aux_path = bias_model_path + "_details.pkl"
+aux_path = model_path + "_details.pkl"
 
 
 def setup_module(module):
@@ -125,6 +127,8 @@ def teardown_module(module):
     os.remove(escape_data_path)
     os.remove(escape_model_path)
     os.remove(aux_path)
+    os.remove(bias_model_path)
+    os.remove(bias_aux_path)
     print("NOTE: Testing environment torn down...")
 
 

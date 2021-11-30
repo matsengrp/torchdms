@@ -319,7 +319,9 @@ def create(
     See the documentation for each model to see an example model string.
     """
     set_random_seed(seed)
-    kwargs = dict(monotonic_sign=monotonic)
+    kwargs = dict(
+        monotonic_sign=monotonic, non_lin_bias=non_lin_bias, output_bias=output_bias
+    )
     beta_l1_coefficients = float_list_of_comma_separated_string(beta_l1_coefficients)
     if beta_l1_coefficients is not None:
         if len(beta_l1_coefficients) == 1:
