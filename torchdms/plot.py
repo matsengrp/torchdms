@@ -135,7 +135,7 @@ def plot_test_correlation(evaluation_dict, model, out, cmap="plasma"):
     model_type = model.str_summary().split(":")[0]
     ax[0].text(
         0.5,
-        -0.25,
+        -0.15,
         f"{model_type}",
         horizontalalignment="center",
         verticalalignment="center",
@@ -149,7 +149,7 @@ def plot_test_correlation(evaluation_dict, model, out, cmap="plasma"):
 
         ax[0].text(
             0.5,
-            -0.15,
+            -0.25,
             f"\n{model_architecture}",
             horizontalalignment="center",
             verticalalignment="center",
