@@ -261,7 +261,6 @@ class Linear(TorchdmsModel):
         return self.latent_layer.weight.data
 
     def from_latent_to_output(self, z: torch.Tensor, **kwargs) -> torch.Tensor:
-        # TODO should we be constricting a bias on the Linear model as well?
         return (z + self.wt_activity) if self.output_bias else z
 
     def regularization_loss(self) -> torch.Tensor:
