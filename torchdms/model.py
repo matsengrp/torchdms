@@ -25,12 +25,16 @@ class TorchdmsModel(ABC, nn.Module):
         target_names: List[str],
         alphabet: str,
         monotonic_sign: Optional[bool] = None,
+        non_lin_bias=False,
+        output_bias=False,
     ) -> None:
         super().__init__()
         self.input_size = input_size
         self.target_names = target_names
         self.alphabet = alphabet
         self.monotonic_sign = monotonic_sign
+        self.non_lin_bias = non_lin_bias
+        self.output_bias = output_bias
 
         self.output_size: int = len(target_names)
         """output dimension (number of phenotypes)"""
@@ -257,7 +261,7 @@ class Linear(TorchdmsModel):
         return self.latent_layer.weight.data
 
     def from_latent_to_output(self, z: torch.Tensor, **kwargs) -> torch.Tensor:
-        return z + self.wt_activity
+        return (z + self.wt_activity) if self.output_bias else z
 
     def regularization_loss(self) -> torch.Tensor:
         return 0.0
@@ -343,7 +347,8 @@ class Escape(TorchdmsModel):
         log_concentrations = (
             0 if concentrations is None else torch.log(concentrations.unsqueeze(1))
         )
-        escape_fractions = torch.sigmoid(z + self.wt_activity() - log_concentrations)
+        network_activation = z + self.wt_activity if self.output_bias else z
+        escape_fractions = torch.sigmoid(network_activation - log_concentrations)
         return torch.unsqueeze(torch.prod(escape_fractions, 1), 1)
 
     def beta_coefficients(self) -> torch.Tensor:
@@ -460,12 +465,16 @@ class FullyConnected(TorchdmsModel):
 
             # Location parameter(s) for WT sequence are learned in the nonlinearity
             if prefix == "nonlinearity":
-                bias = True
+                bias = self.non_lin_bias
 
         # final layer
         layer_name = "output_layer"
         self.layers.append(layer_name)
-        setattr(self, layer_name, nn.Linear(layer_sizes[-1], self.output_size))
+        setattr(
+            self,
+            layer_name,
+            nn.Linear(layer_sizes[-1], self.output_size, bias=self.output_bias),
+        )
 
         if self.monotonic_sign is not None:
             # If monotonic, we want to initialize all parameters
@@ -479,6 +488,8 @@ class FullyConnected(TorchdmsModel):
             "monotonic": self.monotonic_sign,
             "beta_l1_coefficient": self.beta_l1_coefficient,
             "interaction_l1_coefficient": self.interaction_l1_coefficient,
+            "non-linearity bias parameters": self.non_lin_bias,
+            "output bias": self.output_bias,
         }
 
     @property
@@ -731,7 +742,7 @@ class Conditional(Independent):
             nn.Linear(
                 self.latent_dim,
                 self.model_bind.internal_layer_dimensions[first_post_latent_layer_idx],
-                bias=True,
+                bias=self.non_lin_bias,
             ),
         )
 
