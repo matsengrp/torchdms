@@ -13,7 +13,7 @@ Getting Started
 ++++++++++++++++
 
 .. todo::
-  Installation instructions (assuming these instructions will change if this ends up on PyPi)
+  Installation instructions (fix link -- not clickable).
 - To get started, follow the ``torchdms`` :ref:`Installation instructions <_sec_installation>`.
 
 .. todo::
