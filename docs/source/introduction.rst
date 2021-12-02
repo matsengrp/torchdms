@@ -6,7 +6,7 @@ Introduction
 
 This is the documentation for ``torchdms``, a tool for inferring fitness landscapes of proteins from data obtained from Deep Mutational Scanning (DMS) experiments.
 ``torchdms`` allows for flexible modeling of DMS experiments with biophysically interpretable neural networks implemented in PyTorch.
-This software implements commonly used models for DMS data, and is intended to facilatate and encourage the development of and novel models for learning the sequence-fitness relationships of proteins.
+This software implements commonly used models for DMS data, and is intended to facilitate and encourage the development of and novel models for learning the sequence-fitness relationships of proteins.
 
 ++++++++++++++++
 Getting Started
@@ -14,21 +14,7 @@ Getting Started
 
 .. todo::
   Installation instructions (assuming these instructions will change if this ends up on PyPi)
-
-1. To install ``torchdms``, begin by cloning this repository.
-2. We recommend creating a conda environment, but this is optional.
-3. In a terminal, navigate to your installation of ``torchdms`` and run:
-
-.. code-block:: bash
-
-  (tdms) make install
-
-4. To ensure a succesful installation of ``torchdms``, run the following command to ensure a successful build and test:
-
-.. code-block:: bash
-
-  (tdms) make test
-
+- To get started, follow the ``torchdms`` :ref:`Installation instructions <_sec_installation>`.
 
 .. todo::
   Create a few tutorials on using the CLI and link to page.
@@ -55,7 +41,7 @@ On the other hand, the recent progress in the field of machine learning has allo
 To preserve model interpretability ``torchdms`` models fit a linear model to DMS data to infer latent mutational effects on fitness.
 ``torchdms`` then passes the output of this linear model into an arbitrary neural network to provide a more expressive model.
 This modeling approach has been proven effective at inferring mutational effects from DMS data and has been instrumental in understanding the fitness effects of mutations on SARS-CoV-2 [#RBD_DMS]_ [#RBD_AbEscape]_ [#RBD_PolyEscape]_.
-``torchdms`` is a flexible and modular modeling package that can be ran as its own analysis pipeline, or ported over to larger pipelines and projects. 
+``torchdms`` is a flexible and modular modeling package that can be ran as its own analysis pipeline, or ported over to larger pipelines and projects.
 
 
 +++++++++++++
