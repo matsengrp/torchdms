@@ -4,6 +4,9 @@ torchdms documentation home
 .. toctree::
    :maxdepth: 2
 
+   introduction
+   installation
+   tutorials
    cli
    model
 
