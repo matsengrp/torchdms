@@ -207,6 +207,40 @@ def plot_heatmap(model, test_data, out):
     #     for column_position, aa in enumerate(test_data.wtseq):
     #         prediction.loc[aa, column_position] = np.nan
 
+    num_prediction_dims = len(predictions)
+    fig, ax = plt.subplots(num_prediction_dims, figsize=(10, 5 * num_prediction_dims))
+    if num_prediction_dims == 1:
+        ax = [ax]
+    for prediction_dim in range(num_prediction_dims):
+        beta_map = predictions[prediction_dim]
+        #beta_map = build_beta_map(
+        #    test_data.wtseq,
+        #    test_data.alphabet,
+        #    model.beta_coefficients()[prediction_dim].numpy(),
+        #)
+        # define your scale, with white at zero
+        mapp = ax[prediction_dim].imshow(
+            beta_map, aspect="auto", norm=colors.TwoSlopeNorm(0), cmap="RdBu"
+        )
+        # Box WT-cells.
+        for wt_idx in np.transpose(wtmask.nonzero()):
+            wt_cell = patches.Rectangle(
+                np.flip(wt_idx - 0.5),
+                1,
+                1,
+                facecolor="none",
+                edgecolor="black",
+                linewidth=2,
+            )
+            ax[prediction_dim].add_patch(wt_cell)
+        fig.colorbar(mapp, ax=ax[prediction_dim], orientation="horizontal")
+        ax[prediction_dim].set_yticks(ticks=range(0, 21))
+        ax[prediction_dim].set_yticklabels(alphabet)
+    plt.tight_layout()
+    fig.suptitle(f"{model.str_summary()}")
+    fig.savefig(f"{out}")
+ 
+
     """
     def make_plot_for(output_idx, prediction):
 
@@ -231,9 +265,9 @@ def plot_heatmap(model, test_data, out):
     """
     
 
-    plots = []
-    for output_idx, prediction in enumerate(predictions):
-        print(output_idx, "\n", prediction)
+    #plots = []
+    #for output_idx, prediction in enumerate(predictions):
+    #    print(output_idx, "\n", prediction)
         # plots += make_plot_for(output_idx, prediction)
     """
 
