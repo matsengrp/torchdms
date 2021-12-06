@@ -633,16 +633,22 @@ def beta(model_path, data_path, out):
 
 @cli.command()
 @click.argument("model_path", type=click.Path(exists=True))
+@click.argument("data_path", type=click.Path(exists=True))
 @click.option("--out", required=True, type=click.Path())
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
-def heatmap(model_path, out):
+def heatmap(model_path, data_path, out):
     """Plot single mutant predictions as a heatmap.
 
     Note/warning: because of the way we have set up the encoding, the heatmap values
     cannot be interpreted in a straightfoward way.
     """
     model = torch.load(model_path)
-    plot_heatmap(model, out)
+    data = from_pickle_file(data_path)
+    click.echo(
+        f"LOG: loaded data, evaluating beta coeff for wildtype seq: {data.test.wtseq}"
+    )
+    plot_heatmap(model, data, out)
+    click.echo(f"LOG: Single mutant predictions plotted and dumped to {out}")
 
 
 @cli.command()

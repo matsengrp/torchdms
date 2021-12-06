@@ -179,7 +179,7 @@ def pretty_breaks(break_count):
     return make_pretty_breaks
 
 
-def plot_heatmap(model, path):
+def plot_heatmap(model, test_data, out):
     """This function takes in a model and plots the single mutant predictions.
 
     We plot this as a heatmap where the rows are substitutions
@@ -189,13 +189,28 @@ def plot_heatmap(model, path):
     theme_set(theme_seaborn(style="whitegrid", context="paper"))
     predictions = model.single_mutant_predictions()
 
+    bmap = binarymap.BinaryMap(
+        test_data.original_df,
+    )
+
+    # To represent the wtseq in the heatmap, create a mask
+    # to encode which matrix entries are the wt nt in each position.
+    wtmask = np.full([len(bmap.alphabet), len(test_data.wtseq)], False, dtype=bool)
+    alphabet = bmap.alphabet
+    for column_position, aa in enumerate(test_data.wtseq):
+        row_position = alphabet.index(aa)
+        wtmask[row_position, column_position] = True
+
     # This code does put nans where they should go. However, plotnine doesn't display
     # these as gray or anything useful. Punting.
     # for prediction in predictions:
     #     for column_position, aa in enumerate(test_data.wtseq):
     #         prediction.loc[aa, column_position] = np.nan
 
+    """
     def make_plot_for(output_idx, prediction):
+
+
         molten = prediction.reset_index().melt(id_vars=["AA"])
         return [
             (
@@ -213,16 +228,21 @@ def plot_heatmap(model, path):
                 + ggtitle(f"{model.target_names[output_idx]}: {model.str_summary()}")
             ),
         ]
+    """
+    
 
     plots = []
     for output_idx, prediction in enumerate(predictions):
-        plots += make_plot_for(output_idx, prediction)
+        print(output_idx, "\n", prediction)
+        # plots += make_plot_for(output_idx, prediction)
+    """
 
     save_as_pdf_pages(
         plots,
         filename=path,
         verbose=False,
     )
+    """
 
 
 def beta_coefficients(model, test_data, out):
