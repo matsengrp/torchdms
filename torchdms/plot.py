@@ -201,23 +201,13 @@ def plot_heatmap(model, test_data, out):
         row_position = alphabet.index(aa)
         wtmask[row_position, column_position] = True
 
-    # This code does put nans where they should go. However, plotnine doesn't display
-    # these as gray or anything useful. Punting.
-    # for prediction in predictions:
-    #     for column_position, aa in enumerate(test_data.wtseq):
-    #         prediction.loc[aa, column_position] = np.nan
-
     num_prediction_dims = len(predictions)
     fig, ax = plt.subplots(num_prediction_dims, figsize=(10, 5 * num_prediction_dims))
     if num_prediction_dims == 1:
         ax = [ax]
     for prediction_dim in range(num_prediction_dims):
         beta_map = predictions[prediction_dim]
-        #beta_map = build_beta_map(
-        #    test_data.wtseq,
-        #    test_data.alphabet,
-        #    model.beta_coefficients()[prediction_dim].numpy(),
-        #)
+
         # define your scale, with white at zero
         mapp = ax[prediction_dim].imshow(
             beta_map, aspect="auto", norm=colors.TwoSlopeNorm(0), cmap="RdBu"
@@ -239,44 +229,6 @@ def plot_heatmap(model, test_data, out):
     plt.tight_layout()
     fig.suptitle(f"{model.str_summary()}")
     fig.savefig(f"{out}")
- 
-
-    """
-    def make_plot_for(output_idx, prediction):
-
-
-        molten = prediction.reset_index().melt(id_vars=["AA"])
-        return [
-            (
-                ggplot(molten, aes("site", "AA", fill="value"))
-                + geom_tile()
-                + scale_x_discrete(breaks=pretty_breaks(5))
-                + scale_y_discrete(limits=list(reversed(model.alphabet)))
-                + ggtitle(f"{model.target_names[output_idx]}: {model.str_summary()}")
-            ),
-            (
-                ggplot(molten, aes("value"))
-                + geom_density(fill="steelblue")
-                + facet_grid("AA~", scales="free_y")
-                + theme_void()
-                + ggtitle(f"{model.target_names[output_idx]}: {model.str_summary()}")
-            ),
-        ]
-    """
-    
-
-    #plots = []
-    #for output_idx, prediction in enumerate(predictions):
-    #    print(output_idx, "\n", prediction)
-        # plots += make_plot_for(output_idx, prediction)
-    """
-
-    save_as_pdf_pages(
-        plots,
-        filename=path,
-        verbose=False,
-    )
-    """
 
 
 def beta_coefficients(model, test_data, out):
