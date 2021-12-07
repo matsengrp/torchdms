@@ -21,8 +21,6 @@ from plotnine import (
     ggplot,
     ggtitle,
     save_as_pdf_pages,
-    scale_x_discrete,
-    scale_y_discrete,
     theme,
     theme_seaborn,
     theme_set,
