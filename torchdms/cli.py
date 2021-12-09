@@ -645,7 +645,7 @@ def heatmap(model_path, data_path, out):
     model = torch.load(model_path)
     data = from_pickle_file(data_path)
     click.echo(
-        f"LOG: loaded data, evaluating beta coeff for wildtype seq: {data.test.wtseq}"
+        f"LOG: loaded data, calculating single mutant predictions from Wildtype seq:: {data.test.wtseq}"
     )
     plot_heatmap(model, data.test, out)
     click.echo(f"LOG: Single mutant predictions plotted and dumped to {out}")
