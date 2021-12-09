@@ -21,8 +21,6 @@ from plotnine import (
     ggplot,
     ggtitle,
     save_as_pdf_pages,
-    scale_x_discrete,
-    scale_y_discrete,
     theme,
     theme_seaborn,
     theme_set,
@@ -179,7 +177,7 @@ def pretty_breaks(break_count):
     return make_pretty_breaks
 
 
-def plot_heatmap(model, path):
+def plot_heatmap(model, test_data, out):
     """This function takes in a model and plots the single mutant predictions.
 
     We plot this as a heatmap where the rows are substitutions
@@ -189,40 +187,46 @@ def plot_heatmap(model, path):
     theme_set(theme_seaborn(style="whitegrid", context="paper"))
     predictions = model.single_mutant_predictions()
 
-    # This code does put nans where they should go. However, plotnine doesn't display
-    # these as gray or anything useful. Punting.
-    # for prediction in predictions:
-    #     for column_position, aa in enumerate(test_data.wtseq):
-    #         prediction.loc[aa, column_position] = np.nan
-
-    def make_plot_for(output_idx, prediction):
-        molten = prediction.reset_index().melt(id_vars=["AA"])
-        return [
-            (
-                ggplot(molten, aes("site", "AA", fill="value"))
-                + geom_tile()
-                + scale_x_discrete(breaks=pretty_breaks(5))
-                + scale_y_discrete(limits=list(reversed(model.alphabet)))
-                + ggtitle(f"{model.target_names[output_idx]}: {model.str_summary()}")
-            ),
-            (
-                ggplot(molten, aes("value"))
-                + geom_density(fill="steelblue")
-                + facet_grid("AA~", scales="free_y")
-                + theme_void()
-                + ggtitle(f"{model.target_names[output_idx]}: {model.str_summary()}")
-            ),
-        ]
-
-    plots = []
-    for output_idx, prediction in enumerate(predictions):
-        plots += make_plot_for(output_idx, prediction)
-
-    save_as_pdf_pages(
-        plots,
-        filename=path,
-        verbose=False,
+    bmap = binarymap.BinaryMap(
+        test_data.original_df,
     )
+
+    # To represent the wtseq in the heatmap, create a mask
+    # to encode which matrix entries are the wt nt in each position.
+    wtmask = np.full([len(bmap.alphabet), len(test_data.wtseq)], False, dtype=bool)
+    alphabet = bmap.alphabet
+    for column_position, aa in enumerate(test_data.wtseq):
+        row_position = alphabet.index(aa)
+        wtmask[row_position, column_position] = True
+
+    num_prediction_dims = len(predictions)
+    fig, ax = plt.subplots(num_prediction_dims, figsize=(10, 5 * num_prediction_dims))
+    if num_prediction_dims == 1:
+        ax = [ax]
+    for prediction_dim in range(num_prediction_dims):
+        beta_map = predictions[prediction_dim]
+
+        # define your scale, with white at zero
+        mapp = ax[prediction_dim].imshow(
+            beta_map, aspect="auto", norm=colors.TwoSlopeNorm(0), cmap="RdBu"
+        )
+        # Box WT-cells.
+        for wt_idx in np.transpose(wtmask.nonzero()):
+            wt_cell = patches.Rectangle(
+                np.flip(wt_idx - 0.5),
+                1,
+                1,
+                facecolor="none",
+                edgecolor="black",
+                linewidth=2,
+            )
+            ax[prediction_dim].add_patch(wt_cell)
+        fig.colorbar(mapp, ax=ax[prediction_dim], orientation="horizontal")
+        ax[prediction_dim].set_yticks(ticks=range(0, 21))
+        ax[prediction_dim].set_yticklabels(alphabet)
+    plt.tight_layout()
+    fig.suptitle(f"{model.str_summary()}")
+    fig.savefig(f"{out}")
 
 
 def beta_coefficients(model, test_data, out):
