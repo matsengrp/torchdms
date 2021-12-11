@@ -12,9 +12,7 @@ This software implements commonly used models for DMS data, and is intended to f
 Getting Started
 ++++++++++++++++
 
-.. todo::
-  Installation instructions (fix link -- not clickable).
-- To get started, follow the ``torchdms`` :ref:`Installation instructions <_sec_installation>`.
+- To get started, follow the ``torchdms`` :ref:`Installation instructions <sec_installation>`.
 
 .. todo::
   Create a few tutorials on using the CLI and link to page.
@@ -24,7 +22,7 @@ Getting Started
 .. todo::
   Create tutorials for key functionality in ``torchdms`` API -- planning on having notebooks as examples. Think about how to make this work nicely in the tutorials page.
 
-- If you're interested in using ``torchdms`` in your own python scripts or Jupyter notebooks, check out the Tutorials section of this documentation.
+- If you're interested in using ``torchdms`` in your own python scripts or Jupyter notebooks, check out the :ref:`Tutorials page <sec_tutorials>`.
 
 
 +++++++++++++
