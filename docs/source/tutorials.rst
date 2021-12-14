@@ -4,26 +4,99 @@
 Tutorials
 ============
 
+
+***************************************************
+Preparing DMS data for analysis with ``torchdms``
+***************************************************
+
 .. todo::
   Provide some information on the required data format of ``torchdms`` and perhaps a tutorial on how to go from a CSV file to a pickled object.
 
-.. todo::
-  Prepping data for model fitting in ``torchdms.data``.
+To start analyzing deep mutational scanning data with ``torchdms``, ensure you have a data frame with the following columns:
+
+* **aa_substitutions**: contains a list of space separated strings of the amino acid substitutions observed
+* **n_aa_substitutions**: an integer indicating the number of amino acid substitutions observed
+
+Once you have a data frame with these required columns, feel free to name the modeling targets anything you like, for this example, we will be using `func_score` to represent the functional scores observed from the DMS.
+
+You will then need to compress this data frame, along with a copy of the wild-type sequence into a pickle file.
 
 .. todo::
-  Creating models with ``torchdms.model``.
+  Link a notebook with a data-prep on simulated data.
 
-.. todo::
-  Training models with ``torchdms.analysis`` and ``torchdms.loss``.
+An example of how to go from a raw csv file to the pickle file required for ``torchdms`` can be found here.
 
-.. todo::
-  Evaluating model performance with ``torchdms.evaluation`` and ``torchdms.plot``.
+Once this pickle file has been prepared, you can begin ``torchdms`` analysis with either the command line interface (CLI) or python API, instructions for both can be found below.
 
-++++++++++++++
+
+**************
 CLI tutorials
-++++++++++++++
+**************
 
 The command line interface is called ``tdms``, and has nested subcommands.
+Below is an example of using ``tdms`` to conduct an analysis consisting of the following steps:
+
+1. Preparing a DMS dataset for analysis
+2. Creating a model
+3. Training a model
+4. Creating plots of fitting results
+
+.. todo::
+  Prepping data for model fitting with ``tdms prep``.
+
+.. _sec_tdms_prep:
+
+Preparing a dataset for analysis with ``tdms prep``
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+This step in the protocol involves partitioning a DMS dataset into training, validation, and testing sets.
+Details on the partitioning process can be found in the documentation for ``torchdms.data``.
+
+
+.. _sec_tdms_create:
+
+Creating models with ``tdms create``
+++++++++++++++++++++++++++++++++++++
+
+This step involves defining the model architecture to be used in the rest of the analysis.
+Details on the different model classes and hyper-parameters can be found in the documentation for ``torchdms.model``
+
+.. todo::
+  Creating models with ``tdms create``.
+
+
+.. _sec_tdms_train:
+
+Training models with ``tdms train``
+++++++++++++++++++++++++++++++++++++
+
+.. todo::
+  Training models with ``tdms train``
+
+
+.. _sec_tdms_scatter:
+
+Creating plots to asses model performance on unseen variants with ``tdms scatter``
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+.. todo::
+  Evaluating model performance with ``tdms scatter``
+
+
+.. _sec_tdms_beta:
+
+Creating a heatmap of inferred mutational effects with ``tdms beta``
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+.. _sec_tdms_go:
+
+Running a full analysis with ``tdms go``
++++++++++++++++++++++++++++++++++++++++++
+
+.. todo::
+  Running a complete analysis pipeline with ``tdms go``.
+
+
 
 .. todo::
   The link below is broken or private. We also need a demo of how to create the pickle file—Zorian has a notebook we could use?
@@ -77,3 +150,20 @@ You can build a model, train, and evaluate using ``tdms go``, which works well w
 .. code-block:: console
 
     tdms go --config config.json
+
+
+**************
+API tutorials
+**************
+
+.. todo::
+  Prepping data for model fitting in ``torchdms.data``.
+
+.. todo::
+  Creating models with ``torchdms.model``.
+
+.. todo::
+  Training models with ``torchdms.analysis`` and ``torchdms.loss``.
+
+.. todo::
+  Evaluating model performance with ``torchdms.evaluation`` and ``torchdms.plot``.
