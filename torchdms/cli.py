@@ -505,7 +505,6 @@ def train(
                 "weight decay will be turned off."
             )
             loss_weight_span = None
-    # else:
     if loss_weight_span is not None:
         click.echo(
             "NOTE: you are using loss decays, which assumes that you want to up-weight "
@@ -567,7 +566,6 @@ def default_map_of_ctx_or_parent(ctx):
 @click.option(
     "--show-points", is_flag=True, help="Show points in addition to LOWESS curves."
 )
-@click.option("--device", type=str, required=False, default="cpu")
 @click.option(
     "--include-details",
     is_flag=True,
@@ -575,14 +573,13 @@ def default_map_of_ctx_or_parent(ctx):
 )
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
 @click.pass_context
-def error(ctx, model_path, data_path, out, show_points, device, include_details):
+def error(ctx, model_path, data_path, out, show_points, include_details):
     """Evaluate and produce plot of error."""
-    model = torch.load(model_path)
+    model = torch.load(model_path, map_location=torch.device("cpu"))
     prefix = os.path.splitext(out)[0]
-
     data = from_pickle_file(data_path)
 
-    evaluation = build_evaluation_dict(model, data.test, device)
+    evaluation = build_evaluation_dict(model, data.test)
     error_df = error_df_of_evaluation_dict(evaluation)
 
     plot_error(error_df, out, model.str_summary(), show_points)
@@ -603,14 +600,13 @@ def error(ctx, model_path, data_path, out, show_points, device, include_details)
 @click.argument("model_path", type=click.Path(exists=True))
 @click.argument("data_path", type=click.Path(exists=True))
 @click.option("--out", required=True, type=click.Path())
-@click.option("--device", type=str, required=False, default="cpu")
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
-def scatter(model_path, data_path, out, device):
+def scatter(model_path, data_path, out):
     """Evaluate and produce scatter plot of observed vs predicted targets on
     the test set provided."""
-    model = torch.load(model_path)
+    model = torch.load(model_path, map_location=torch.device("cpu"))
     data = from_pickle_file(data_path)
-    evaluation = build_evaluation_dict(model, data.test, device)
+    evaluation = build_evaluation_dict(model, data.test)
     plot_test_correlation(evaluation, model, out)
     click.echo(f"LOG: scatter plot finished and dumped to {out}")
 
@@ -622,7 +618,7 @@ def scatter(model_path, data_path, out, device):
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
 def beta(model_path, data_path, out):
     """Plot beta coefficients as a heatmap."""
-    model = torch.load(model_path)
+    model = torch.load(model_path, map_location=torch.device("cpu"))
     data = from_pickle_file(data_path)
     click.echo(
         f"LOG: loaded data, evaluating beta coeff for wildtype seq: {data.test.wtseq}"
@@ -642,7 +638,7 @@ def heatmap(model_path, data_path, out):
     Note/warning: because of the way we have set up the encoding, the heatmap values
     cannot be interpreted in a straightfoward way.
     """
-    model = torch.load(model_path)
+    model = torch.load(model_path, map_location=torch.device("cpu"))
     data = from_pickle_file(data_path)
     click.echo(
         f"LOG: loaded data, calculating single mutant predictions from WT seq: {data.test.wtseq}"
@@ -656,13 +652,12 @@ def heatmap(model_path, data_path, out):
 @click.argument("data_path", type=click.Path(exists=True))
 @click.option("--steps", required=False, type=int, default=100, show_default=True)
 @click.option("--out", required=True, type=click.Path())
-@click.option("--device", type=str, required=False, default="cpu")
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
-def geplot(model_path, data_path, steps, out, device):
+def geplot(model_path, data_path, steps, out):
     """Make a "global epistasis" plot showing the fit to the nonlinearity."""
-    model = torch.load(model_path)
+    model = torch.load(model_path, map_location=torch.device("cpu"))
     data = from_pickle_file(data_path)
-    geplot_df = build_geplot_df(model, data.test, device)
+    geplot_df = build_geplot_df(model, data.test)
     if model.latent_dim == 1:
         plot_geplot(geplot_df, out, model.str_summary())
     elif model.latent_dim == 2:
@@ -682,14 +677,13 @@ def geplot(model_path, data_path, steps, out, device):
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
 def svd(model_path, data_path, out):
     """Plot singular values of beta matricies."""
-    model = torch.load(model_path)
+    model = torch.load(model_path, map_location=torch.device("cpu"))
     data = from_pickle_file(data_path)
     click.echo("LOG: model loaded, calculating SVD for beta coefficents.")
     plot_svd(model, data.test, out)
     click.echo(f"LOG: Singular values of beta plotted and dumped to {out}")
 
 
-# Plot protein profiles
 @cli.command()
 @click.argument("model_path", type=click.Path(exists=True))
 @click.argument("data_path", type=click.Path(exists=True))
@@ -697,7 +691,7 @@ def svd(model_path, data_path, out):
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
 def profiles(model_path, data_path, out):
     """Plot amino acid and site profiles from low-rank approximation."""
-    model = torch.load(model_path)
+    model = torch.load(model_path, map_location=torch.device("cpu"))
     data = from_pickle_file(data_path)
     click.echo("LOG: model loaded, plotting amino acid and site profiles.")
     plot_svd_profiles(model, data.test, out)
