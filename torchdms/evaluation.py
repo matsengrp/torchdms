@@ -24,18 +24,12 @@ def build_evaluation_dict(model, test_data, device="cpu"):
     assert test_data.feature_count() == model.input_size
     assert test_data.target_count() == model.output_size
     model.eval()
-    #if device != "cpu":
-    #    samples = test_data.samples.detach().cpu().numpy()
-    #    predictions = model(test_data.samples.to(device))
-    #    predictions = predictions.detach().cpu().numpy()
-    #    targets = test_data.targets.cpu().numpy()
-    #else:
     samples = test_data.samples.detach().numpy()
     predictions = model(test_data.samples.to(device)).detach().numpy()
     targets = test_data.targets.detach().numpy()
-    
+
     return {
-        "samples": samples ,
+        "samples": samples,
         "predictions": predictions,
         "targets": targets,
         "original_df": test_data.original_df,
@@ -83,9 +77,7 @@ def error_summary_of_error_df(error_df, model):
 
 
 def error_summary_of_data(data, model, split_label=None, **kwargs):
-    error_df = error_df_of_evaluation_dict(
-        build_evaluation_dict(model, data, **kwargs)
-    )
+    error_df = error_df_of_evaluation_dict(build_evaluation_dict(model, data, **kwargs))
     error_summary_df = error_summary_of_error_df(error_df, model)
     if split_label is not None:
         error_summary_df["split_label"] = split_label
