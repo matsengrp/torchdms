@@ -23,7 +23,7 @@ from torchdms.evaluation import (
     complete_error_summary,
     error_df_of_evaluation_dict,
 )
-from torchdms.loss import l1, mse, rmse
+from torchdms.loss import l1, mse, rmse, huber
 import torchdms.model
 from torchdms.plot import (
     beta_coefficients,
@@ -487,7 +487,7 @@ def train(
     }
 
     analysis = Analysis(**analysis_params)
-    known_loss_fn = {"l1": l1, "mse": mse, "rmse": rmse}
+    known_loss_fn = {"l1": l1, "mse": mse, "rmse": rmse, "huber": huber}
     if loss_fn not in known_loss_fn:
         raise IOError(f"Loss function '{loss_fn}' not known.")
     loss_fn = known_loss_fn[loss_fn]

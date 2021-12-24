@@ -27,6 +27,8 @@ l1 = weighted_loss(torch.nn.functional.l1_loss)
 
 mse = weighted_loss(torch.nn.functional.mse_loss)
 
+huber = weighted_loss(torch.nn.functional.huber_loss)
+
 
 def rmse(*args, **kwargs):
     """Root mean square error, perhaps with loss decay or target
