@@ -1,0 +1,201 @@
+@article {Tareen2020,
+	author = {Tareen, Ammar and Kooshkbaghi, Mahdi and Posfai, Anna and Ireland, William T. and McCandlish, David M. and Kinney, Justin B.},
+	title = {MAVE-NN: learning genotype-phenotype maps from multiplex assays of variant effect},
+	elocation-id = {2020.07.14.201475},
+	year = {2022},
+	doi = {10.1101/2020.07.14.201475},
+	publisher = {Cold Spring Harbor Laboratory},
+	abstract = {Multiplex assays of variant effect (MAVEs) are a family of methods that includes deep mutational scanning (DMS) experiments on proteins and massively parallel reporter assays (MPRAs) on gene regulatory sequences. However, a general strategy for inferring quantitative models of genotype-phenotype (G-P) maps from MAVE data is lacking. Here we introduce MAVE-NN, a neural-network-based Python package that implements a broadly applicable information-theoretic framework for learning G-P maps{\textemdash}including biophysically interpretable models{\textemdash}from MAVE datasets. We demonstrate MAVE-NN in multiple biological contexts, and highlight the ability of our approach to deconvolve mutational effects from otherwise confounding experimental nonlinearities and noise.Competing Interest StatementThe authors have declared no competing interest.},
+	URL = {https://www.biorxiv.org/content/early/2022/01/02/2020.07.14.201475},
+	eprint = {https://www.biorxiv.org/content/early/2022/01/02/2020.07.14.201475.full.pdf},
+	journal = {bioRxiv}
+}
+
+@ARTICLE{Otwinowski2018,
+  title    = "Inferring the shape of global epistasis",
+  author   = "Otwinowski, Jakub and McCandlish, David M and Plotkin, Joshua B",
+  abstract = "Genotype-phenotype relationships are notoriously complicated.
+              Idiosyncratic interactions between specific combinations of
+              mutations occur and are difficult to predict. Yet it is
+              increasingly clear that many interactions can be understood in
+              terms of global epistasis. That is, mutations may act additively
+              on some underlying, unobserved trait, and this trait is then
+              transformed via a nonlinear function to the observed phenotype as
+              a result of subsequent biophysical and cellular processes. Here
+              we infer the shape of such global epistasis in three proteins,
+              based on published high-throughput mutagenesis data. To do so, we
+              develop a maximum-likelihood inference procedure using a flexible
+              family of monotonic nonlinear functions spanned by an I-spline
+              basis. Our analysis uncovers dramatic nonlinearities in all three
+              proteins; in some proteins a model with global epistasis accounts
+              for virtually all of the measured variation, whereas in others we
+              find substantial local epistasis as well. This method allows us
+              to test hypotheses about the form of global epistasis and to
+              distinguish variance components attributable to global epistasis,
+              local epistasis, and measurement error.",
+  journal  = "Proc. Natl. Acad. Sci. U. S. A.",
+  volume   =  115,
+  number   =  32,
+  pages    = "E7550--E7558",
+  month    =  aug,
+  year     =  2018,
+  keywords = "deep mutational scanning; evolution; fitness landscape;
+              genotype--phenotype map; protein",
+  language = "en"
+}
+
+@ARTICLE{Paszke2019,
+  title         = "{PyTorch}: An Imperative Style, {High-Performance} Deep
+                   Learning Library",
+  author        = "Paszke, Adam and Gross, Sam and Massa, Francisco and Lerer,
+                   Adam and Bradbury, James and Chanan, Gregory and Killeen,
+                   Trevor and Lin, Zeming and Gimelshein, Natalia and Antiga,
+                   Luca and Desmaison, Alban and K{\"o}pf, Andreas and Yang,
+                   Edward and DeVito, Zach and Raison, Martin and Tejani,
+                   Alykhan and Chilamkurthy, Sasank and Steiner, Benoit and
+                   Fang, Lu and Bai, Junjie and Chintala, Soumith",
+  abstract      = "Deep learning frameworks have often focused on either
+                   usability or speed, but not both. PyTorch is a machine
+                   learning library that shows that these two goals are in fact
+                   compatible: it provides an imperative and Pythonic
+                   programming style that supports code as a model, makes
+                   debugging easy and is consistent with other popular
+                   scientific computing libraries, while remaining efficient
+                   and supporting hardware accelerators such as GPUs. In this
+                   paper, we detail the principles that drove the
+                   implementation of PyTorch and how they are reflected in its
+                   architecture. We emphasize that every aspect of PyTorch is a
+                   regular Python program under the full control of its user.
+                   We also explain how the careful and pragmatic implementation
+                   of the key components of its runtime enables them to work
+                   together to achieve compelling performance. We demonstrate
+                   the efficiency of individual subsystems, as well as the
+                   overall speed of PyTorch on several common benchmarks.",
+  month         =  dec,
+  year          =  2019,
+  archivePrefix = "arXiv",
+  primaryClass  = "cs.LG",
+  eprint        = "1912.01703"
+}
+
+@article{Fowler2014,
+  title    = {Deep mutational scanning: a new style of protein science},
+  author   = {Fowler, Douglas M and Fields, Stanley},
+  abstract = {Mutagenesis provides insight into proteins, but only recently
+              have assays that couple genotype to phenotype been used to assess
+              the activities of as many as 1 million mutant versions of a
+              protein in a single experiment. This approach-'deep mutational
+              scanning'-yields large-scale data sets that can reveal intrinsic
+              protein properties, protein behavior within cells and the
+              consequences of human genetic variation. Deep mutational scanning
+              is transforming the study of proteins, but many challenges must
+              be tackled for it to fulfill its promise.},
+  journal  = {Nature Methods},
+  volume   =  {11},
+  number   =  {8},
+  pages    = {801--807},
+  month    =  {aug},
+  year     =  {2014},
+  language = {"en"}
+}
+
+@ARTICLE{Starr2020,
+  title     = "Deep mutational scanning of {SARS-CoV-2} receptor binding domain
+               reveals constraints on folding and {ACE2} binding",
+  author    = "Starr, Tyler N and Greaney, Allison J and Hilton, Sarah K and
+               Ellis, Daniel and Crawford, Katharine H D and Dingens, Adam S
+               and Navarro, Mary Jane and Bowen, John E and Tortorici, M
+               Alejandra and Walls, Alexandra C and King, Neil P and Veesler,
+               David and Bloom, Jesse D",
+  abstract  = "The receptor binding domain (RBD) of the SARS-CoV-2 spike
+               glycoprotein mediates viral attachment to ACE2 receptor and is a
+               major determinant of host range and a dominant target of
+               neutralizing antibodies. Here, we experimentally measure how all
+               amino acid mutations to the RBD affect expression of folded
+               protein and its affinity for ACE2. Most mutations are
+               deleterious for RBD expression and ACE2 binding, and we identify
+               constrained regions on the RBD's surface that may be desirable
+               targets for vaccines and antibody-based therapeutics. But a
+               substantial number of mutations are well tolerated or even
+               enhance ACE2 binding, including at ACE2 interface residues that
+               vary across SARS-related coronaviruses. However, we find no
+               evidence that these ACE2-affinity-enhancing mutations have been
+               selected in current SARS-CoV-2 pandemic isolates. We present an
+               interactive visualization and open analysis pipeline to
+               facilitate use of our dataset for vaccine design and functional
+               annotation of mutations observed during viral surveillance.",
+  journal   = "Cell",
+  publisher = "Elsevier BV",
+  volume    =  182,
+  number    =  5,
+  pages     = "1295--1310.e20",
+  month     =  sep,
+  year      =  2020,
+  keywords  = "ACE2; SARS-CoV-2; deep mutational scanning; receptor-binding
+               domain",
+  copyright = "http://creativecommons.org/licenses/by/4.0/",
+  language  = "en"
+}
+
+@ARTICLE{Sailer2017-ga,
+  title    = "Molecular ensembles make evolution unpredictable",
+  author   = "Sailer, Zachary R and Harms, Michael J",
+  abstract = "Evolutionary prediction is of deep practical and philosophical
+              importance. Here we show, using a simple computational protein
+              model, that protein evolution remains unpredictable, even if one
+              knows the effects of all mutations in an ancestral protein
+              background. We performed a virtual deep mutational scan-revealing
+              the individual and pairwise epistatic effects of every mutation
+              to our model protein-and then used this information to predict
+              evolutionary trajectories. Our predictions were poor. This is a
+              consequence of statistical thermodynamics. Proteins exist as
+              ensembles of similar conformations. The effect of a mutation
+              depends on the relative probabilities of conformations in the
+              ensemble, which in turn, depend on the exact amino acid sequence
+              of the protein. Accumulating substitutions alter the relative
+              probabilities of conformations, thereby changing the effects of
+              future mutations. This manifests itself as subtle but pervasive
+              high-order epistasis. Uncertainty in the effect of each mutation
+              accumulates and undermines prediction. Because conformational
+              ensembles are an inevitable feature of proteins, this is likely
+              universal.",
+  journal  = "Proc. Natl. Acad. Sci. U. S. A.",
+  volume   =  114,
+  number   =  45,
+  pages    = "11938--11943",
+  month    =  nov,
+  year     =  2017,
+  keywords = "ensemble; epistasis; predictability; protein evolution;
+              thermodynamics",
+  language = "en"
+}
+
+@UNPUBLISHED{Sailer2018-hu,
+  title    = "Uninterpretable interactions: epistasis as uncertainty",
+  author   = "Sailer, Zachary R and Harms, Michael J",
+  abstract = "Abstract Epistasis is a common feature of genotype-phenotype
+              maps. Understanding the patterns of epistasis is critical for
+              predicting unmeasured phenotypes, explaining evolutionary
+              trajectories, and for inferring the biological mechanisms that
+              determine a map. One common approach is to use a linear model to
+              decompose epistasis into specific pairwise and high-order
+              interactions between mutations. Such interactions are then used
+              to identify important biology or to explain how the
+              genotype-phenotype map shapes evolution. Here we show that the
+              coefficients extracted from such analyses are likely
+              uninterpretable. They cannot be extracted reliably from
+              experimental genotype-phenotype maps due to regression bias.
+              Further, we can generate epistatic ``interactions''
+              indistinguishable from those in experimental maps using a
+              completely random process. From this, we conclude that epistasis
+              should be treated as a random, but quantifiable, variation in
+              these maps. This perspective allows us to build predictive models
+              with known error from a small number of measured phenotypes. It
+              also suggests that we need mechanistic, nonlinear models to
+              account for epistasis and decompose genotype-phenotype maps.",
+  journal  = "bioRxiv",
+  pages    = "378489",
+  month    =  jul,
+  year     =  2018,
+  language = "en"
+}
