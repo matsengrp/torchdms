@@ -37,7 +37,7 @@ bibliography: paper.bib
 # Summary
 
 Changes in the amino acid sequence of a protein can have drastic effects on protein function.
-When fitness depends on the ability of a protein to perform a specific function (i.e. binding to another protein), mutations made to the amino acid sequence of a protein will either: increase fitness, decrease fitness, or have little to no effect fitness.
+When fitness depends on the ability of a protein to perform a specific function (i.e. binding to another protein), mutations made to the amino acid sequence of the protein will either increase fitness, decrease fitness, or have little to no effect on fitness.
 Understanding how amino acid changes impact protein function is essential for understanding disease-associated protein variants, how and why pathogens are evolving to continue infecting hosts, and the mechanisms underlying molecular evolution.
 
 In this work, we introduce `torchdms`, a Python package for inferring genotype-phenotype (GP) maps from data collected from high-throughput assays of protein variant (genotype) effects on protein function (phenotype).
