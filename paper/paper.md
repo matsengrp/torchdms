@@ -79,7 +79,7 @@ These inputs are used to create everything needed for the analysis:
 
 - A `SplitDataset` object storing train-validation-test splits alongside their appropriate 1-hot encodings
 - A `PyTorch` object with a model architecture, constraints, and hyper parameters as defined in the configuration JSON file
-- An `Analysis` object that interfaces contains the data, models and a cost function for model training and evaluation.
+- An `Analysis` object that interfaces the data, models and a cost function for model training and evaluation.
 
 After preparing a `SplitDataset` object, users will select an architecture template from `torchdms.models`, details and examples on defining different model templates can be found in the `torchdms` documentation.
 `torchdms` then uses the `Analysis` object to train and validate the model, with the resulting model saved as a `torch` object for downstream analysis.
