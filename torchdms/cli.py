@@ -193,9 +193,6 @@ def prep(
     you specify. OUT_PREFIX is the location to dump the prepped data to
     another pickle file.
     """
-    click.echo(
-        "LOG: On new branch"
-    )
     if dry_run:
         print_method_name_and_locals("prep", locals())
         return
