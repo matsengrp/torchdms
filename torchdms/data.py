@@ -284,7 +284,6 @@ def partition(
             min(nas, strata_ceiling) 
             for nas in aa_func_scores["n_aa_substitutions"]
         ]
-    print(aa_func_scores["n_aa_substitutions"].value_counts())
     aa_func_scores["in_test"] = False
     aa_func_scores["in_val"] = False
     test_split_strata = []
@@ -292,9 +291,6 @@ def partition(
     for mutation_count, labeled_examples in aa_func_scores.groupby("n_aa_substitutions"):
         if mutation_count == 0:
             continue
-        #labeled_examples = grouped
-        #print("JARED LOG: I DIDN'T THROW NA!")
-        #labeled_examples = grouped.dropna()
         if len(labeled_examples) < skip_stratum_if_count_is_smaller_than:
             continue
         if train_on_all_single_mutants and mutation_count == 1:
