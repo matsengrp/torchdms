@@ -137,6 +137,14 @@ def cli(version):
     help="If the total number of examples for any particular stratum is lower than this "
     "number, we throw out the stratum completely.",
 )
+@click.option(
+    "--strata-ceiling",
+    type=int,
+    required=False,
+    default=None,
+    show_default=True,
+    help="Group all strata examples above this ceiling into the ceiling strata"
+)
 @click.option("--drop-nans", is_flag=True, help="Drop all rows that contain a nan.")
 @click.option(
     "--export-dataframe",
@@ -170,6 +178,7 @@ def prep(
     targets,
     per_stratum_variants_for_test,
     skip_stratum_if_count_is_smaller_than,
+    strata_ceiling,
     drop_nans,
     export_dataframe,
     partition_by,
@@ -215,6 +224,7 @@ def prep(
             df,
             per_stratum_variants_for_test,
             skip_stratum_if_count_is_smaller_than,
+            strata_ceiling,
             export_dataframe,
             partition_label,
             train_on_all_single_mutants=train_on_all_single_mutants,
