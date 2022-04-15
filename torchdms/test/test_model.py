@@ -22,6 +22,8 @@ escape_out_path = "test_df_escape-prepped"
 data_path = out_path + ".pkl"
 escape_data_path = escape_out_path + ".pkl"
 model_path = "run.model"
+no_gauge_model_path = "run.no.gauge.model"
+no_gauge_aux_path = no_gauge_model_path + "_details.pkl"
 bias_model_path = "run.bias.model"
 escape_model_path = "run.escape.model"
 aux_path = model_path + "_details.pkl"
@@ -34,6 +36,7 @@ def setup_module(module):
     print("NOTE: Setting up testing environment...")
     global training_params
     global model, analysis
+    global no_gauge_model, no_gauge_analysis
     global escape_model, escape_analysis
     global bias_model, bias_analysis
 
@@ -70,6 +73,14 @@ def setup_module(module):
         split_df_prepped.test.alphabet,
     )
 
+    no_gauge_model = torchdms.model.FullyConnected(
+        [1, 10],
+        [None, nn.ReLU()],
+        split_df_prepped.test.feature_count(),
+        split_df_prepped.test.target_names,
+        split_df_prepped.test.alphabet,
+    )
+
     # GE models (w/ non-lin and output bias parameters)
     bias_model = torchdms.model.FullyConnected(
         [1, 10],
@@ -90,6 +101,7 @@ def setup_module(module):
     )
 
     torch.save(model, model_path)
+    torch.save(no_gauge_model, no_gauge_model_path)
     torch.save(bias_model, bias_model_path)
     torch.save(escape_model, escape_model_path)
     analysis_params = {
@@ -97,6 +109,14 @@ def setup_module(module):
         "model_path": model_path,
         "val_data": split_df_prepped.val,
         "train_data_list": split_df_prepped.train,
+    }
+
+    no_gauge_analysis_params = {
+        "model": no_gauge_model,
+        "model_path": no_gauge_model_path,
+        "val_data": split_df_prepped.val,
+        "train_data_list": split_df_prepped.train,
+        "disable_gauge_fixing": True,
     }
 
     bias_analysis_params = {
@@ -114,6 +134,7 @@ def setup_module(module):
     }
     training_params = {"epoch_count": 1, "loss_fn": l1}
     analysis = Analysis(**analysis_params)
+    no_gauge_analysis = Analysis(**no_gauge_analysis_params)
     bias_analysis = Analysis(**bias_analysis_params)
     escape_analysis = Analysis(**escape_analysis_params)
     print("NOTE: Testing environment setup...")
@@ -129,6 +150,8 @@ def teardown_module(module):
     os.remove(aux_path)
     os.remove(bias_model_path)
     os.remove(bias_aux_path)
+    os.remove(no_gauge_model_path)
+    os.remove(no_gauge_aux_path)
     print("NOTE: Testing environment torn down...")
 
 
@@ -139,6 +162,20 @@ def test_project_betas():
         assert torch.mean(
             analysis.model.beta_coefficients()[latent_dim, analysis.mutant_idxs]
         ).item() == approx(-1)
+
+
+def test_no_gauge_fix():
+    """Test to make sure gauge fixing is turned off."""
+    wt_idxs = no_gauge_analysis.val_data.wt_idxs
+    assert no_gauge_analysis.val_data.wtseq == "NIT"
+    no_gauge_analysis.train(**training_params)
+
+    # Assert that wt betas are still 0.
+    for latent_dim in range(no_gauge_analysis.model.latent_dim):
+        for idx in wt_idxs:
+            assert (
+                no_gauge_analysis.model.beta_coefficients()[latent_dim, int(idx)] != 0
+            )
 
 
 def test_zeroed_wt_betas():
