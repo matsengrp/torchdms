@@ -61,6 +61,7 @@ class Analysis:
         batch_size=500,
         learning_rate=5e-3,
         device="cpu",
+        disable_gauge_fixing=False,
     ):
         self.batch_size = batch_size
         self.device = torch.device(device)
@@ -92,13 +93,15 @@ class Analysis:
         self.unseen_idxs = get_mutation_indicies(
             self.unseen_mutations, self.model.alphabet
         )
+        self.skip_gauge_fixing = disable_gauge_fixing
         self.gauge_mask = (
             torch.zeros_like(model.beta_coefficients(), dtype=torch.bool)
             if site_dict is None
             else parse_sites(site_dict, self.model)
         )
         self.gauge_mask[:, torch.cat((self.wt_idxs, self.unseen_idxs))] = True
-        self.model.fix_gauge(self.gauge_mask)
+        if self.skip_gauge_fixing == False:
+            self.model.fix_gauge(self.gauge_mask)
         self.training_details_path = model_path + "_details.pkl"
 
     def loss_of_targets_and_prediction(
@@ -221,7 +224,8 @@ class Analysis:
                             param.data.clamp_(0)
 
                 optimizer.step()
-                self.model.fix_gauge(self.gauge_mask)
+                if self.skip_gauge_fixing == False:
+                    self.model.fix_gauge(self.gauge_mask)
                 # if k >=1, reconstruct beta matricies with truncated SVD
                 if beta_rank is not None:
                     # procedure for 2D models.

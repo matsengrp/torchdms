@@ -143,7 +143,7 @@ def cli(version):
     required=False,
     default=None,
     show_default=True,
-    help="Group all strata examples above this ceiling into the ceiling strata"
+    help="Group all strata examples above this ceiling into the ceiling strata",
 )
 @click.option("--drop-nans", is_flag=True, help="Drop all rows that contain a nan.")
 @click.option(
@@ -446,6 +446,7 @@ def create(
     default=None,
     help="Path to .JSON file containing both site numbers and site numbers. ",
 )
+@click.option("--disable-gauge-fixing", required=False, is_flag=True)
 @dry_run_option
 @seed_option
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
@@ -468,6 +469,7 @@ def train(
     seed,
     beta_rank,
     site_path,
+    disable_gauge_fixing,
 ):
     """Train a model, saving trained model to original location."""
     if dry_run:
@@ -494,6 +496,7 @@ def train(
         "learning_rate": learning_rate,
         "device": device,
         "site_dict": site_dict,
+        "disable_gauge_fixing": disable_gauge_fixing,
     }
 
     analysis = Analysis(**analysis_params)
