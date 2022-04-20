@@ -23,6 +23,7 @@ setup(
         "click-config-file",
         "binarymap",
         "matplotlib==3.3.1",
+        "pandas==1.4.2",
         "plotnine==0.8.0",
         "scipy",
         "torch",
