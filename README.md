@@ -1,5 +1,8 @@
 # torchdms
 
+## THIS PACKAGE IS CURRENTLY UNDER ACTIVE DEVELOPMENT. 
+**We expect a more stable version with documentation soon. Stay tuned!**
+
 [![build and test](https://github.com/matsengrp/torchdms/workflows/build%20and%20test/badge.svg)](https://github.com/matsengrp/torchdms/actions?query=workflow%3A%22build+and+test%22)
 
 👉 [Command-line and API documentation](https://matsengrp.github.io/torchdms/) 👈
