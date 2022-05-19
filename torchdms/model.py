@@ -248,7 +248,8 @@ class Linear(TorchdmsModel):
         self.latent_layer = nn.Linear(self.input_size, self.output_size, bias=False)
         self.wt_activity = nn.Parameter(torch.zeros(self.output_size))
         self.layers = ["latent_layer"]
-        if self.Monotonic is not None:
+
+        if self.monotonic_sign is not None:
             raise ValueError("Monotonicity does not apply to the beta-param only Linear model")
 
     @property
