@@ -28,6 +28,7 @@ jobs:
       run: |
         make test
         make test2d
+        make testescape
         make datatest
     - name: Lint
       run: |
