@@ -143,7 +143,7 @@ def cli(version):
     required=False,
     default=None,
     show_default=True,
-    help="Group all strata examples above this ceiling into the ceiling strata"
+    help="Group all strata examples above this ceiling into the ceiling strata",
 )
 @click.option("--drop-nans", is_flag=True, help="Drop all rows that contain a nan.")
 @click.option(
@@ -330,9 +330,7 @@ def create(
     """
     set_random_seed(seed)
     if model_string == "Linear" and monotonic is not None:
-        click.echo(
-            f"LOG: Model is linear, setting monotonic to None"
-        )
+        click.echo("LOG: Model is linear, setting monotonic to None")
         monotonic = None
     kwargs = dict(
         monotonic_sign=monotonic, non_lin_bias=non_lin_bias, output_bias=output_bias

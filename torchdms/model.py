@@ -250,7 +250,9 @@ class Linear(TorchdmsModel):
         self.layers = ["latent_layer"]
 
         if self.monotonic_sign is not None:
-            raise ValueError("Monotonicity does not apply to the beta-param only Linear model")
+            raise ValueError(
+                "Monotonicity does not apply to the beta-param only Linear model"
+            )
 
     @property
     def characteristics(self) -> Dict:

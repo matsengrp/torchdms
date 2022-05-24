@@ -34,7 +34,7 @@ extensions = [
     "sphinx.ext.napoleon",  # support NumPy and Google style docstrings
     "sphinx_autodoc_typehints",  # Automatically document param types (less noise in class signature)
     "sphinx.ext.todo",  # track to do list items
-    "nbsphinx", # enable jupyter notebook tools for sphinx
+    "nbsphinx",  # enable jupyter notebook tools for sphinx
 ]
 
 # show todos in output

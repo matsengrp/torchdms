@@ -281,14 +281,15 @@ def partition(
     ]
     if strata_ceiling:
         aa_func_scores["n_aa_substitutions"] = [
-            min(nas, strata_ceiling) 
-            for nas in aa_func_scores["n_aa_substitutions"]
+            min(nas, strata_ceiling) for nas in aa_func_scores["n_aa_substitutions"]
         ]
     aa_func_scores["in_test"] = False
     aa_func_scores["in_val"] = False
     test_split_strata = []
 
-    for mutation_count, labeled_examples in aa_func_scores.groupby("n_aa_substitutions"):
+    for mutation_count, labeled_examples in aa_func_scores.groupby(
+        "n_aa_substitutions"
+    ):
         if mutation_count == 0:
             continue
         if len(labeled_examples) < skip_stratum_if_count_is_smaller_than:
