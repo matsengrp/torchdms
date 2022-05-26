@@ -43,6 +43,7 @@ def setup_module(module):
         data,
         per_stratum_variants_for_test=10,
         skip_stratum_if_count_is_smaller_than=30,
+        strata_ceiling=None,
         export_dataframe=None,
         partition_label=None,
     )
@@ -50,6 +51,7 @@ def setup_module(module):
         escape_data,
         per_stratum_variants_for_test=10,
         skip_stratum_if_count_is_smaller_than=30,
+        strata_ceiling=None,
         export_dataframe=None,
         partition_label=None,
     )

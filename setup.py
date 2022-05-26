@@ -17,7 +17,7 @@ setup(
     entry_points={"console_scripts": ["tdms=torchdms.cli:cli"]},
     version=versioneer.get_version(),
     cmdclass=versioneer.get_cmdclass(),
-    python_requires=">=3.8",
+    python_requires=">=3.8,<3.10",
     install_requires=[
         "click",
         "click-config-file",

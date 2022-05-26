@@ -30,6 +30,7 @@ def test_partition_is_clean():
             data,
             per_stratum_variants_for_test=10,
             skip_stratum_if_count_is_smaller_than=30,
+            strata_ceiling=None,
             export_dataframe=None,
             partition_label=None,
         )
@@ -49,6 +50,7 @@ def test_partition_all_single_mutants_to_test():
         data,
         per_stratum_variants_for_test=10,
         skip_stratum_if_count_is_smaller_than=30,
+        strata_ceiling=None,
         export_dataframe=None,
         partition_label=None,
         train_on_all_single_mutants=True,
@@ -91,6 +93,7 @@ def test_wt_idx():
         data,
         per_stratum_variants_for_test=10,
         skip_stratum_if_count_is_smaller_than=30,
+        strata_ceiling=None,
         export_dataframe=None,
         partition_label=None,
     )
