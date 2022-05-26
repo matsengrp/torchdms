@@ -222,11 +222,11 @@ def prep(
     def prep_by_stratum_and_export_of_partition_label_and_df(partition_label, df):
         split_df = partition(
             df,
-            per_stratum_variants_for_test,
-            skip_stratum_if_count_is_smaller_than,
-            strata_ceiling,
-            export_dataframe,
-            partition_label,
+            per_stratum_variants_for_test = per_stratum_variants_for_test,
+            skip_stratum_if_count_is_smaller_than = skip_stratum_if_count_is_smaller_than,
+            strata_ceiling = strata_ceiling,
+            export_dataframe = export_dataframe,
+            partition_label = partition_label,
             train_on_all_single_mutants=train_on_all_single_mutants,
         )
 

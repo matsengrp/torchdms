@@ -84,8 +84,8 @@ def plot_test_correlation(evaluation_dict, model, out, cmap="plasma"):
     for target in range(num_targets):
         pred = evaluation_dict["predictions"][:, target]
         targ = evaluation_dict["targets"][:, target]
-        predc = pred[targ == targ]
-        targc = targ[targ == targ]
+        predc = pred[~np.isnan(targ)]
+        targc = targ[~np.isnan(targ)]
         corr = stats.pearsonr(predc, targc)
         # create plot with seen mutations and then unseen mutations
         scatter = ax[target].scatter(
