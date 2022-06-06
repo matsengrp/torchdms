@@ -4,17 +4,28 @@ install:
 	pip install -r requirements.txt
 	pip install -e .
 
-test: torchdms/data/_ignore/test_df.prepped.pkl
+#test: torchdms/data/_ignore/test_df.prepped.pkl 
+test: prep_1d
+	# Full tdms go on vanilla
 	cd torchdms/data; tdms go --config test_config.json
-	pytest
+	pytest -vv
+	# Full tdms go on 2d
+	#cd torchdms/data; tdms go --config test2d_config.json
+	# Full tdms go on escape
+	#cd torchdms/data; tdms go --config test_escape_config.json
 	rm torchdms/data/_ignore/test_df.prepped.pkl
+	#rm torchdms/data/_ignore/test_df_2d.prepped.pkl
+	#rm torchdms/data/_ignore/test_escape_df.prepped.pkl
+	# Run unit tests
 
-test2d: torchdms/data/_ignore/test_df_2d.prepped.pkl
+#test2d: torchdms/data/_ignore/test_df_2d.prepped.pkl
+test2d: prep_2d
 	cd torchdms/data; tdms go --config test2d_config.json
-	pytest
+	pytest -vv
 	rm torchdms/data/_ignore/test_df_2d.prepped.pkl
 
-testescape: torchdms/data/_ignore/test_escape_df.prepped.pkl
+#testescape: torchdms/data/_ignore/test_escape_df.prepped.pkl
+testescape: prep_escape
 	cd torchdms/data; tdms go --config test_escape_config.json
 	pytest
 	rm torchdms/data/_ignore/test_escape_df.prepped.pkl
@@ -45,15 +56,18 @@ deploy:
 	git commit --amend -av -m "update docs"
 	git push -f
 
-torchdms/data/_ignore/test_df.prepped.pkl: torchdms/data/test_df.pkl
+#torchdms/data/_ignore/test_df.prepped.pkl: torchdms/data/test_df.pkl
+prep_1d: torchdms/data/test_df.pkl
 	mkdir -p torchdms/data/_ignore
 	tdms prep --per-stratum-variants-for-test 10 --skip-stratum-if-count-is-smaller-than 30 torchdms/data/test_df.pkl torchdms/data/_ignore/test_df.prepped affinity_score
 
-torchdms/data/_ignore/test_df_2d.prepped.pkl: torchdms/data/test_df_2d.pkl
+#torchdms/data/_ignore/test_df_2d.prepped.pkl: torchdms/data/test_df_2d.pkl
+prep_2d: torchdms/data/test_df_2d.pkl
 	mkdir -p torchdms/data/_ignore
 	tdms prep --per-stratum-variants-for-test 10 --skip-stratum-if-count-is-smaller-than 30 torchdms/data/test_df_2d.pkl torchdms/data/_ignore/test_df_2d.prepped func_score func_score2
 
-torchdms/data/_ignore/test_escape_df.prepped.pkl: torchdms/data/test_escape_df.pkl
+#torchdms/data/_ignore/test_escape_df.prepped.pkl: torchdms/data/test_escape_df.pkl
+prep_escape: torchdms/data/test_escape_df.pkl
 	mkdir -p torchdms/data/_ignore
 	tdms prep --per-stratum-variants-for-test 10 --skip-stratum-if-count-is-smaller-than 30 torchdms/data/test_escape_df.pkl torchdms/data/_ignore/test_escape_df.prepped prob_escape
 

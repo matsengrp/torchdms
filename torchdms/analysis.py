@@ -313,7 +313,7 @@ class Analysis:
                 loss_fn,
                 patience,
                 min_lr,
-                loss_weight_span,
+                loss_weight_span
             )
         click.echo("LOG: Beginning full training.")
         self.model = torch.load(self.model_path)
