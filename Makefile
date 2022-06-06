@@ -4,33 +4,23 @@ install:
 	pip install -r requirements.txt
 	pip install -e .
 
-#test: torchdms/data/_ignore/test_df.prepped.pkl 
 test: prep_1d
 	# Full tdms go on vanilla
 	cd torchdms/data; tdms go --config test_config.json
 	pytest -vv
-	# Full tdms go on 2d
-	#cd torchdms/data; tdms go --config test2d_config.json
-	# Full tdms go on escape
-	#cd torchdms/data; tdms go --config test_escape_config.json
 	rm torchdms/data/_ignore/test_df.prepped.pkl
-	#rm torchdms/data/_ignore/test_df_2d.prepped.pkl
-	#rm torchdms/data/_ignore/test_escape_df.prepped.pkl
-	# Run unit tests
 
-#test2d: torchdms/data/_ignore/test_df_2d.prepped.pkl
 test2d: prep_2d
 	cd torchdms/data; tdms go --config test2d_config.json
 	pytest -vv
 	rm torchdms/data/_ignore/test_df_2d.prepped.pkl
 
-#testescape: torchdms/data/_ignore/test_escape_df.prepped.pkl
 testescape: prep_escape
 	cd torchdms/data; tdms go --config test_escape_config.json
 	pytest
 	rm torchdms/data/_ignore/test_escape_df.prepped.pkl
 
-datatest: torchdms/data/_ignore/test_df.prepped.pkl
+datatest: prep_1d
 	tdms validate torchdms/data/_ignore/test_df.prepped.pkl
 	tdms summarize --out-prefix torchdms/data/_ignore/test_df.summary torchdms/data/_ignore/test_df.prepped.pkl
 
