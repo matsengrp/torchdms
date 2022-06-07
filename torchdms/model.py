@@ -285,7 +285,7 @@ class Escape(TorchdmsModel):
     r"""A model of viral escape with multiple epitopes, each with its own latent layer.
 
     The output is assumed to be escape fraction :math:`\in (0, 1)`. The nonlinearity is
-    fixed as the product of Hill functions for each epitope.
+    fixed as the product of Hill functions for each epitope :math:`e`.
 
     .. todo::
         model math markup, and schematic needed here
@@ -385,8 +385,9 @@ class Escape(TorchdmsModel):
 class FullyConnected(TorchdmsModel):
     r"""A flexible fully connected neural network model.
 
-    .. todo::
-        schematic image
+    .. image:: /images/gge-fc.jpeg
+        :width: 600
+        :alt: FullyConnected
 
     Args:
         layer_sizes: Sequence of widths for each layer between input and output.
@@ -394,8 +395,8 @@ class FullyConnected(TorchdmsModel):
                      The first layer with ``None`` or ``nn.Identity()`` activation
                      is the latent space.
 
-                     .. todo::
-                         allowable activation function names?
+                    Allowed activations can be found in the `PyTorch documentation <https://pytorch.org/docs/stable/nn.functional.html#non-linear-activation-functions>`_.
+
 
         args: base positional arguments, see :py:class:`torchdms.model.TorchdmsModel`
         beta_l1_coefficient: lasso penalty on latent space :math:`\beta` coefficients
@@ -590,8 +591,9 @@ class Independent(TorchdmsModel):
     r"""Parallel and independent submodules of type :py:class:`torchdms.model.FullyConnected`
     for each of two output dimensions.
 
-    .. todo::
-        schematic image
+    .. image:: /images/gge-ind.jpeg
+        :width: 600
+        :alt: Independent Model
 
     Args:
         layer_sizes: Sequence of widths for each layer between input and output *for both
@@ -600,8 +602,7 @@ class Independent(TorchdmsModel):
                      The first layer with ``None`` or ``nn.Identity()`` activation is the
                      latent space.
 
-                     .. todo::
-                         allowable activation function names?
+                     Allowed activations can be found in the `PyTorch documentation <https://pytorch.org/docs/stable/nn.functional.html#non-linear-activation-functions>`_.
 
         args: base positional arguments, see :py:class:`torchdms.model.TorchdmsModel`
         beta_l1_coefficients: lasso penalties on latent space :math:`\beta` coefficients
@@ -725,10 +726,9 @@ class Conditional(Independent):
     This requires a one-dimensional latent space (see
     :py:meth:`torchdms.model.Conditional.from_latent_to_output` to see why).
 
-    .. todo::
-        schematic image:
-        https://user-images.githubusercontent.com/1173298/89943302-d4524d00-dbd2-11ea-827d-6ad6c238ff52.png
-
+    .. image:: /images/gge-cond.jpeg
+        :width: 600
+        :alt: Conditional Model
     Args:
         args: positional arguments, see :py:class:`torchdms.model.Independent`
         kwargs: keyword arguments, see :py:class:`torchdms.model.Independent`
@@ -768,8 +768,9 @@ class Conditional(Independent):
 class ConditionalSequential(Conditional):
     r"""Conditional with sequential training: stability then binding.
 
-    .. todo::
-        schematic image
+    .. image:: /images/gge-condseq.GIF
+        :width: 600
+        :alt: ConditionalSequential Model
 
     Args:
         args: positional arguments, see :py:class:`torchdms.model.Conditional`
