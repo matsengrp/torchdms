@@ -9,8 +9,8 @@ torchdms documentation home
    installation
    tutorials
    cli
-   model
    analysis_example.ipynb
+   model_details.ipynb
 
 .. autosummary::
    :toctree: _autosummary
