@@ -1,6 +1,7 @@
 """
 Testing model module
 """
+
 import torch
 import torchdms.model
 import torch.nn as nn
@@ -13,20 +14,27 @@ from torchdms.loss import l1
 from torchdms.data import partition, prep_by_stratum_and_export
 
 
+# vanilla model paths
 TEST_DATA_PATH = pkg_resources.resource_filename("torchdms", "data/test_df.pkl")
+out_path = "test_df-prepped"
+data_path = out_path + ".pkl"
+model_path = "run.model"
+aux_path = model_path + "_details.pkl"
+
+# bias/no bias model paths
+bias_model_path = "run.bias.model"
+bias_aux_path = bias_model_path + "_details.pkl"
+
+# 2D model paths
+# TEST_2D_DATA_PATH = pkg_resources.resource_filename("torchdms", "data/test_df.pkl")
+
+# Escape model paths
 ESCAPE_TEST_DATA_PATH = pkg_resources.resource_filename(
     "torchdms", "data/test_escape_df.pkl"
 )
-out_path = "test_df-prepped"
 escape_out_path = "test_df_escape-prepped"
-data_path = out_path + ".pkl"
 escape_data_path = escape_out_path + ".pkl"
-model_path = "run.model"
-bias_model_path = "run.bias.model"
 escape_model_path = "run.escape.model"
-aux_path = model_path + "_details.pkl"
-bias_aux_path = bias_model_path + "_details.pkl"
-aux_path = model_path + "_details.pkl"
 
 
 def setup_module(module):
@@ -38,7 +46,6 @@ def setup_module(module):
     global bias_model, bias_analysis
 
     data, wtseq = from_pickle_file(TEST_DATA_PATH)
-    escape_data, escape_wtseq = from_pickle_file(ESCAPE_TEST_DATA_PATH)
     split_df = partition(
         data,
         per_stratum_variants_for_test=10,
@@ -47,6 +54,10 @@ def setup_module(module):
         export_dataframe=None,
         partition_label=None,
     )
+    prep_by_stratum_and_export(split_df, wtseq, ["affinity_score"], out_path, "", None)
+    split_df_prepped = from_pickle_file(data_path)
+
+    escape_data, escape_wtseq = from_pickle_file(ESCAPE_TEST_DATA_PATH)
     escape_split_df = partition(
         escape_data,
         per_stratum_variants_for_test=10,
@@ -55,12 +66,10 @@ def setup_module(module):
         export_dataframe=None,
         partition_label=None,
     )
-    prep_by_stratum_and_export(split_df, wtseq, ["affinity_score"], out_path, "", None)
     prep_by_stratum_and_export(
         escape_split_df, escape_wtseq, ["prob_escape"], escape_out_path, "", None
     )
 
-    split_df_prepped = from_pickle_file(data_path)
     escape_split_df_prepped = from_pickle_file(escape_data_path)
 
     # GE models (w/o non-lin and output bias parameters)

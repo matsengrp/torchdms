@@ -5,6 +5,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import os
+import copy
 import pkg_resources
 from pytest import approx
 from torchdms.analysis import Analysis
