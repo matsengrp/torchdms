@@ -466,7 +466,7 @@ class FullyConnected(TorchdmsModel):
 
             self.layers.append(layer_name)
             setattr(self, layer_name, nn.Linear(input_size, num_nodes, bias=bias))
-            input_size = num_nodes 
+            input_size = num_nodes
 
             # Location parameter(s) for WT sequence are learned in the nonlinearity
             if prefix == "nonlinearity":
