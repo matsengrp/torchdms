@@ -37,10 +37,6 @@ escape_data_path = escape_out_path + ".pkl"
 escape_model_path = "run.escape.model"
 
 
-
-
-
-
 def setup_module(module):
     """Loads in test data and model for future tests."""
     print("NOTE: Setting up testing environment...")
@@ -60,7 +56,6 @@ def setup_module(module):
     )
     prep_by_stratum_and_export(split_df, wtseq, ["affinity_score"], out_path, "", None)
     split_df_prepped = from_pickle_file(data_path)
-
 
     escape_data, escape_wtseq = from_pickle_file(ESCAPE_TEST_DATA_PATH)
     escape_split_df = partition(

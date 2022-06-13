@@ -692,13 +692,9 @@ class Independent(TorchdmsModel):
         )
 
     def to_latent(self, x: torch.Tensor, **kwargs) -> torch.Tensor:
-        assert len(x.shape) == 2 # must be 2 dimentional input
+        assert len(x.shape) == 2  # must be 2 dimentional input
         return torch.cat(
-            (
-                self.model_bind.to_latent(x), 
-                self.model_stab.to_latent(x)
-            ), 
-            1
+            (self.model_bind.to_latent(x), self.model_stab.to_latent(x)), 1
         )
 
     def beta_coefficients(self) -> torch.Tensor:
