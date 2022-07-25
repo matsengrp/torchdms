@@ -3,9 +3,11 @@ Testing model module
 """
 
 import torch
+import numpy as np
 import torchdms.model
 import torch.nn as nn
 import os
+import copy
 import pkg_resources
 from pytest import approx
 from torchdms.analysis import Analysis
@@ -18,12 +20,17 @@ from torchdms.data import partition, prep_by_stratum_and_export
 TEST_DATA_PATH = pkg_resources.resource_filename("torchdms", "data/test_df.pkl")
 out_path = "test_df-prepped"
 data_path = out_path + ".pkl"
+
 model_path = "run.model"
 aux_path = model_path + "_details.pkl"
 
 # bias/no bias model paths
 bias_model_path = "run.bias.model"
 bias_aux_path = bias_model_path + "_details.pkl"
+
+# monotonic model path
+monotonic_model_path = "run.monotonic.model"
+monotonic_aux_path = monotonic_model_path + "_details.pkl"
 
 # 2D model paths
 # TEST_2D_DATA_PATH = pkg_resources.resource_filename("torchdms", "data/test_df.pkl")
@@ -44,6 +51,7 @@ def setup_module(module):
     global model, analysis
     global escape_model, escape_analysis
     global bias_model, bias_analysis
+    global monotonic_model, monotonic_analysis
 
     data, wtseq = from_pickle_file(TEST_DATA_PATH)
     split_df = partition(
@@ -92,6 +100,18 @@ def setup_module(module):
         output_bias=True,
     )
 
+    # monotonically increasing model
+    monotonic_model = torchdms.model.FullyConnected(
+        [1, 10],
+        [None, nn.ReLU()],
+        split_df_prepped.test.feature_count(),
+        split_df_prepped.test.target_names,
+        split_df_prepped.test.alphabet,
+        # non_lin_bias=True,
+        # output_bias=True,
+        monotonic_sign=1,
+    )
+
     # Escape models
     escape_model = torchdms.model.Escape(
         2,
@@ -102,7 +122,9 @@ def setup_module(module):
 
     torch.save(model, model_path)
     torch.save(bias_model, bias_model_path)
+    torch.save(monotonic_model, monotonic_model_path)
     torch.save(escape_model, escape_model_path)
+
     analysis_params = {
         "model": model,
         "model_path": model_path,
@@ -117,15 +139,24 @@ def setup_module(module):
         "train_data_list": split_df_prepped.train,
     }
 
+    monotonic_analysis_params = {
+        "model": monotonic_model,
+        "model_path": monotonic_model_path,
+        "val_data": split_df_prepped.val,
+        "train_data_list": split_df_prepped.train,
+    }
+
     escape_analysis_params = {
         "model": escape_model,
         "model_path": escape_model_path,
         "val_data": escape_split_df_prepped.val,
         "train_data_list": escape_split_df_prepped.train,
     }
+
     training_params = {"epoch_count": 1, "loss_fn": l1}
     analysis = Analysis(**analysis_params)
     bias_analysis = Analysis(**bias_analysis_params)
+    monotonic_analysis = Analysis(**monotonic_analysis_params)
     escape_analysis = Analysis(**escape_analysis_params)
     print("NOTE: Testing environment setup...")
 
@@ -133,13 +164,20 @@ def setup_module(module):
 def teardown_module(module):
     """Tears down testing setup -- removes temp models and data."""
     print("NOTE: Tearing down testing environment...")
-    os.remove(model_path)
     os.remove(data_path)
-    os.remove(escape_data_path)
-    os.remove(escape_model_path)
+
+    os.remove(model_path)
     os.remove(aux_path)
+
     os.remove(bias_model_path)
     os.remove(bias_aux_path)
+
+    os.remove(monotonic_model_path)
+    os.remove(monotonic_aux_path)
+
+    os.remove(escape_data_path)
+    os.remove(escape_model_path)
+
     print("NOTE: Testing environment torn down...")
 
 
@@ -220,3 +258,14 @@ def test_bias_predicts_non_zero_on_wt():
         bias_analysis.model.seq_to_binary(bias_analysis.val_data.wtseq)
     )
     assert not torch.equal(wt_pred, torch.tensor([0.0]))
+
+
+def test_monotonic_params_from_latent_space():
+    """test to make sure that we're getting the correct parameters
+    from the method that returns all monotonic params"""
+
+    for param in monotonic_analysis.model.monotonic_params_from_latent_space():
+        assert np.all(torch.gt(param.data, 0).detach().numpy())
+
+    # Train model with bias_analysis object for 1 epoch
+    monotonic_analysis.train(**training_params)
