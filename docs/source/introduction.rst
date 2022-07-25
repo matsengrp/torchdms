@@ -14,13 +14,7 @@ Getting Started
 
 - To get started, follow the ``torchdms`` :ref:`Installation instructions <sec_installation>`.
 
-.. todo::
-  Create a few tutorials on using the CLI and link to page.
-
-- If you're interested in using the command line interface for ``torchdms``, check out the documentation and tutorials here.
-
-.. todo::
-  Create tutorials for key functionality in ``torchdms`` API -- planning on having notebooks as examples. Think about how to make this work nicely in the tutorials page.
+- If you're interested in using the command line interface for ``torchdms``, check out the :ref:`toy example analysis here <sec_tutorials>`.
 
 - If you're interested in using ``torchdms`` in your own python scripts or Jupyter notebooks, check out the :ref:`Tutorials page <sec_tutorials>`.
 
