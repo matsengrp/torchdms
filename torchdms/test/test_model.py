@@ -107,11 +107,10 @@ def setup_module(module):
         split_df_prepped.test.feature_count(),
         split_df_prepped.test.target_names,
         split_df_prepped.test.alphabet,
-        #non_lin_bias=True,
-        #output_bias=True,
-        monotonic_sign=1
+        # non_lin_bias=True,
+        # output_bias=True,
+        monotonic_sign=1,
     )
-
 
     # Escape models
     escape_model = torchdms.model.Escape(
@@ -265,7 +264,6 @@ def test_monotonic_params_from_latent_space():
     """test to make sure that we're getting the correct parameters
     from the method that returns all monotonic params"""
 
-    
     for param in monotonic_analysis.model.monotonic_params_from_latent_space():
         assert np.all(torch.gt(param.data, 0).detach().numpy())
 

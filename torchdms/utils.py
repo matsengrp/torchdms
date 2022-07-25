@@ -260,8 +260,4 @@ def activation_of_string(string):
     if hasattr(torch.nn.functional, string):
         return getattr(torch.nn.functional, string)
 
-    # else:
-    if string in custom_activations:
-        return custom_activations[string]
-
     raise IOError(f"Don't know activation named {string}.")
