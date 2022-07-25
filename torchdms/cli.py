@@ -335,6 +335,13 @@ def create(
     kwargs = dict(
         monotonic_sign=monotonic, non_lin_bias=non_lin_bias, output_bias=output_bias
     )
+    if monotonic and not non_lin_bias and not output_bias:
+        click.echo(
+            "NOTE: You have enabled monotonic contraints along with "
+            "no non-linear and output bias parameters. This is extremely"
+            "resptrictive to the model and often leads to non-fits"
+        )
+
     beta_l1_coefficients = float_list_of_comma_separated_string(beta_l1_coefficients)
     if beta_l1_coefficients is not None:
         if len(beta_l1_coefficients) == 1:
